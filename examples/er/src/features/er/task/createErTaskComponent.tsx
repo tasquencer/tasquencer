@@ -1,8 +1,8 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, type UseFormReturn } from 'react-hook-form'
-import { z } from 'zod/v3'
+import { useForm, type DefaultValues, type UseFormReturn } from 'react-hook-form'
+import { z } from 'zod'
 import type { Id, Doc } from '@/convex/_generated/dataModel'
 import type { TaskMetadata } from '@/types/er'
 import { TaskFormLayout } from '@/features/er/components/task-form-layout'
@@ -14,13 +14,13 @@ type MetaContext = {
 }
 
 export interface ErTaskRouteConfig<
-  Schema extends z.ZodObject<any, any, any, any>,
+  Schema extends z.ZodObject<z.ZodRawShape>,
 > {
   workflowTaskName: string
   schema: Schema
-  getDefaultValues: (context: MetaContext) => z.infer<Schema>
+  getDefaultValues: (context: MetaContext) => z.input<Schema>
   mapSubmit: (context: {
-    values: z.infer<Schema>
+    values: z.output<Schema>
     patient: Doc<'erPatients'>
     task: TaskMetadata
   }) => {
@@ -28,7 +28,7 @@ export interface ErTaskRouteConfig<
     name?: string
   }
   renderForm: (context: {
-    form: UseFormReturn<z.infer<Schema>>
+    form: UseFormReturn<z.input<Schema>, any, z.output<Schema>>
     patient: Doc<'erPatients'>
     task: TaskMetadata
     isStarted: boolean
@@ -41,7 +41,7 @@ export interface ErTaskRouteConfig<
   submitButtonText?: string
   submitButtonVariant?: 'default' | 'destructive'
   getSubmitProps?: (context: {
-    form: UseFormReturn<z.infer<Schema>>
+    form: UseFormReturn<z.input<Schema>, any, z.output<Schema>>
     patient: Doc<'erPatients'>
     task: TaskMetadata
   }) => {
@@ -57,8 +57,10 @@ export interface ErTaskRouteConfig<
 }
 
 export function createErTaskComponent<
-  Schema extends z.ZodObject<any, any, any, any>,
->(config: ErTaskRouteConfig<Schema>) {
+  Schema extends z.ZodObject<z.ZodRawShape>,
+>(
+  config: ErTaskRouteConfig<Schema>,
+) {
   const resolveMeta = (
     value: string | ((context: MetaContext) => string) | undefined,
     context: MetaContext,
@@ -69,7 +71,8 @@ export function createErTaskComponent<
     return value
   }
 
-  type FormValues = z.infer<Schema>
+  type FormInputValues = z.input<Schema>
+  type FormOutputValues = z.output<Schema>
 
   return function ErTaskComponent({
     workItemId,
@@ -99,9 +102,9 @@ export function createErTaskComponent<
       [patient, task],
     )
 
-    const form = useForm<FormValues>({
+    const form = useForm<FormInputValues, any, FormOutputValues>({
       resolver: zodResolver(config.schema),
-      defaultValues,
+      defaultValues: defaultValues as DefaultValues<FormInputValues>,
     })
 
     const handleClaim = async () => {
@@ -124,7 +127,7 @@ export function createErTaskComponent<
       }
     }
 
-    const handleValidSubmit = async (values: FormValues) => {
+    const handleValidSubmit = async (values: FormOutputValues) => {
       setSubmitting(true)
       setErrorMessage(null)
       try {

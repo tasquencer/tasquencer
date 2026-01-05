@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { z } from "zod/v3";
+import { z } from "zod";
 import { AuthForm } from "@/components/auth-form";
 
 const fallback = "/er" as const;

@@ -24,6 +24,7 @@ import { type MutationCtx } from "../../_generated/server";
 import { Workflow } from "../elements/workflow";
 import { Condition } from "../elements/condition";
 import { type Get } from "type-fest";
+import { z } from "zod";
 import {
   type GenericWorkflowActions,
   type GetWorkflowActionsDefinition,
@@ -262,7 +263,14 @@ export type GetWorkflowActions<
         payload: Get<
           GetWorkflowActionsDefinition<Get<TWorkflowActions, ["actions"]>>,
           [TActionName, "schema"]
-        >;
+        > extends z.ZodTypeAny
+          ? z.output<
+              Get<
+                GetWorkflowActionsDefinition<Get<TWorkflowActions, ["actions"]>>,
+                [TActionName, "schema"]
+              >
+            >
+          : unknown;
       }>
     : never;
 };
@@ -283,7 +291,14 @@ export type GetWorkItemActions<
         payload: Get<
           GetWorkItemActionsDefinition<Get<TWorkItemActions, ["actions"]>>,
           [TActionName, "schema"]
-        >;
+        > extends z.ZodTypeAny
+          ? z.output<
+              Get<
+                GetWorkItemActionsDefinition<Get<TWorkItemActions, ["actions"]>>,
+                [TActionName, "schema"]
+              >
+            >
+          : unknown;
       }>
     : never;
 };

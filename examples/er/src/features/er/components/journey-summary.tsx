@@ -124,25 +124,37 @@ const renderMetadata = (event: PatientTimelineEvent) => {
   // Combine severity and vitals into single line if both present
   // Skip if already shown in description
   const severityVitals: string[] = [];
-  if (typeof event.metadata.severity === "string" && !description.includes("Severity:")) {
+  if (
+    typeof event.metadata.severity === "string" &&
+    !description.includes("Severity:")
+  ) {
     severityVitals.push(
       `Severity: ${event.metadata.severity.charAt(0).toUpperCase() + event.metadata.severity.slice(1)}`
     );
   }
-  if (typeof event.metadata.vitalSigns === "string" && !description.includes("Vitals:")) {
+  if (
+    typeof event.metadata.vitalSigns === "string" &&
+    !description.includes("Vitals:")
+  ) {
     severityVitals.push(`Vitals: ${event.metadata.vitalSigns}`);
   }
   if (severityVitals.length > 0) {
     details.push(severityVitals.join(" · "));
   }
 
-  if (typeof event.metadata.prescribeMedication === "boolean" && !description.includes("Medication")) {
+  if (
+    typeof event.metadata.prescribeMedication === "boolean" &&
+    !description.includes("Medication")
+  ) {
     details.push(
       `Medication recommended: ${event.metadata.prescribeMedication ? "Yes" : "No"}`
     );
   }
 
-  if (typeof event.metadata.source === "string" && !description.includes("Source:")) {
+  if (
+    typeof event.metadata.source === "string" &&
+    !description.includes("Source:")
+  ) {
     const formattedSource = event.metadata.source
       .split("_")
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -150,17 +162,27 @@ const renderMetadata = (event: PatientTimelineEvent) => {
     details.push(`Source: ${formattedSource}`);
   }
 
-  if (typeof event.metadata.critical === "boolean" && event.metadata.critical && !description.includes("critical")) {
+  if (
+    typeof event.metadata.critical === "boolean" &&
+    event.metadata.critical &&
+    !description.includes("critical")
+  ) {
     details.push("Marked critical");
   }
 
-  if (typeof event.metadata.followUpRequired === "boolean" && !description.includes("Follow-up")) {
+  if (
+    typeof event.metadata.followUpRequired === "boolean" &&
+    !description.includes("Follow-up")
+  ) {
     details.push(
       `Follow-up required: ${event.metadata.followUpRequired ? "Yes" : "No"}`
     );
   }
 
-  if (typeof event.metadata.dischargeInstructions === "string" && !description.includes("Instructions:")) {
+  if (
+    typeof event.metadata.dischargeInstructions === "string" &&
+    !description.includes("Instructions:")
+  ) {
     details.push(`Instructions: ${event.metadata.dischargeInstructions}`);
   }
 
@@ -206,7 +228,6 @@ export function JourneySummary({
               icon: CheckCircle,
               badgeClass: "bg-gray-500 text-white border-transparent",
             };
-            const Icon = config.icon;
 
             // Override badge class for critical x-ray
             const badgeClass =
@@ -215,20 +236,20 @@ export function JourneySummary({
                 : config.badgeClass;
 
             return (
-              <div
-                key={event.id}
-                className="relative pl-10"
-              >
+              <div key={event.id} className="relative pl-10">
                 {/* Timeline dot */}
                 <div className="absolute left-0 top-0.5 flex h-10 w-10 items-center justify-center">
-                  <div className={cn(
-                    "h-3 w-3 rounded-full ring-4 ring-background",
-                    event.type === "xray_completed" && event.metadata?.critical
-                      ? "bg-red-500"
-                      : index === sortedTimeline.length - 1
-                        ? "bg-primary"
-                        : "bg-muted-foreground/40"
-                  )} />
+                  <div
+                    className={cn(
+                      "h-3 w-3 rounded-full ring-4 ring-background",
+                      event.type === "xray_completed" &&
+                        event.metadata?.critical
+                        ? "bg-red-500"
+                        : index === sortedTimeline.length - 1
+                          ? "bg-primary"
+                          : "bg-muted-foreground/40"
+                    )}
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between pb-2">

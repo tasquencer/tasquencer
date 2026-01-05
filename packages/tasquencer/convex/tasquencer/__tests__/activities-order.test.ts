@@ -5,7 +5,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 
 import schema from "../../schema";
 import { withVersionManagerBuilders } from "./helpers/versionManager";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 type ElementType = "workflow" | "task" | "compositeTask" | "workItem";
 

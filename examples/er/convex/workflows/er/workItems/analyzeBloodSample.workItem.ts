@@ -1,6 +1,6 @@
 import { Builder } from "../../../tasquencer";
-import { z } from "zod/v3";
-import { zid } from "convex-helpers/server/zod";
+import { z } from "zod";
+import { zid } from "convex-helpers/server/zod4";
 import { completeBloodWorkTask } from "../application/erApplication";
 import { getDiagnosticsByWorkflowId } from "../db";
 import { assertDiagnosticsExists } from "../exceptions";

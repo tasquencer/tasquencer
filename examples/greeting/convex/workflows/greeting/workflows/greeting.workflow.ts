@@ -1,5 +1,5 @@
 import { Builder } from '../../../tasquencer'
-import { z } from 'zod/v3'
+import { z } from 'zod'
 import { insertGreeting } from '../db'
 import { storeGreetingTask } from '../workItems/storeGreeting.workItem'
 

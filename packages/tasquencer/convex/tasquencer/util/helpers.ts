@@ -8,13 +8,13 @@ import {
 import { CompositeTask } from '../elements/compositeTask'
 import { DynamicCompositeTask } from '../elements/dynamicCompositeTask'
 import { BaseTask } from '../elements/baseTask'
-import { z } from 'zod/v3'
+import { z } from 'zod'
 
-function isNever(schema: z.ZodType<unknown>): schema is z.ZodNever {
+function isNever(schema: z.ZodTypeAny): schema is z.ZodNever {
   return schema instanceof z.ZodNever
 }
 
-export function parsePayload(schema: z.ZodType<unknown>, payload: unknown) {
+export function parsePayload(schema: z.ZodTypeAny, payload: unknown) {
   return isNever(schema) ? undefined : schema.parse(payload)
 }
 

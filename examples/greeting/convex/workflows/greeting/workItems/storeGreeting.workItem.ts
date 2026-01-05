@@ -1,5 +1,5 @@
 import { Builder } from '../../../tasquencer'
-import { z } from 'zod/v3'
+import { z } from 'zod'
 import { authService } from '../../../authorization'
 import { getGreetingByWorkflowId, updateGreetingMessage } from '../db'
 import { initializeGreetingWorkItemAuth } from './authHelpers'

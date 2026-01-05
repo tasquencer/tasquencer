@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import { z } from "zod";
 import { type Id } from "../../../_generated/dataModel";
 import {
   type RegisterScheduled,
@@ -13,7 +13,7 @@ import type { GenericMutationCtx } from "convex/server";
 
 export type WorkflowActionContext<
   TMutationCtx extends GenericMutationCtx<any>,
-  TWorkflowPayload extends object,
+  TWorkflowPayload,
 > = {
   mutationCtx: TMutationCtx;
   isInternalMutation: boolean;
@@ -36,12 +36,12 @@ export type WorkflowInitializeActionContext<
 };
 export type WorkflowInitializeAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkflowInitializeActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -56,21 +56,21 @@ export type WorkflowCancelActionContext<
 
 export type WorkflowCancelAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkflowCancelActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
 export type GenericWorkflowActions<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  initialize: WorkflowInitializeAction<TMutationCtx, TPayload>;
-  cancel: WorkflowCancelAction<TMutationCtx, TPayload>;
+  initialize: WorkflowInitializeAction<TMutationCtx, TSchema>;
+  cancel: WorkflowCancelAction<TMutationCtx, TSchema>;
 };
 
 export type GetWorkflowActionsDefinition<T> =
@@ -88,7 +88,10 @@ export type GetTypeForWorkflowAction<
     any,
     infer TWorkflowActionsDefinition
   >
-    ? Get<TWorkflowActionsDefinition, [TActionName, "schema"]>
+    ? Get<TWorkflowActionsDefinition, [TActionName, "schema"]> extends
+        z.ZodTypeAny
+      ? z.output<Get<TWorkflowActionsDefinition, [TActionName, "schema"]>>
+      : unknown
     : never;
 
 export class WorkflowActions<
@@ -115,17 +118,14 @@ export class WorkflowActions<
     });
   }
   constructor(readonly actions: GenericWorkflowActions<any, any>) {}
-  initialize<TSchema extends z.ZodType>(
+  initialize<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkflowInitializeActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkflowInitializeAction<
-      TMutationCtx,
-      z.infer<TSchema>
-    > = {
+    const definition: WorkflowInitializeAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -133,7 +133,7 @@ export class WorkflowActions<
     return new WorkflowActions<
       TMutationCtx,
       TWorkflowActionsDefinition & {
-        initialize: WorkflowInitializeAction<TMutationCtx, z.infer<TSchema>>;
+        initialize: WorkflowInitializeAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -141,14 +141,14 @@ export class WorkflowActions<
     });
   }
 
-  cancel<TSchema extends z.ZodType>(
+  cancel<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkflowCancelActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkflowCancelAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkflowCancelAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -156,7 +156,7 @@ export class WorkflowActions<
     return new WorkflowActions<
       TMutationCtx,
       TWorkflowActionsDefinition & {
-        cancel: WorkflowCancelAction<TMutationCtx, z.infer<TSchema>>;
+        cancel: WorkflowCancelAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,

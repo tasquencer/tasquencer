@@ -1,6 +1,6 @@
 import { setup, Builder } from "./setup.test";
 import { describe, it, expect, vi } from "vitest";
-import { z } from "zod/v3";
+import { z } from "zod";
 import schema from "../../schema";
 
 import type { MutationCtx } from "../../_generated/server";

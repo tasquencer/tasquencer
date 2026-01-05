@@ -1,8 +1,8 @@
 import { Builder } from "../../../tasquencer";
 import { conductXRayTask } from "../workItems/conductXRay.workItem";
 import { analyzeBloodSampleTask } from "../workItems/analyzeBloodSample.workItem";
-import { z } from "zod/v3";
-import { zid } from "convex-helpers/server/zod";
+import { z } from "zod";
+import { zid } from "convex-helpers/server/zod4";
 import {
   insertDiagnostics,
   getDiagnosticsByWorkflowId,

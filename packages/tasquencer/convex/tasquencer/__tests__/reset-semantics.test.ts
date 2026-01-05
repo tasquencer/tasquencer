@@ -4,7 +4,7 @@ import { internal } from "../../../convex/_generated/api";
 
 import schema from "../../schema";
 import { registerVersionManagersForTesting } from "./helpers/versionManager";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 const WORKFLOW_VERSION_NAME = "v0";
 

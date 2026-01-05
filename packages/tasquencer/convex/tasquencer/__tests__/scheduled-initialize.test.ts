@@ -4,7 +4,7 @@ import schema from "../../schema";
 
 import { withVersionManagerBuilders } from "./helpers/versionManager";
 import { internal } from "../../_generated/api";
-import { z } from "zod/v3";
+import { z } from "zod";
 import { workflowKey, taskKey, workItemKey } from "../util/scheduler";
 import { type Id } from "../../_generated/dataModel";
 

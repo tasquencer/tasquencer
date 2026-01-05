@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v3";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -82,7 +82,9 @@ function NewPatient() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold">Patient Information</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                Patient Information
+              </CardTitle>
               <CardDescription>
                 Enter patient details to begin triage and diagnostics.
               </CardDescription>
@@ -138,12 +140,11 @@ function NewPatient() {
               <Button
                 type="submit"
                 disabled={canAdmit === false}
-                loading={form.formState.isSubmitting}
                 size="lg"
                 className="gap-2"
               >
                 <UserPlus className="h-4 w-4" />
-                Admit Patient
+                {form.formState.isSubmitting ? "Admitting..." : "Admit Patient"}
               </Button>
             </CardFooter>
           </Card>

@@ -1,6 +1,6 @@
 import { Builder } from "../../../tasquencer";
-import { z } from "zod/v3";
-import { zid } from "convex-helpers/server/zod3";
+import { z } from "zod";
+import { zid } from "convex-helpers/server/zod4";
 import { completeReviewTask } from "../application/erApplication";
 import {
   startAndClaimWorkItem,

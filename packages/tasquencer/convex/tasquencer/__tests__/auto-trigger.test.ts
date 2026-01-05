@@ -8,7 +8,7 @@ import {
   withVersionManagerBuilders,
   withVersionManagers,
 } from "./helpers/versionManager";
-import { z } from "zod/v3";
+import { z } from "zod";
 
 const WORKFLOW_VERSION_NAME = "v0";
 

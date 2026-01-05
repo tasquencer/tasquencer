@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import { z } from "zod";
 import { type Id } from "../../../_generated/dataModel";
 import {
   type RegisterScheduled,
@@ -12,7 +12,7 @@ import type { GenericMutationCtx } from "convex/server";
 
 export type WorkItemActionContext<
   TMutationCtx extends GenericMutationCtx<any>,
-  TWorkItemPayload extends object,
+  TWorkItemPayload,
 > = {
   mutationCtx: TMutationCtx;
   isInternalMutation: boolean;
@@ -35,12 +35,12 @@ export type WorkItemInitializeActionContext<
 };
 export type WorkItemInitializeAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemInitializeActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -56,12 +56,12 @@ export type WorkItemStartActionContext<
 };
 export type WorkItemStartAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemStartActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -75,12 +75,12 @@ export type WorkItemCompleteActionContext<
 >;
 export type WorkItemCompleteAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemCompleteActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -95,12 +95,12 @@ export type WorkItemFailActionContext<
 
 export type WorkItemFailAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemFailActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -115,12 +115,12 @@ export type WorkItemCancelActionContext<
 
 export type WorkItemCancelAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemCancelActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
@@ -134,25 +134,25 @@ export type WorkItemResetActionContext<
 >;
 export type WorkItemResetAction<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  schema: TPayload;
+  schema: TSchema;
   callback: (
     ctx: WorkItemResetActionContext<TMutationCtx>,
-    payload: TPayload
+    payload: z.output<TSchema>
   ) => Promise<void>;
 };
 
 export type GenericWorkItemActions<
   TMutationCtx extends GenericMutationCtx<any>,
-  TPayload,
+  TSchema extends z.ZodTypeAny,
 > = {
-  initialize: WorkItemInitializeAction<TMutationCtx, TPayload>;
-  start: WorkItemStartAction<TMutationCtx, TPayload>;
-  complete: WorkItemCompleteAction<TMutationCtx, TPayload>;
-  fail: WorkItemFailAction<TMutationCtx, TPayload>;
-  cancel: WorkItemCancelAction<TMutationCtx, TPayload>;
-  reset: WorkItemResetAction<TMutationCtx, TPayload>;
+  initialize: WorkItemInitializeAction<TMutationCtx, TSchema>;
+  start: WorkItemStartAction<TMutationCtx, TSchema>;
+  complete: WorkItemCompleteAction<TMutationCtx, TSchema>;
+  fail: WorkItemFailAction<TMutationCtx, TSchema>;
+  cancel: WorkItemCancelAction<TMutationCtx, TSchema>;
+  reset: WorkItemResetAction<TMutationCtx, TSchema>;
 };
 
 export type GetWorkItemActionsDefinition<T> =
@@ -165,7 +165,10 @@ export type GetSchemaForWorkItemAction<
   TActionName extends keyof GenericWorkItemActions<any, any>,
 > =
   TWorkItemActions extends WorkItemActions<infer TWorkItemActionsDefinition>
-    ? Get<TWorkItemActionsDefinition, [TActionName, "schema"]>
+    ? Get<TWorkItemActionsDefinition, [TActionName, "schema"]> extends
+        z.ZodTypeAny
+      ? z.output<Get<TWorkItemActionsDefinition, [TActionName, "schema"]>>
+      : unknown
     : never;
 
 export type AnyWorkItemActions = WorkItemActions<any, any>;
@@ -221,17 +224,14 @@ export class WorkItemActions<
     });
   }
   constructor(readonly actions: GenericWorkItemActions<any, any>) {}
-  initialize<TSchema extends z.ZodType>(
+  initialize<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemInitializeActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemInitializeAction<
-      TMutationCtx,
-      z.infer<TSchema>
-    > = {
+    const definition: WorkItemInitializeAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -239,7 +239,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        initialize: WorkItemInitializeAction<TMutationCtx, z.infer<TSchema>>;
+        initialize: WorkItemInitializeAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -247,14 +247,14 @@ export class WorkItemActions<
     });
   }
 
-  start<TSchema extends z.ZodType>(
+  start<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemStartActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemStartAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemStartAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -262,7 +262,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        start: WorkItemStartAction<TMutationCtx, z.infer<TSchema>>;
+        start: WorkItemStartAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -270,14 +270,14 @@ export class WorkItemActions<
     });
   }
 
-  complete<TSchema extends z.ZodType>(
+  complete<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemCompleteActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemCompleteAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemCompleteAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -285,7 +285,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        complete: WorkItemCompleteAction<TMutationCtx, z.infer<TSchema>>;
+        complete: WorkItemCompleteAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -293,14 +293,14 @@ export class WorkItemActions<
     });
   }
 
-  fail<TSchema extends z.ZodType>(
+  fail<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemFailActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemFailAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemFailAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -308,7 +308,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        fail: WorkItemFailAction<TMutationCtx, z.infer<TSchema>>;
+        fail: WorkItemFailAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -316,14 +316,14 @@ export class WorkItemActions<
     });
   }
 
-  cancel<TSchema extends z.ZodType>(
+  cancel<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemCancelActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemCancelAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemCancelAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -331,7 +331,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        cancel: WorkItemCancelAction<TMutationCtx, z.infer<TSchema>>;
+        cancel: WorkItemCancelAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,
@@ -359,14 +359,14 @@ export class WorkItemActions<
    * )
    * ```
    */
-  reset<TSchema extends z.ZodType>(
+  reset<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
     callback: (
       ctx: WorkItemResetActionContext<TMutationCtx>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemResetAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemResetAction<TMutationCtx, TSchema> = {
       schema,
       callback,
     };
@@ -374,7 +374,7 @@ export class WorkItemActions<
     return new WorkItemActions<
       TMutationCtx,
       TWorkItemActionsDefinition & {
-        reset: WorkItemResetAction<TMutationCtx, z.infer<TSchema>>;
+        reset: WorkItemResetAction<TMutationCtx, TSchema>;
       }
     >({
       ...this.actions,

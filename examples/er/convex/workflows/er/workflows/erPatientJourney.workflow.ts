@@ -1,5 +1,5 @@
 import { Builder } from "../../../tasquencer";
-import { z } from "zod/v3";
+import { z } from "zod";
 import { triagePatientTask } from "../workItems/triagePatient.workItem";
 import { performSurgeryTask } from "../workItems/performSurgery.workItem";
 import { reviewDiagnosticsTask } from "../workItems/reviewDiagnostics.workItem";

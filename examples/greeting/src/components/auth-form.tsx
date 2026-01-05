@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@repo/ui/components/card'
 import { Input } from '@repo/ui/components/input'
-import { z } from 'zod/v3'
+import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import {

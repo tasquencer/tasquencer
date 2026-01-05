@@ -1,6 +1,6 @@
 import { Builder } from "../../../tasquencer";
-import { z } from "zod/v3";
-import { zid } from "convex-helpers/server/zod";
+import { z } from "zod";
+import { zid } from "convex-helpers/server/zod4";
 import { completeDailyMedicationTask } from "../application/erApplication";
 import { getHospitalStayByWorkflowId } from "../db";
 import { assertHospitalStayExists } from "../exceptions";

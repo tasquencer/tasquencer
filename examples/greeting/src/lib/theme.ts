@@ -1,4 +1,4 @@
-import { type Theme } from '@repo/ui/components/theme-provider'
+import { type Theme } from '@/components/theme-provider'
 import { createServerFn } from '@tanstack/react-start'
 import { getCookie, setCookie } from '@tanstack/react-start/server'
 

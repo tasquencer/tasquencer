@@ -2,7 +2,11 @@ import { type Get } from "type-fest";
 import { type MutationCtx } from "../../_generated/server";
 import { Task } from "../elements/task";
 import { WorkItem } from "../elements/workItem";
-import { type RegisterScheduled, type WorkflowExecutionMode } from "../types";
+import {
+  type RegisterScheduled,
+  type ShouldBeOptional,
+  type WorkflowExecutionMode,
+} from "../types";
 import { type AuditCallbackInfo } from "../audit/integration";
 import {
   type AnyWorkItemActions,
@@ -31,8 +35,8 @@ export type WorkItemOnInitializedContext<
 > = WorkItemActivityContext & {
   registerScheduled: RegisterScheduled;
   workItem: WorkItemInfo & {
-    start: any extends TWorkItemStartActionPayload
-      ? (payload?: unknown) => void
+    start: ShouldBeOptional<TWorkItemStartActionPayload> extends true
+      ? (payload?: TWorkItemStartActionPayload) => void
       : (payload: TWorkItemStartActionPayload) => void;
   };
 };
@@ -44,14 +48,14 @@ export type WorkItemOnStartedContext<
 > = WorkItemActivityContext & {
   registerScheduled: RegisterScheduled;
   workItem: WorkItemInfo & {
-    complete: any extends TWorkItemCompleteActionPayload
-      ? (payload?: unknown) => void
+    complete: ShouldBeOptional<TWorkItemCompleteActionPayload> extends true
+      ? (payload?: TWorkItemCompleteActionPayload) => void
       : (payload: TWorkItemCompleteActionPayload) => void;
-    fail: any extends TWorkItemFailActionPayload
-      ? (payload?: unknown) => void
+    fail: ShouldBeOptional<TWorkItemFailActionPayload> extends true
+      ? (payload?: TWorkItemFailActionPayload) => void
       : (payload: TWorkItemFailActionPayload) => void;
-    cancel: any extends TWorkItemCancelActionPayload
-      ? (payload?: unknown) => void
+    cancel: ShouldBeOptional<TWorkItemCancelActionPayload> extends true
+      ? (payload?: TWorkItemCancelActionPayload) => void
       : (payload: TWorkItemCancelActionPayload) => void;
   };
 };

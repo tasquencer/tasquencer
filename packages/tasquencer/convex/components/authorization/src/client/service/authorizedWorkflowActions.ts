@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import { z } from "zod";
 import type { GenericMutationCtx } from "convex/server";
 import type {
   GenericWorkflowActions,
@@ -72,17 +72,17 @@ export class AuthorizedWorkflowActions<
     };
   }
   private wrapCallbackWithAuthorizationPolicy<
-    TSchema extends z.ZodType,
+    TSchema extends z.ZodTypeAny,
     TWorkflowContext extends WorkflowActionContext<TMutationCtx, any>,
   >(
-    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: TWorkflowContext &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    return async (ctx: TWorkflowContext, payload: z.infer<TSchema>) => {
+    return async (ctx: TWorkflowContext, payload: z.output<TSchema>) => {
       if (ctx.isInternalMutation) {
         return await callback(
           this.extendActionContextWithAuthorization(ctx, null),
@@ -106,19 +106,16 @@ export class AuthorizedWorkflowActions<
     };
   }
 
-  initialize<TSchema extends z.ZodType>(
+  initialize<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkflowInitializeActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkflowInitializeAction<
-      TMutationCtx,
-      z.infer<TSchema>
-    > = {
+    const definition: WorkflowInitializeAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -128,7 +125,7 @@ export class AuthorizedWorkflowActions<
       TMutationCtx,
       TScope,
       TWorkflowActionsDefinition & {
-        initialize: WorkflowInitializeAction<TMutationCtx, z.infer<TSchema>>;
+        initialize: WorkflowInitializeAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -136,16 +133,16 @@ export class AuthorizedWorkflowActions<
     });
   }
 
-  cancel<TSchema extends z.ZodType>(
+  cancel<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkflowPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkflowCancelActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkflowCancelAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkflowCancelAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -155,7 +152,7 @@ export class AuthorizedWorkflowActions<
       TMutationCtx,
       TScope,
       TWorkflowActionsDefinition & {
-        cancel: WorkflowCancelAction<TMutationCtx, z.infer<TSchema>>;
+        cancel: WorkflowCancelAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,

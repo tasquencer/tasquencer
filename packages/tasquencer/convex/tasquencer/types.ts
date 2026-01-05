@@ -1,4 +1,4 @@
-import z from "zod/v3";
+import { z } from "zod";
 import { type Id } from "../_generated/dataModel";
 import { CompositeTaskBuilder } from "./builder/compositeTask";
 import { TaskBuilder } from "./builder/task";
@@ -100,7 +100,7 @@ export type GetAnyTaskSplitType<TTaskBuilder> =
           ? TSplitType
           : never;
 
-export type AnyZodType = z.ZodType<any, any, any>;
+export type AnyZodType = z.ZodTypeAny;
 
 export type RegisterScheduled = (
   scheduled: Promise<Id<"_scheduled_functions">>

@@ -1,4 +1,4 @@
-import { z } from "zod/v3";
+import { z } from "zod";
 import type { GenericMutationCtx } from "convex/server";
 import type {
   GenericWorkItemActions,
@@ -81,17 +81,17 @@ export class AuthorizedWorkItemActions<
     };
   }
   private wrapCallbackWithAuthorizationPolicy<
-    TSchema extends z.ZodType,
+    TSchema extends z.ZodTypeAny,
     TWorkItemContext extends WorkItemActionContext<TMutationCtx, any>,
   >(
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: TWorkItemContext &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    return async (ctx: TWorkItemContext, payload: z.infer<TSchema>) => {
+    return async (ctx: TWorkItemContext, payload: z.output<TSchema>) => {
       if (ctx.isInternalMutation) {
         return await callback(
           this.extendActionContextWithAuthorization(ctx, null),
@@ -119,19 +119,16 @@ export class AuthorizedWorkItemActions<
     };
   }
 
-  initialize<TSchema extends z.ZodType>(
+  initialize<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemInitializeActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemInitializeAction<
-      TMutationCtx,
-      z.infer<TSchema>
-    > = {
+    const definition: WorkItemInitializeAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -141,7 +138,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        initialize: WorkItemInitializeAction<TMutationCtx, z.infer<TSchema>>;
+        initialize: WorkItemInitializeAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -149,16 +146,16 @@ export class AuthorizedWorkItemActions<
     });
   }
 
-  start<TSchema extends z.ZodType>(
+  start<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemStartActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemStartAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemStartAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -168,7 +165,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        start: WorkItemStartAction<TMutationCtx, z.infer<TSchema>>;
+        start: WorkItemStartAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -176,16 +173,16 @@ export class AuthorizedWorkItemActions<
     });
   }
 
-  complete<TSchema extends z.ZodType>(
+  complete<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemCompleteActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemCompleteAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemCompleteAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -195,7 +192,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        complete: WorkItemCompleteAction<TMutationCtx, z.infer<TSchema>>;
+        complete: WorkItemCompleteAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -203,16 +200,16 @@ export class AuthorizedWorkItemActions<
     });
   }
 
-  fail<TSchema extends z.ZodType>(
+  fail<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemFailActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemFailAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemFailAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -222,7 +219,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        fail: WorkItemFailAction<TMutationCtx, z.infer<TSchema>>;
+        fail: WorkItemFailAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -230,16 +227,16 @@ export class AuthorizedWorkItemActions<
     });
   }
 
-  cancel<TSchema extends z.ZodType>(
+  cancel<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemCancelActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemCancelAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemCancelAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -249,7 +246,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        cancel: WorkItemCancelAction<TMutationCtx, z.infer<TSchema>>;
+        cancel: WorkItemCancelAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,
@@ -257,16 +254,16 @@ export class AuthorizedWorkItemActions<
     });
   }
 
-  reset<TSchema extends z.ZodType>(
+  reset<TSchema extends z.ZodTypeAny>(
     schema: TSchema,
-    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.infer<TSchema>>,
+    policy: WorkItemPolicy<TAuthUserProvider, TScope, z.output<TSchema>>,
     callback: (
       ctx: WorkItemResetActionContext<TMutationCtx> &
         AuthorizationContext<TAuthUserProvider, TScope, true>,
-      payload: z.infer<TSchema>
+      payload: z.output<TSchema>
     ) => Promise<void>
   ) {
-    const definition: WorkItemResetAction<TMutationCtx, z.infer<TSchema>> = {
+    const definition: WorkItemResetAction<TMutationCtx, TSchema> = {
       schema,
       callback: this.wrapCallbackWithAuthorizationPolicy(policy, callback),
     };
@@ -276,7 +273,7 @@ export class AuthorizedWorkItemActions<
       TMutationCtx,
       TScope,
       TWorkItemActionsDefinition & {
-        reset: WorkItemResetAction<TMutationCtx, z.infer<TSchema>>;
+        reset: WorkItemResetAction<TMutationCtx, TSchema>;
       }
     >(this.authorizationService, this.userProvider, {
       ...this.actions,

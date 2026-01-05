@@ -31,14 +31,14 @@ export type AuthorizationContext<
 export type WorkItemPolicyContext<
   TAuthUserProvider extends AnyAuthorizationUserProvider,
   TScope extends string,
-  TWorkItemPayload extends object,
+  TWorkItemPayload,
 > = WorkItemActionContext<GenericMutationCtx<any>, TWorkItemPayload> &
   AuthorizationContext<TAuthUserProvider, TScope>;
 
 export type WorkItemPolicy<
   TAuthUserProvider extends AnyAuthorizationUserProvider,
   TScope extends string = never,
-  TWorkItemPayload extends object = any,
+  TWorkItemPayload = any,
 > = (
   ctx: WorkItemPolicyContext<TAuthUserProvider, TScope, TWorkItemPayload>,
   payload: TWorkItemPayload
@@ -47,14 +47,14 @@ export type WorkItemPolicy<
 export type WorkflowPolicyContext<
   TAuthUserProvider extends AnyAuthorizationUserProvider,
   TScope extends string,
-  TWorkflowPayload extends object,
+  TWorkflowPayload,
 > = WorkflowActionContext<GenericMutationCtx<any>, TWorkflowPayload> &
   AuthorizationContext<TAuthUserProvider, TScope>;
 
 export type WorkflowPolicy<
   TAuthUserProvider extends AnyAuthorizationUserProvider,
   TScope extends string = never,
-  TWorkflowPayload extends object = any,
+  TWorkflowPayload = any,
 > = (
   ctx: WorkflowPolicyContext<TAuthUserProvider, TScope, TWorkflowPayload>,
   payload: TWorkflowPayload
