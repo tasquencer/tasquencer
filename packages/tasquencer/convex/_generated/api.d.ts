@@ -73,6 +73,8 @@ import type * as tasquencer_util_workflowHelpers from "../tasquencer/util/workfl
 import type * as tasquencer_versionManager from "../tasquencer/versionManager.js";
 import type * as tasquencer_versionManager_migration from "../tasquencer/versionManager/migration.js";
 import type * as testing_tasquencer from "../testing/tasquencer.js";
+import type * as workflows_validator_api from "../workflows/validator/api.js";
+import type * as workflows_validator_definition from "../workflows/validator/definition.js";
 
 import type {
   ApiFromModules,
@@ -146,6 +148,8 @@ declare const fullApi: ApiFromModules<{
   "tasquencer/versionManager": typeof tasquencer_versionManager;
   "tasquencer/versionManager/migration": typeof tasquencer_versionManager_migration;
   "testing/tasquencer": typeof testing_tasquencer;
+  "workflows/validator/api": typeof workflows_validator_api;
+  "workflows/validator/definition": typeof workflows_validator_definition;
 }>;
 
 /**
@@ -293,6 +297,7 @@ export declare const components: {
           workflowName?: string;
         },
         Array<{
+          endedAt?: number;
           generation: number;
           startedAt: number;
           state: string;

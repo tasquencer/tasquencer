@@ -15,13 +15,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppErRouteImport } from './routes/_app/er'
 import { Route as AppAuditRouteImport } from './routes/_app/audit'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
-import { Route as AppSimpleIndexRouteImport } from './routes/_app/simple/index'
 import { Route as AppErIndexRouteImport } from './routes/_app/er/index'
 import { Route as AppAuditIndexRouteImport } from './routes/_app/audit/index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AppSimpleQueueRouteImport } from './routes/_app/simple/queue'
-import { Route as AppSimpleNewRouteImport } from './routes/_app/simple/new'
 import { Route as AppErQueueRouteImport } from './routes/_app/er/queue'
 import { Route as AppErNewRouteImport } from './routes/_app/er/new'
 import { Route as AppErPatientIdRouteImport } from './routes/_app/er/$patientId'
@@ -32,7 +29,6 @@ import { Route as AppAdminGroupsRouteImport } from './routes/_app/admin/groups'
 import { Route as AppAuditTraceIdIndexRouteImport } from './routes/_app/audit/$traceId.index'
 import { Route as AppAdminUsersIndexRouteImport } from './routes/_app/admin/users.index'
 import { Route as AppAuditTraceIdVisualizerRouteImport } from './routes/_app/audit/$traceId.visualizer'
-import { Route as AppSimpleTasksStoreWorkItemIdRouteImport } from './routes/_app/simple/tasks/store.$workItemId'
 import { Route as AppErTasksXrayWorkItemIdRouteImport } from './routes/_app/er/tasks.xray.$workItemId'
 import { Route as AppErTasksTriageWorkItemIdRouteImport } from './routes/_app/er/tasks.triage.$workItemId'
 import { Route as AppErTasksSurgeryWorkItemIdRouteImport } from './routes/_app/er/tasks.surgery.$workItemId'
@@ -75,11 +71,6 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSimpleIndexRoute = AppSimpleIndexRouteImport.update({
-  id: '/simple/',
-  path: '/simple/',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppErIndexRoute = AppErIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -99,16 +90,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppSimpleQueueRoute = AppSimpleQueueRouteImport.update({
-  id: '/simple/queue',
-  path: '/simple/queue',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSimpleNewRoute = AppSimpleNewRouteImport.update({
-  id: '/simple/new',
-  path: '/simple/new',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppErQueueRoute = AppErQueueRouteImport.update({
   id: '/queue',
@@ -160,12 +141,6 @@ const AppAuditTraceIdVisualizerRoute =
     id: '/visualizer',
     path: '/visualizer',
     getParentRoute: () => AppAuditTraceIdRoute,
-  } as any)
-const AppSimpleTasksStoreWorkItemIdRoute =
-  AppSimpleTasksStoreWorkItemIdRouteImport.update({
-    id: '/simple/tasks/store/$workItemId',
-    path: '/simple/tasks/store/$workItemId',
-    getParentRoute: () => AppRoute,
   } as any)
 const AppErTasksXrayWorkItemIdRoute =
   AppErTasksXrayWorkItemIdRouteImport.update({
@@ -253,13 +228,10 @@ export interface FileRoutesByFullPath {
   '/er/$patientId': typeof AppErPatientIdRoute
   '/er/new': typeof AppErNewRoute
   '/er/queue': typeof AppErQueueRoute
-  '/simple/new': typeof AppSimpleNewRoute
-  '/simple/queue': typeof AppSimpleQueueRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AppAdminIndexRoute
   '/audit/': typeof AppAuditIndexRoute
   '/er/': typeof AppErIndexRoute
-  '/simple': typeof AppSimpleIndexRoute
   '/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
   '/admin/users/': typeof AppAdminUsersIndexRoute
   '/audit/$traceId/': typeof AppAuditTraceIdIndexRoute
@@ -275,7 +247,6 @@ export interface FileRoutesByFullPath {
   '/er/tasks/surgery/$workItemId': typeof AppErTasksSurgeryWorkItemIdRoute
   '/er/tasks/triage/$workItemId': typeof AppErTasksTriageWorkItemIdRoute
   '/er/tasks/xray/$workItemId': typeof AppErTasksXrayWorkItemIdRoute
-  '/simple/tasks/store/$workItemId': typeof AppSimpleTasksStoreWorkItemIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -285,13 +256,10 @@ export interface FileRoutesByTo {
   '/er/$patientId': typeof AppErPatientIdRoute
   '/er/new': typeof AppErNewRoute
   '/er/queue': typeof AppErQueueRoute
-  '/simple/new': typeof AppSimpleNewRoute
-  '/simple/queue': typeof AppSimpleQueueRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AppAdminIndexRoute
   '/audit': typeof AppAuditIndexRoute
   '/er': typeof AppErIndexRoute
-  '/simple': typeof AppSimpleIndexRoute
   '/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
   '/audit/$traceId': typeof AppAuditTraceIdIndexRoute
@@ -307,7 +275,6 @@ export interface FileRoutesByTo {
   '/er/tasks/surgery/$workItemId': typeof AppErTasksSurgeryWorkItemIdRoute
   '/er/tasks/triage/$workItemId': typeof AppErTasksTriageWorkItemIdRoute
   '/er/tasks/xray/$workItemId': typeof AppErTasksXrayWorkItemIdRoute
-  '/simple/tasks/store/$workItemId': typeof AppSimpleTasksStoreWorkItemIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -324,13 +291,10 @@ export interface FileRoutesById {
   '/_app/er/$patientId': typeof AppErPatientIdRoute
   '/_app/er/new': typeof AppErNewRoute
   '/_app/er/queue': typeof AppErQueueRoute
-  '/_app/simple/new': typeof AppSimpleNewRoute
-  '/_app/simple/queue': typeof AppSimpleQueueRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/audit/': typeof AppAuditIndexRoute
   '/_app/er/': typeof AppErIndexRoute
-  '/_app/simple/': typeof AppSimpleIndexRoute
   '/_app/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
   '/_app/admin/users/': typeof AppAdminUsersIndexRoute
   '/_app/audit/$traceId/': typeof AppAuditTraceIdIndexRoute
@@ -346,7 +310,6 @@ export interface FileRoutesById {
   '/_app/er/tasks/surgery/$workItemId': typeof AppErTasksSurgeryWorkItemIdRoute
   '/_app/er/tasks/triage/$workItemId': typeof AppErTasksTriageWorkItemIdRoute
   '/_app/er/tasks/xray/$workItemId': typeof AppErTasksXrayWorkItemIdRoute
-  '/_app/simple/tasks/store/$workItemId': typeof AppSimpleTasksStoreWorkItemIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -363,13 +326,10 @@ export interface FileRouteTypes {
     | '/er/$patientId'
     | '/er/new'
     | '/er/queue'
-    | '/simple/new'
-    | '/simple/queue'
     | '/api/auth/$'
     | '/admin/'
     | '/audit/'
     | '/er/'
-    | '/simple'
     | '/audit/$traceId/visualizer'
     | '/admin/users/'
     | '/audit/$traceId/'
@@ -385,7 +345,6 @@ export interface FileRouteTypes {
     | '/er/tasks/surgery/$workItemId'
     | '/er/tasks/triage/$workItemId'
     | '/er/tasks/xray/$workItemId'
-    | '/simple/tasks/store/$workItemId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -395,13 +354,10 @@ export interface FileRouteTypes {
     | '/er/$patientId'
     | '/er/new'
     | '/er/queue'
-    | '/simple/new'
-    | '/simple/queue'
     | '/api/auth/$'
     | '/admin'
     | '/audit'
     | '/er'
-    | '/simple'
     | '/audit/$traceId/visualizer'
     | '/admin/users'
     | '/audit/$traceId'
@@ -417,7 +373,6 @@ export interface FileRouteTypes {
     | '/er/tasks/surgery/$workItemId'
     | '/er/tasks/triage/$workItemId'
     | '/er/tasks/xray/$workItemId'
-    | '/simple/tasks/store/$workItemId'
   id:
     | '__root__'
     | '/'
@@ -433,13 +388,10 @@ export interface FileRouteTypes {
     | '/_app/er/$patientId'
     | '/_app/er/new'
     | '/_app/er/queue'
-    | '/_app/simple/new'
-    | '/_app/simple/queue'
     | '/api/auth/$'
     | '/_app/admin/'
     | '/_app/audit/'
     | '/_app/er/'
-    | '/_app/simple/'
     | '/_app/audit/$traceId/visualizer'
     | '/_app/admin/users/'
     | '/_app/audit/$traceId/'
@@ -455,7 +407,6 @@ export interface FileRouteTypes {
     | '/_app/er/tasks/surgery/$workItemId'
     | '/_app/er/tasks/triage/$workItemId'
     | '/_app/er/tasks/xray/$workItemId'
-    | '/_app/simple/tasks/store/$workItemId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -509,13 +460,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/simple/': {
-      id: '/_app/simple/'
-      path: '/simple'
-      fullPath: '/simple'
-      preLoaderRoute: typeof AppSimpleIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/er/': {
       id: '/_app/er/'
       path: '/'
@@ -543,20 +487,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/simple/queue': {
-      id: '/_app/simple/queue'
-      path: '/simple/queue'
-      fullPath: '/simple/queue'
-      preLoaderRoute: typeof AppSimpleQueueRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/simple/new': {
-      id: '/_app/simple/new'
-      path: '/simple/new'
-      fullPath: '/simple/new'
-      preLoaderRoute: typeof AppSimpleNewRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/er/queue': {
       id: '/_app/er/queue'
@@ -627,13 +557,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/audit/$traceId/visualizer'
       preLoaderRoute: typeof AppAuditTraceIdVisualizerRouteImport
       parentRoute: typeof AppAuditTraceIdRoute
-    }
-    '/_app/simple/tasks/store/$workItemId': {
-      id: '/_app/simple/tasks/store/$workItemId'
-      path: '/simple/tasks/store/$workItemId'
-      fullPath: '/simple/tasks/store/$workItemId'
-      preLoaderRoute: typeof AppSimpleTasksStoreWorkItemIdRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/er/tasks/xray/$workItemId': {
       id: '/_app/er/tasks/xray/$workItemId'
@@ -825,20 +748,12 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
   AppAuditRoute: typeof AppAuditRouteWithChildren
   AppErRoute: typeof AppErRouteWithChildren
-  AppSimpleNewRoute: typeof AppSimpleNewRoute
-  AppSimpleQueueRoute: typeof AppSimpleQueueRoute
-  AppSimpleIndexRoute: typeof AppSimpleIndexRoute
-  AppSimpleTasksStoreWorkItemIdRoute: typeof AppSimpleTasksStoreWorkItemIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRouteWithChildren,
   AppAuditRoute: AppAuditRouteWithChildren,
   AppErRoute: AppErRouteWithChildren,
-  AppSimpleNewRoute: AppSimpleNewRoute,
-  AppSimpleQueueRoute: AppSimpleQueueRoute,
-  AppSimpleIndexRoute: AppSimpleIndexRoute,
-  AppSimpleTasksStoreWorkItemIdRoute: AppSimpleTasksStoreWorkItemIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -13,6 +13,7 @@ import type * as admin_authorization from "../admin/authorization.js";
 import type * as auth from "../auth.js";
 import type * as authorization from "../authorization.js";
 import type * as http from "../http.js";
+import type * as scaffold from "../scaffold.js";
 import type * as tasquencer from "../tasquencer.js";
 import type * as workflows_greeting_api from "../workflows/greeting/api.js";
 import type * as workflows_greeting_authSetup from "../workflows/greeting/authSetup.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authorization: typeof authorization;
   http: typeof http;
+  scaffold: typeof scaffold;
   tasquencer: typeof tasquencer;
   "workflows/greeting/api": typeof workflows_greeting_api;
   "workflows/greeting/authSetup": typeof workflows_greeting_authSetup;
@@ -2178,6 +2180,7 @@ export declare const components: {
           workflowName?: string;
         },
         Array<{
+          endedAt?: number;
           generation: number;
           startedAt: number;
           state: string;

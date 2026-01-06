@@ -28,12 +28,125 @@ import {
 import type { AnyMigration } from "../versionManager/migration";
 import { makeAuditFunctionHandles } from "../audit/integration";
 import type { ComponentApi } from "../../components/audit/src/component/_generated/component";
+import { z } from "zod";
+import { zodToConvex } from "convex-helpers/server/zod4";
+import { CompositeTaskBuilder } from "../builder/compositeTask";
+import { DynamicCompositeTaskBuilder } from "../builder/dynamicCompositeTask";
+import { DummyTaskBuilder } from "../builder/dummyTask";
 
 type GetWorkflowTaskStatesReturnType<
   TWorkflowNamesToTaskNames extends Record<string, string>,
   TWorkflowName extends string,
 > = {
   [TKey in Get<TWorkflowNamesToTaskNames, TWorkflowName> & string]: TaskState;
+};
+
+type WorkflowActionSchemas = {
+  initialize: { schema: z.ZodTypeAny };
+  cancel: { schema: z.ZodTypeAny };
+};
+
+type WorkItemActionSchemas = {
+  initialize: { schema: z.ZodTypeAny };
+  start: { schema: z.ZodTypeAny };
+  complete: { schema: z.ZodTypeAny };
+  fail: { schema: z.ZodTypeAny };
+  cancel: { schema: z.ZodTypeAny };
+  reset: { schema: z.ZodTypeAny };
+};
+
+const isOptionalPayloadSchema = (schema: z.ZodTypeAny) =>
+  schema instanceof z.ZodNever ? true : schema.safeParse(undefined).success;
+
+const toPayloadSchema = (schema: z.ZodTypeAny) =>
+  isOptionalPayloadSchema(schema) ? schema.optional() : schema;
+
+const toPayloadValidator = (schema: z.ZodTypeAny) => {
+  if (schema instanceof z.ZodNever) {
+    return v.optional(v.object({}));
+  }
+  return zodToConvex(toPayloadSchema(schema));
+};
+
+const toActionArgsValidator = (
+  entries: Array<{ name: string; schema: z.ZodTypeAny }>,
+  fallback: ReturnType<typeof v.object>
+) => {
+  if (entries.length === 0) {
+    return fallback;
+  }
+
+  const validators = entries.map((entry) => {
+    if (entry.schema instanceof z.ZodNever) {
+      return v.object({
+        name: v.literal(entry.name),
+        payload: v.optional(v.object({})),
+      });
+    }
+    return zodToConvex(
+      z.object({
+        name: z.literal(entry.name),
+        payload: toPayloadSchema(entry.schema),
+      })
+    );
+  });
+
+  return validators.length === 1 ? validators[0] : v.union(...validators);
+};
+
+const collectActionSchemas = (workflowBuilder: AnyWorkflowBuilder) => {
+  const workflowActions = new Map<string, WorkflowActionSchemas>();
+  const workItemActions = new Map<string, WorkItemActionSchemas>();
+
+  const visitWorkflow = (builder: AnyWorkflowBuilder) => {
+    const workflowActionInstance = (builder as any).actions as
+      | { actions: WorkflowActionSchemas }
+      | undefined;
+    if (workflowActionInstance?.actions) {
+      workflowActions.set(builder.name, workflowActionInstance.actions);
+    }
+
+    const tasks = (builder as any).elements?.tasks ?? {};
+    for (const taskBuilder of Object.values(tasks) as any[]) {
+      if (taskBuilder instanceof CompositeTaskBuilder) {
+        visitWorkflow(taskBuilder.workflowBuilder as AnyWorkflowBuilder);
+        continue;
+      }
+      if (taskBuilder instanceof DynamicCompositeTaskBuilder) {
+        for (const childWorkflowBuilder of taskBuilder.workflowBuilders as AnyWorkflowBuilder[]) {
+          visitWorkflow(childWorkflowBuilder);
+        }
+        continue;
+      }
+      if (taskBuilder instanceof DummyTaskBuilder) {
+        continue;
+      }
+
+      const workItemBuilder = taskBuilder.getWorkItemBuilder();
+      const workItemActionInstance = (workItemBuilder as any).actions as
+        | { actions: WorkItemActionSchemas }
+        | undefined;
+      if (workItemActionInstance?.actions) {
+        workItemActions.set(
+          workItemBuilder.name,
+          workItemActionInstance.actions
+        );
+      }
+    }
+  };
+
+  visitWorkflow(workflowBuilder);
+
+  return {
+    workflowActions: [...workflowActions.entries()].map(([name, actions]) => ({
+      name,
+      actions,
+    })),
+    workItemActions: [...workItemActions.entries()].map(([name, actions]) => ({
+      name,
+      actions,
+    })),
+  };
 };
 
 export function apiFor<
@@ -49,6 +162,108 @@ export function apiFor<
   }
 ) {
   const workflowNetwork = workflowBuilder.build(versionName, props);
+  const { workflowActions, workItemActions } =
+    collectActionSchemas(workflowBuilder);
+
+  const rootWorkflowActions = (workflowBuilder as any).actions?.actions as
+    | WorkflowActionSchemas
+    | undefined;
+
+  const workflowInitializeArgsValidator = toActionArgsValidator(
+    workflowActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.initialize.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workflowCancelArgsValidator = toActionArgsValidator(
+    workflowActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.cancel.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemInitializeArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.initialize.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemStartArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.start.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemCompleteArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.complete.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemFailArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.fail.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemCancelArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.cancel.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const workItemResetArgsValidator = toActionArgsValidator(
+    workItemActions.map((entry) => ({
+      name: entry.name,
+      schema: entry.actions.reset.schema,
+    })),
+    v.object({
+      name: v.string(),
+      payload: v.optional(v.any()),
+    })
+  );
+
+  const rootInitializePayloadValidator = rootWorkflowActions
+    ? toPayloadValidator(rootWorkflowActions.initialize.schema)
+    : v.optional(v.any());
+
+  const rootCancelPayloadValidator = rootWorkflowActions
+    ? toPayloadValidator(rootWorkflowActions.cancel.schema)
+    : v.optional(v.any());
 
   type WorkflowNetworkActionsRegistry =
     GetWorkflowBuilderActionsRegistry<TWorkflowBuilder>;
@@ -61,7 +276,7 @@ export function apiFor<
 
   const initializeRootWorkflow = mutation({
     args: {
-      payload: v.optional(v.any()),
+      payload: rootInitializePayloadValidator,
       parentContext: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
@@ -92,7 +307,7 @@ export function apiFor<
 
   const internalInitializeRootWorkflow = internalMutation({
     args: {
-      payload: v.optional(v.any()),
+      payload: rootInitializePayloadValidator,
       parentContext: v.optional(v.any()),
     },
     handler: async (ctx, args) => {
@@ -124,7 +339,7 @@ export function apiFor<
   const cancelRootWorkflow = mutation({
     args: {
       workflowId: v.id("tasquencerWorkflows"),
-      payload: v.optional(v.any()),
+      payload: rootCancelPayloadValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -147,7 +362,7 @@ export function apiFor<
   const internalCancelRootWorkflow = internalMutation({
     args: {
       workflowId: v.id("tasquencerWorkflows"),
-      payload: v.optional(v.any()),
+      payload: rootCancelPayloadValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -174,10 +389,7 @@ export function apiFor<
         parentWorkflowId: v.id("tasquencerWorkflows"),
         parentTaskName: v.string(),
       }),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workflowInitializeArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -208,10 +420,7 @@ export function apiFor<
         parentWorkflowId: v.id("tasquencerWorkflows"),
         parentTaskName: v.string(),
       }),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workflowInitializeArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -238,10 +447,7 @@ export function apiFor<
   const cancelWorkflow = mutation({
     args: {
       workflowId: v.id("tasquencerWorkflows"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workflowCancelArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -264,10 +470,7 @@ export function apiFor<
   const internalCancelWorkflow = internalMutation({
     args: {
       workflowId: v.id("tasquencerWorkflows"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workflowCancelArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -294,10 +497,7 @@ export function apiFor<
         parentWorkflowId: v.id("tasquencerWorkflows"),
         parentTaskName: v.string(),
       }),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemInitializeArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -328,10 +528,7 @@ export function apiFor<
         parentWorkflowId: v.id("tasquencerWorkflows"),
         parentTaskName: v.string(),
       }),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemInitializeArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -358,10 +555,7 @@ export function apiFor<
   const startWorkItem = mutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemStartArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -384,10 +578,7 @@ export function apiFor<
   const internalStartWorkItem = internalMutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemStartArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -410,10 +601,7 @@ export function apiFor<
   const completeWorkItem = mutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemCompleteArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -436,10 +624,7 @@ export function apiFor<
   const internalCompleteWorkItem = internalMutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemCompleteArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -462,10 +647,7 @@ export function apiFor<
   const resetWorkItem = mutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemResetArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -488,10 +670,7 @@ export function apiFor<
   const internalResetWorkItem = internalMutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemResetArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -514,10 +693,7 @@ export function apiFor<
   const failWorkItem = mutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemFailArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -540,10 +716,7 @@ export function apiFor<
   const internalFailWorkItem = internalMutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemFailArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -566,10 +739,7 @@ export function apiFor<
   const cancelWorkItem = mutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemCancelArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
@@ -592,10 +762,7 @@ export function apiFor<
   const internalCancelWorkItem = internalMutation({
     args: {
       workItemId: v.id("tasquencerWorkItems"),
-      args: v.object({
-        name: v.string(),
-        payload: v.optional(v.any()),
-      }),
+      args: workItemCancelArgsValidator,
     },
     handler: async (ctx, args) => {
       const auditFunctionHandles =
