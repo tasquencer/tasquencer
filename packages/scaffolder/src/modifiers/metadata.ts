@@ -81,7 +81,7 @@ function hasNamedImport(
     ) {
       return false
     }
-    return node.specifiers.some(
+    return node.specifiers?.some(
       (specifier) =>
         specifier.type === 'ImportSpecifier' &&
         specifier.imported.type === 'Identifier' &&

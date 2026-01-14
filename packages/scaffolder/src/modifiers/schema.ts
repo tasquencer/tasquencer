@@ -84,10 +84,10 @@ function hasDefaultImport(
     ) {
       return false
     }
-    return node.specifiers.some(
+    return node.specifiers?.some(
       (specifier) =>
         specifier.type === 'ImportDefaultSpecifier' &&
-        specifier.local.name === importName
+        specifier.local?.name === importName
     )
   })
 }

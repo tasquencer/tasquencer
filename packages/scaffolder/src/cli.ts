@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createScaffolder } from './core/scaffolder.js'
 import { scaffolderInputSchema } from './types/input.js'
+import { initApp, getTemplateDir } from './init/index.js'
 
 const program = new Command()
 
@@ -128,6 +129,63 @@ program
         console.error('Validation failed:')
         console.error(result.error.format())
         process.exit(1)
+      }
+    } catch (error) {
+      console.error('Error:', error instanceof Error ? error.message : error)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('init')
+  .description('Initialize a new Tasquencer application')
+  .argument('[target-dir]', 'Target directory', '.')
+  .requiredOption('-n, --name <name>', 'Application name')
+  .option('-d, --dry-run', 'Preview changes without writing files')
+  .action(async (targetDir: string, options: { name: string; dryRun?: boolean }) => {
+    try {
+      const resolvedTarget = resolve(invocationCwd, targetDir)
+
+      console.log('\nInitializing new Tasquencer application...\n')
+      console.log(`  App name: ${options.name}`)
+      console.log(`  Target: ${resolvedTarget}`)
+      console.log(`  Template: ${getTemplateDir()}`)
+
+      const result = await initApp({
+        targetDir: resolvedTarget,
+        appName: options.name,
+        dryRun: options.dryRun || false,
+      })
+
+      if (result.errors.length > 0) {
+        console.error('\nErrors:')
+        for (const error of result.errors) {
+          console.error(`  - ${error}`)
+        }
+        process.exit(1)
+      }
+
+      const action = options.dryRun ? 'Would create' : 'Created'
+
+      console.log(`\n${action} ${result.createdFiles.length} files:`)
+      for (const file of result.createdFiles.slice(0, 10)) {
+        console.log(`  - ${file}`)
+      }
+      if (result.createdFiles.length > 10) {
+        console.log(`  ... and ${result.createdFiles.length - 10} more files`)
+      }
+
+      if (options.dryRun) {
+        console.log('\n(dry run - no files were written)')
+      } else {
+        console.log('\nInitialization complete!')
+        console.log('\nNext steps:')
+        console.log(`  1. cd ${targetDir === '.' ? '.' : targetDir}`)
+        console.log('  2. pnpm install')
+        console.log('  3. npx convex dev')
+        console.log('  4. pnpm dev')
+        console.log('\nTo add a workflow:')
+        console.log('  pnpm scaffolder generate -i workflow.json -o ./convex')
       }
     } catch (error) {
       console.error('Error:', error instanceof Error ? error.message : error)
