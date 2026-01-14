@@ -1,8 +1,9 @@
 import { Workflow } from "../elements/workflow";
-import { type TaskJoinType, type TaskSplitType } from "../types";
+import { type TaskJoinType, type TaskSplitType, type TaskState, type PolicyResult } from "../types";
 import { DummyTask } from "../elements/dummyTask";
 import { type AnyMigration } from "../versionManager/migration";
-import { type SharedActivityTaskContext } from "./types";
+import { type SharedActivityTaskContext, type WorkflowInfo } from "./types";
+import type { MutationCtx } from "../../_generated/server";
 import type { GenericMutationCtx } from "convex/server";
 
 export type DummyTaskContext = SharedActivityTaskContext;
@@ -17,6 +18,24 @@ export type DummyTaskActivities = {
   onFailed: DummyTaskCallback;
   onCanceled: DummyTaskCallback;
 };
+
+export type DummyTaskStateTransitionPolicy = (props: {
+  mutationCtx: MutationCtx;
+  parent: {
+    workflow: WorkflowInfo;
+  };
+  task: {
+    name: string;
+    generation: number;
+    path: string[];
+  };
+  transition: {
+    prevState: TaskState;
+    nextState: TaskState;
+  };
+}) => Promise<PolicyResult>;
+
+export type DummyTaskPolicy = DummyTaskStateTransitionPolicy;
 
 export type AnyDummyTaskBuilder = DummyTaskBuilder<any, any, any>;
 
@@ -51,6 +70,7 @@ export class DummyTaskBuilder<
         onFailed: async () => {},
         onCanceled: async () => {},
       },
+      async () => "complete",
 
       "and",
       "and",
@@ -59,6 +79,7 @@ export class DummyTaskBuilder<
   }
   private constructor(
     private readonly activities: DummyTaskActivities,
+    private readonly policy: DummyTaskPolicy,
     readonly splitType: TSplitType,
     readonly joinType: TJoinType,
     readonly description: string | undefined
@@ -72,6 +93,22 @@ export class DummyTaskBuilder<
   withActivities(activities: Partial<DummyTaskActivities>) {
     return new DummyTaskBuilder<TMutationCtx, TSplitType, TJoinType>(
       { ...this.activities, ...activities },
+      this.policy,
+      this.splitType,
+      this.joinType,
+      this.description
+    );
+  }
+
+  /**
+   * Override dummy task state transition policy.
+   *
+   * @param policy - Async policy invoked when a dummy task is ticked.
+   */
+  withPolicy(policy: DummyTaskPolicy) {
+    return new DummyTaskBuilder<TMutationCtx, TSplitType, TJoinType>(
+      this.activities,
+      policy,
       this.splitType,
       this.joinType,
       this.description
@@ -86,6 +123,7 @@ export class DummyTaskBuilder<
   withSplitType<TNewSplitType extends TaskSplitType>(splitType: TNewSplitType) {
     return new DummyTaskBuilder<TMutationCtx, TNewSplitType, TJoinType>(
       this.activities,
+      this.policy,
       splitType,
       this.joinType,
       this.description
@@ -99,6 +137,7 @@ export class DummyTaskBuilder<
   withJoinType<TNewJoinType extends TaskJoinType>(joinType: TNewJoinType) {
     return new DummyTaskBuilder<TMutationCtx, TSplitType, TNewJoinType>(
       this.activities,
+      this.policy,
       this.splitType,
       joinType,
       this.description
@@ -111,6 +150,7 @@ export class DummyTaskBuilder<
   withDescription(description: string) {
     return new DummyTaskBuilder<TMutationCtx, TSplitType, TJoinType>(
       this.activities,
+      this.policy,
       this.splitType,
       this.joinType,
       description
@@ -132,13 +172,14 @@ export class DummyTaskBuilder<
     workflow: Workflow,
     name: string
   ) {
-    const { activities, splitType, joinType } = this;
+    const { activities, policy, splitType, joinType } = this;
     const task = new DummyTask(
       name,
       versionName,
       [...workflow.path, name],
       workflow,
       activities as any,
+      policy,
       {
         splitType,
         joinType,

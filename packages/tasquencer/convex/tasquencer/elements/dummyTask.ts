@@ -1,8 +1,8 @@
 import { BaseTask } from "./baseTask";
 import { type Doc, type Id } from "../../_generated/dataModel";
-import { type TaskJoinType, type TaskSplitType } from "../types";
+import { type TaskJoinType, type TaskSplitType, type TaskState } from "../types";
 import { Workflow } from "./workflow";
-import type { DummyTaskActivities } from "../builder";
+import type { DummyTaskActivities, DummyTaskPolicy } from "../builder";
 import {
   type AuditCallbackInfo,
   completeSpan,
@@ -63,6 +63,7 @@ export class DummyTask extends BaseTask {
     path: string[],
     parentWorkflow: Workflow,
     readonly activities: DummyTaskActivities,
+    readonly policy: DummyTaskPolicy,
     props?: {
       splitType?: TaskSplitType;
       joinType?: TaskJoinType;
@@ -166,7 +167,30 @@ export class DummyTask extends BaseTask {
     workflowId: Id<"tasquencerWorkflows">,
     task: Doc<"tasquencerTasks">
   ) {
-    await this.complete(executionContext, workflowId, task);
+    const policyResult = await this.policy({
+      mutationCtx: executionContext.mutationCtx,
+      parent: {
+        workflow: {
+          id: workflowId,
+          name: this.parentWorkflow.name,
+        },
+      },
+      task: {
+        name: this.name,
+        generation: task.generation,
+        path: this.path,
+      },
+      transition: {
+        prevState: "started" as TaskState,
+        nextState: "completed",
+      },
+    });
+
+    if (policyResult === "complete") {
+      await this.complete(executionContext, workflowId, task);
+    } else if (policyResult === "fail") {
+      await this.fail(executionContext, workflowId, task);
+    }
   }
 
   async afterFail(
