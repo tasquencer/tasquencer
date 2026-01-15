@@ -48,12 +48,14 @@ Builder.dummyTask()
   .withSplitType('and' | 'xor' | 'or')
   .withJoinType('and' | 'xor' | 'or')
   .withActivities({ onEnabled, onStarted, onCompleted })
+  .withPolicy(async (ctx) => 'continue' | 'fail' | 'complete')
 ```
 
 Use dummy tasks for:
 - Synchronization points (OR-joins)
 - Routing decisions without work
 - State transitions at workflow points
+- Coordination gates (with tick-task pattern)
 
 ### Work Item Builder
 
@@ -402,6 +404,38 @@ const loopWorkflow = Builder.workflow('loop')
   )
   .connectCondition('continue', (to) => to.task('process'))  // Loop back
 ```
+
+---
+
+## Tick-Task Pattern
+
+Use when coordinating with independent workflows that would exceed atomic execution limits.
+
+### Dummy Task with Policy (Gate Pattern)
+
+```typescript
+Builder.dummyTask()
+  .withPolicy(async ({ mutationCtx, parent }) => {
+    const allDone = await checkExternalWorkflows(mutationCtx.db, parent.workflow.id)
+    return allDone ? "complete" : "continue"
+  })
+```
+
+### Calling tickTask
+
+```typescript
+// From external workflow's onCompleted activity
+await mutationCtx.scheduler.runAfter(0, api.myWorkflow.internalTick, {
+  workflowName: "coordinatingWorkflow",
+  workflowId: coordinatingWorkflowId,
+  taskName: "gate",
+})
+```
+
+### When to Use
+
+- **Composite task**: Child lifecycle tied to parent, atomic cancellation
+- **Tick-task**: Independent lifecycles, large fanouts, external coordination
 
 ---
 
