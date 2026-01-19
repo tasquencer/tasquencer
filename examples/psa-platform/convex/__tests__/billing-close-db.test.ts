@@ -1289,6 +1289,78 @@ describe('Project Closure Verification', () => {
       expect(metrics.durationDays).toBe(30)
       expect(metrics.plannedDurationDays).toBe(60)
     })
+
+    it('uses plannedEndDate for variance when set (spec 13 line 248-252)', async () => {
+      const t = setup()
+      const orgId = await createTestOrganization(t)
+      const userId = await createTestUser(t, orgId)
+      const companyId = await createTestCompany(t, orgId)
+      const contactId = await createTestContact(t, orgId, companyId)
+      const dealId = await createTestDeal(t, orgId, companyId, contactId, userId)
+
+      // Create project with BOTH endDate (extended) and plannedEndDate (original plan)
+      // This tests the scenario where a project was extended but we need to track
+      // the original planned duration for variance calculation
+      const startDate = Date.now() - 60 * 24 * 60 * 60 * 1000 // 60 days ago
+      const projectId = await t.run(async (ctx) => {
+        return await ctx.db.insert('projects', {
+          organizationId: orgId,
+          companyId,
+          dealId,
+          managerId: userId,
+          name: 'Extended Project',
+          status: 'Active',
+          startDate,
+          endDate: startDate + 90 * 24 * 60 * 60 * 1000, // Current extended end: 90 days
+          plannedEndDate: startDate + 45 * 24 * 60 * 60 * 1000, // Original plan: 45 days
+          createdAt: Date.now(),
+        })
+      })
+
+      const closeDate = Date.now()
+      const metrics = await t.run(async (ctx) => {
+        return await calculateProjectMetrics(ctx.db, projectId, closeDate)
+      })
+
+      expect(metrics.durationDays).toBe(60) // Actual: 60 days elapsed
+      // Should use plannedEndDate (45 days) not endDate (90 days) for variance
+      expect(metrics.plannedDurationDays).toBe(45)
+    })
+
+    it('falls back to endDate when plannedEndDate is not set', async () => {
+      const t = setup()
+      const orgId = await createTestOrganization(t)
+      const userId = await createTestUser(t, orgId)
+      const companyId = await createTestCompany(t, orgId)
+      const contactId = await createTestContact(t, orgId, companyId)
+      const dealId = await createTestDeal(t, orgId, companyId, contactId, userId)
+
+      // Create project with only endDate (no plannedEndDate)
+      const startDate = Date.now() - 30 * 24 * 60 * 60 * 1000
+      const projectId = await t.run(async (ctx) => {
+        return await ctx.db.insert('projects', {
+          organizationId: orgId,
+          companyId,
+          dealId,
+          managerId: userId,
+          name: 'Test Project',
+          status: 'Active',
+          startDate,
+          endDate: startDate + 50 * 24 * 60 * 60 * 1000, // 50 days
+          // plannedEndDate not set
+          createdAt: Date.now(),
+        })
+      })
+
+      const closeDate = Date.now()
+      const metrics = await t.run(async (ctx) => {
+        return await calculateProjectMetrics(ctx.db, projectId, closeDate)
+      })
+
+      expect(metrics.durationDays).toBe(30)
+      // Should use endDate (50 days) as fallback
+      expect(metrics.plannedDurationDays).toBe(50)
+    })
   })
 
   describe('cancelFutureBookings', () => {

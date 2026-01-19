@@ -372,10 +372,13 @@ export async function calculateProjectMetrics(
   const budgetVariance = budgetAmount > 0 ? (totalCost / budgetAmount) * 100 : 0;
 
   // Calculate duration - use Math.round for accurate day counting
+  // Per spec 13 line 248-252: plannedEndDate is the original planned end for variance calculation
   const startDate = project.startDate;
   const durationDays = Math.round((closeDate - startDate) / (24 * 60 * 60 * 1000));
-  const plannedDurationDays = project.endDate
-    ? Math.round((project.endDate - startDate) / (24 * 60 * 60 * 1000))
+  // Prefer plannedEndDate (original plan) over endDate (current/actual) for variance calculation
+  const planEndDate = project.plannedEndDate ?? project.endDate;
+  const plannedDurationDays = planEndDate
+    ? Math.round((planEndDate - startDate) / (24 * 60 * 60 * 1000))
     : null;
 
   return {

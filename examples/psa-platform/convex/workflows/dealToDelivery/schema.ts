@@ -245,6 +245,7 @@ const projects = defineTable({
   status: projectStatus,
   startDate: v.number(),
   endDate: v.optional(v.number()),
+  plannedEndDate: v.optional(v.number()), // Original planned end date for duration variance (spec 13 line 248-252)
   managerId: v.id("users"), // Project manager
   budgetId: v.optional(v.id("budgets")), // FK to budget (set after budget creation)
   closureNotes: v.optional(v.string()), // Notes when closing project

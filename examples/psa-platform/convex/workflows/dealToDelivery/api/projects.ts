@@ -569,7 +569,8 @@ export const updateTask = mutation({
  * @param args.name - Optional new project name
  * @param args.description - Optional new description
  * @param args.startDate - Optional new start date
- * @param args.endDate - Optional new end date
+ * @param args.endDate - Optional new end date (actual/current)
+ * @param args.plannedEndDate - Optional original planned end date for duration variance (spec 13 line 248-252)
  * @param args.managerId - Optional new manager
  * @returns Success status
  */
@@ -580,6 +581,7 @@ export const updateProject = mutation({
     description: v.optional(v.string()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
+    plannedEndDate: v.optional(v.number()), // Original planned end date for duration variance (spec 13 line 248-252)
     managerId: v.optional(v.id('users')),
   },
   handler: async (ctx, args) => {

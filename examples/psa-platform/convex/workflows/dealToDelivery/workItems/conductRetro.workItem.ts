@@ -164,7 +164,8 @@ const conductRetroWorkItemActions = authService.builders.workItemActions
         project.organizationId,
         {
           actualEndDate: project.endDate ?? Date.now(),
-          plannedEndDate: project.endDate ?? Date.now(), // Would ideally use originalEndDate
+          // Per spec 13 line 248-252: use plannedEndDate for original planned end date
+          plannedEndDate: project.plannedEndDate ?? project.endDate ?? Date.now(),
           actualCost: totalCost,
           budgetedCost: budgetTotal,
           profitMargin,
