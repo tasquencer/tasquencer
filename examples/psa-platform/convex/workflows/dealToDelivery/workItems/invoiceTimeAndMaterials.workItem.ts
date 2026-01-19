@@ -124,7 +124,8 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         createdAt: Date.now(),
       });
 
-      // Group time entries and create line items
+      // Group time entries and create line items based on groupBy option
+      // Per spec 11-workflow-invoice-generation.md line 119: groupBy = "service | task | date | person"
       if (payload.groupBy === "service") {
         // Group by service
         const byService = new Map<string, Doc<"timeEntries">[]>();
@@ -136,6 +137,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
           byService.get(key)!.push(entry);
         }
 
+        let sortOrder = 0;
         for (const [serviceKey, entries] of byService) {
           const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
           const serviceId = serviceKey !== "unassigned" ? (serviceKey as Id<"services">) : undefined;
@@ -149,26 +151,137 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             quantity: totalHours,
             rate,
             amount,
-            sortOrder: 0,
+            sortOrder: sortOrder++,
             timeEntryIds: entries.map((e) => e._id),
           });
         }
-      } else {
-        // Create individual line items for each entry (detailed view)
+      } else if (payload.groupBy === "task") {
+        // Group by task
+        const byTask = new Map<string, Doc<"timeEntries">[]>();
         for (const entry of timeEntries) {
-          const serviceId = entry.serviceId;
-          const service = serviceId ? serviceMap.get(serviceId) : undefined;
-          const rate = service?.rate ?? 0;
-          const amount = Math.round(entry.hours * rate);
+          const key = entry.taskId?.toString() ?? "no_task";
+          if (!byTask.has(key)) {
+            byTask.set(key, []);
+          }
+          byTask.get(key)!.push(entry);
+        }
+
+        // Load task names for descriptions
+        const taskIds = [...byTask.keys()]
+          .filter((k) => k !== "no_task")
+          .map((k) => k as Id<"tasks">);
+        const tasks = await Promise.all(
+          taskIds.map((id) => mutationCtx.db.get(id))
+        );
+        const taskMap = new Map(tasks.filter(Boolean).map((t) => [t!._id.toString(), t!]));
+
+        let sortOrder = 0;
+        for (const [taskKey, entries] of byTask) {
+          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+          const task = taskKey !== "no_task" ? taskMap.get(taskKey) : undefined;
+
+          // Calculate weighted average rate from services used
+          let totalAmount = 0;
+          for (const entry of entries) {
+            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+          }
+          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
 
           await insertInvoiceLineItem(mutationCtx.db, {
             invoiceId,
-            description: entry.notes ?? service?.name ?? "Professional Services",
-            quantity: entry.hours,
-            rate,
-            amount,
-            sortOrder: 0,
-            timeEntryIds: [entry._id],
+            description: task?.name ?? "General Work",
+            quantity: totalHours,
+            rate: averageRate,
+            amount: totalAmount,
+            sortOrder: sortOrder++,
+            timeEntryIds: entries.map((e) => e._id),
+          });
+        }
+      } else if (payload.groupBy === "date") {
+        // Group by date
+        const byDate = new Map<number, Doc<"timeEntries">[]>();
+        for (const entry of timeEntries) {
+          // Normalize to start of day
+          const dateKey = new Date(entry.date).setHours(0, 0, 0, 0);
+          if (!byDate.has(dateKey)) {
+            byDate.set(dateKey, []);
+          }
+          byDate.get(dateKey)!.push(entry);
+        }
+
+        // Sort by date
+        const sortedDates = [...byDate.keys()].sort((a, b) => a - b);
+
+        let sortOrder = 0;
+        for (const dateKey of sortedDates) {
+          const entries = byDate.get(dateKey)!;
+          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+
+          // Calculate total amount from services used
+          let totalAmount = 0;
+          for (const entry of entries) {
+            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+          }
+          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
+
+          // Format date for description
+          const dateStr = new Date(dateKey).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+
+          await insertInvoiceLineItem(mutationCtx.db, {
+            invoiceId,
+            description: `Work on ${dateStr}`,
+            quantity: totalHours,
+            rate: averageRate,
+            amount: totalAmount,
+            sortOrder: sortOrder++,
+            timeEntryIds: entries.map((e) => e._id),
+          });
+        }
+      } else if (payload.groupBy === "person") {
+        // Group by person/user
+        const byPerson = new Map<string, Doc<"timeEntries">[]>();
+        for (const entry of timeEntries) {
+          const key = entry.userId.toString();
+          if (!byPerson.has(key)) {
+            byPerson.set(key, []);
+          }
+          byPerson.get(key)!.push(entry);
+        }
+
+        // Load user names for descriptions
+        const userIds = [...byPerson.keys()].map((k) => k as Id<"users">);
+        const users = await Promise.all(
+          userIds.map((id) => mutationCtx.db.get(id))
+        );
+        const userMap = new Map(users.filter(Boolean).map((u) => [u!._id.toString(), u!]));
+
+        let sortOrder = 0;
+        for (const [userKey, entries] of byPerson) {
+          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+          const user = userMap.get(userKey);
+
+          // Calculate total amount from services used
+          let totalAmount = 0;
+          for (const entry of entries) {
+            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+          }
+          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
+
+          await insertInvoiceLineItem(mutationCtx.db, {
+            invoiceId,
+            description: user?.name ?? "Team Member",
+            quantity: totalHours,
+            rate: averageRate,
+            amount: totalAmount,
+            sortOrder: sortOrder++,
+            timeEntryIds: entries.map((e) => e._id),
           });
         }
       }

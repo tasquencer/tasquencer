@@ -2015,6 +2015,8 @@ import {
   TIME_ENTRY_WARNING_DAYS,
   MAX_ENTRY_AGE_DAYS,
   TIMER_MAX_HOURS,
+  DEFAULT_HOURS_ROUNDING_INCREMENT,
+  ALTERNATIVE_HOURS_ROUNDING_INCREMENT,
   getEntryAgeInDays,
   isFutureDate,
   checkEntryDateLimits,
@@ -2025,6 +2027,10 @@ import {
   checkTimerDuration,
   getTimerHours,
   wouldTimerAutoStop,
+  roundHours,
+  roundHoursDown,
+  roundHoursUp,
+  isHoursRounded,
 } from '../workflows/dealToDelivery/db/dateLimits'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -2544,6 +2550,202 @@ describe('Markup Rate Manager Override', () => {
 
     it('max with override is 2.0 (100% markup)', () => {
       expect(MAX_MARKUP_RATE_WITH_OVERRIDE).toBe(2.0)
+    })
+  })
+})
+
+// =============================================================================
+// Hours Rounding Validation Tests (Iteration 50)
+// Reference: spec 07-workflow-time-tracking.md line 299
+// "Hours rounded to nearest 0.25 (15 min) or 0.1 (6 min) based on org setting"
+// =============================================================================
+
+describe('Hours Rounding Validation', () => {
+  describe('Constants', () => {
+    it('default rounding increment is 0.25 (15 minutes)', () => {
+      expect(DEFAULT_HOURS_ROUNDING_INCREMENT).toBe(0.25)
+    })
+
+    it('alternative rounding increment is 0.1 (6 minutes)', () => {
+      expect(ALTERNATIVE_HOURS_ROUNDING_INCREMENT).toBe(0.1)
+    })
+  })
+
+  describe('roundHours (nearest 0.25 by default)', () => {
+    it('rounds 1.33 down to 1.25', () => {
+      expect(roundHours(1.33)).toBe(1.25)
+    })
+
+    it('rounds 1.38 up to 1.5', () => {
+      expect(roundHours(1.38)).toBe(1.5)
+    })
+
+    it('keeps 1.25 unchanged (already rounded)', () => {
+      expect(roundHours(1.25)).toBe(1.25)
+    })
+
+    it('keeps 1.5 unchanged (already rounded)', () => {
+      expect(roundHours(1.5)).toBe(1.5)
+    })
+
+    it('rounds 0.1 to 0 (below 0.125 threshold)', () => {
+      expect(roundHours(0.1)).toBe(0)
+    })
+
+    it('rounds 0.13 up to 0.25 (at threshold)', () => {
+      expect(roundHours(0.13)).toBe(0.25)
+    })
+
+    it('rounds 2.37 to 2.25', () => {
+      expect(roundHours(2.37)).toBe(2.25)
+    })
+
+    it('rounds 2.38 to 2.5', () => {
+      expect(roundHours(2.38)).toBe(2.5)
+    })
+
+    it('rounds 8.0 unchanged', () => {
+      expect(roundHours(8.0)).toBe(8.0)
+    })
+
+    it('rounds 0.0 unchanged', () => {
+      expect(roundHours(0.0)).toBe(0.0)
+    })
+  })
+
+  describe('roundHours with 0.1 increment', () => {
+    it('rounds 1.33 to 1.3', () => {
+      expect(roundHours(1.33, 0.1)).toBe(1.3)
+    })
+
+    it('rounds 1.35 to 1.4', () => {
+      expect(roundHours(1.35, 0.1)).toBeCloseTo(1.4, 10)
+    })
+
+    it('keeps 1.3 unchanged', () => {
+      expect(roundHours(1.3, 0.1)).toBe(1.3)
+    })
+
+    it('rounds 2.57 to 2.6', () => {
+      expect(roundHours(2.57, 0.1)).toBe(2.6)
+    })
+  })
+
+  describe('roundHoursDown (floor)', () => {
+    it('floors 1.33 to 1.25', () => {
+      expect(roundHoursDown(1.33)).toBe(1.25)
+    })
+
+    it('floors 1.49 to 1.25', () => {
+      expect(roundHoursDown(1.49)).toBe(1.25)
+    })
+
+    it('keeps 1.25 unchanged', () => {
+      expect(roundHoursDown(1.25)).toBe(1.25)
+    })
+
+    it('floors 0.24 to 0', () => {
+      expect(roundHoursDown(0.24)).toBe(0)
+    })
+
+    it('floors 2.99 to 2.75', () => {
+      expect(roundHoursDown(2.99)).toBe(2.75)
+    })
+  })
+
+  describe('roundHoursUp (ceiling)', () => {
+    it('ceils 1.33 to 1.5', () => {
+      expect(roundHoursUp(1.33)).toBe(1.5)
+    })
+
+    it('ceils 1.26 to 1.5', () => {
+      expect(roundHoursUp(1.26)).toBe(1.5)
+    })
+
+    it('keeps 1.25 unchanged', () => {
+      expect(roundHoursUp(1.25)).toBe(1.25)
+    })
+
+    it('ceils 0.01 to 0.25', () => {
+      expect(roundHoursUp(0.01)).toBe(0.25)
+    })
+
+    it('ceils 2.76 to 3.0', () => {
+      expect(roundHoursUp(2.76)).toBe(3.0)
+    })
+  })
+
+  describe('isHoursRounded', () => {
+    it('returns true for 1.25', () => {
+      expect(isHoursRounded(1.25)).toBe(true)
+    })
+
+    it('returns true for 1.5', () => {
+      expect(isHoursRounded(1.5)).toBe(true)
+    })
+
+    it('returns true for 2.0', () => {
+      expect(isHoursRounded(2.0)).toBe(true)
+    })
+
+    it('returns true for 0.75', () => {
+      expect(isHoursRounded(0.75)).toBe(true)
+    })
+
+    it('returns false for 1.33', () => {
+      expect(isHoursRounded(1.33)).toBe(false)
+    })
+
+    it('returns false for 2.1', () => {
+      expect(isHoursRounded(2.1)).toBe(false)
+    })
+
+    it('returns true for 0', () => {
+      expect(isHoursRounded(0)).toBe(true)
+    })
+
+    it('returns true for whole hours like 8.0', () => {
+      expect(isHoursRounded(8.0)).toBe(true)
+    })
+  })
+
+  describe('isHoursRounded with 0.1 increment', () => {
+    it('returns true for 1.3', () => {
+      expect(isHoursRounded(1.3, 0.1)).toBe(true)
+    })
+
+    it('returns true for 2.1', () => {
+      expect(isHoursRounded(2.1, 0.1)).toBe(true)
+    })
+
+    it('returns false for 1.33', () => {
+      expect(isHoursRounded(1.33, 0.1)).toBe(false)
+    })
+
+    it('returns false for 2.15', () => {
+      expect(isHoursRounded(2.15, 0.1)).toBe(false)
+    })
+  })
+
+  describe('Error handling', () => {
+    it('throws for zero increment', () => {
+      expect(() => roundHours(1.5, 0)).toThrow('Rounding increment must be positive')
+    })
+
+    it('throws for negative increment', () => {
+      expect(() => roundHours(1.5, -0.25)).toThrow('Rounding increment must be positive')
+    })
+
+    it('throws for roundHoursDown with zero increment', () => {
+      expect(() => roundHoursDown(1.5, 0)).toThrow('Rounding increment must be positive')
+    })
+
+    it('throws for roundHoursUp with zero increment', () => {
+      expect(() => roundHoursUp(1.5, 0)).toThrow('Rounding increment must be positive')
+    })
+
+    it('throws for isHoursRounded with zero increment', () => {
+      expect(() => isHoursRounded(1.5, 0)).toThrow('Rounding increment must be positive')
     })
   })
 })

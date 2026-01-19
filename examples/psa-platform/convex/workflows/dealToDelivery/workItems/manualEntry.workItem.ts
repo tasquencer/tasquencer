@@ -19,6 +19,7 @@ import { getProject } from "../db/projects";
 import { insertTimeEntry } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { checkTimeEntryDuplicates } from "../db/duplicateDetection";
+import { roundHours } from "../db/dateLimits";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
 import type { Id } from "../../../_generated/dataModel";
 
@@ -102,6 +103,10 @@ const manualEntryWorkItemActions = authService.builders.workItemActions
         throw new Error("Hours cannot exceed 24 per day");
       }
 
+      // Round hours to nearest 0.25 (15 minutes) per spec line 299
+      // "Hours rounded to nearest 0.25 (15 min) or 0.1 (6 min) based on org setting"
+      const roundedHours = roundHours(payload.hours);
+
       // Validate not a future date
       if (payload.date > now) {
         throw new Error("Cannot submit time for future dates");
@@ -114,7 +119,7 @@ const manualEntryWorkItemActions = authService.builders.workItemActions
         projectId: payload.projectId,
         date: payload.date,
         taskId: payload.taskId,
-        hours: payload.hours,
+        hours: roundedHours,
       });
 
       if (duplicateCheck.hasPotentialDuplicates) {
@@ -126,6 +131,7 @@ const manualEntryWorkItemActions = authService.builders.workItemActions
       }
 
       // Create time entry with status = "Draft"
+      // Note: hours are rounded to nearest 0.25 per spec line 299
       await insertTimeEntry(mutationCtx.db, {
         organizationId: project.organizationId,
         userId,
@@ -133,7 +139,7 @@ const manualEntryWorkItemActions = authService.builders.workItemActions
         taskId: payload.taskId,
         serviceId: payload.serviceId,
         date: payload.date,
-        hours: payload.hours,
+        hours: roundedHours,
         billable: payload.billable,
         status: "Draft",
         notes: payload.notes,

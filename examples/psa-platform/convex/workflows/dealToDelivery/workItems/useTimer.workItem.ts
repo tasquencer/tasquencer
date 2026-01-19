@@ -19,7 +19,7 @@ import { getProject } from "../db/projects";
 import { insertTimeEntry } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { checkTimeEntryDuplicates } from "../db/duplicateDetection";
-import { checkTimerDuration, TIMER_MAX_HOURS } from "../db/dateLimits";
+import { checkTimerDuration, TIMER_MAX_HOURS, roundHours } from "../db/dateLimits";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
 import type { Id } from "../../../_generated/dataModel";
 
@@ -98,7 +98,10 @@ const useTimerWorkItemActions = authService.builders.workItemActions
       // Check timer duration and handle auto-stop at 12 hours
       // Per spec 07-workflow-time-tracking.md line 300: "Timer auto-stops after 12 hours with warning"
       const timerCheck = checkTimerDuration(payload.startTime, now);
-      const hours = timerCheck.hours;
+
+      // Round hours to nearest 0.25 (15 minutes) per spec line 299
+      // "Hours rounded to nearest 0.25 (15 min) or 0.1 (6 min) based on org setting"
+      const hours = roundHours(timerCheck.hours);
 
       // Log warning if timer was auto-stopped or is approaching limit
       if (timerCheck.wasAutoStopped) {

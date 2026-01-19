@@ -18,8 +18,15 @@ import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getExpense } from "../db/expenses";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { checkExpensePolicyLimit } from "../db/expensePolicyLimits";
 import { assertExpenseExists, assertAuthenticatedUser } from "../exceptions";
 import type { Id } from "../../../_generated/dataModel";
+
+/**
+ * Receipt threshold in cents - expenses over this amount require receipt
+ * Per spec 10-workflow-expense-approval.md line 282
+ */
+export const RECEIPT_REQUIRED_THRESHOLD = 2500; // $25 in cents
 
 // Policy: Requires 'dealToDelivery:expenses:approve' scope
 const expensesApprovePolicy = authService.policies.requireScope(
@@ -109,6 +116,29 @@ const reviewExpenseWorkItemActions = authService.builders.workItemActions
       if (expense.userId === reviewerId) {
         throw new Error(
           "Cannot approve your own expenses. Please request another manager to review."
+        );
+      }
+
+      // Check policy limits (per spec 10-workflow-expense-approval.md lines 288-289)
+      // "Policy Limits: Flag expenses exceeding policy limits for additional review"
+      const policyCheck = checkExpensePolicyLimit(
+        expense.type,
+        expense.amount
+      );
+
+      if (policyCheck.exceeded && payload.decision === "approve") {
+        console.warn(
+          `[reviewExpense] ⚠️ Policy limit exceeded for expense ${payload.expenseId}: ${policyCheck.summary}. ` +
+          `Review decision: ${payload.decision}. Approving expense that exceeds policy requires acknowledgment.`
+        );
+      }
+
+      // Check receipt requirement (per spec 10-workflow-expense-approval.md line 282)
+      // "Receipt Threshold: Expenses > $25 require receipt"
+      if (expense.amount > RECEIPT_REQUIRED_THRESHOLD && !expense.receiptUrl && payload.decision === "approve") {
+        console.warn(
+          `[reviewExpense] ⚠️ Receipt missing for expense ${payload.expenseId} ($${(expense.amount / 100).toFixed(2)}). ` +
+          `Expenses over $25 require receipt attachment. Approving without receipt.`
         );
       }
 

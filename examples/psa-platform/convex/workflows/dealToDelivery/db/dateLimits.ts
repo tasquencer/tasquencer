@@ -35,6 +35,18 @@ export const MAX_ENTRY_AGE_DAYS = 90;
 export const TIMER_MAX_HOURS = 12;
 
 /**
+ * Default hours rounding increment (0.25 = 15 minutes)
+ * Reference: spec 07-workflow-time-tracking.md line 299
+ */
+export const DEFAULT_HOURS_ROUNDING_INCREMENT = 0.25;
+
+/**
+ * Alternative hours rounding increment (0.1 = 6 minutes)
+ * Reference: spec 07-workflow-time-tracking.md line 299
+ */
+export const ALTERNATIVE_HOURS_ROUNDING_INCREMENT = 0.1;
+
+/**
  * Milliseconds in one day
  */
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -365,4 +377,92 @@ export function validateExpenseDate(
 export function getDateWarningMessage(date: number): string | null {
   const result = checkEntryDateLimits(date);
   return result.hasWarning ? result.message : null;
+}
+
+// =============================================================================
+// HOURS ROUNDING FUNCTIONS
+// =============================================================================
+
+/**
+ * Round hours to the nearest increment.
+ *
+ * Per spec 07-workflow-time-tracking.md line 299:
+ * "Hours rounded to nearest 0.25 (15 min) or 0.1 (6 min) based on org setting"
+ *
+ * @param hours - The raw hours value
+ * @param increment - The rounding increment (default: 0.25 = 15 minutes)
+ * @returns Hours rounded to the nearest increment
+ *
+ * @example
+ * roundHours(1.33) // Returns 1.25 (rounds down)
+ * roundHours(1.38) // Returns 1.5 (rounds up)
+ * roundHours(1.33, 0.1) // Returns 1.3 (rounds to nearest 0.1)
+ */
+export function roundHours(
+  hours: number,
+  increment: number = DEFAULT_HOURS_ROUNDING_INCREMENT
+): number {
+  if (increment <= 0) {
+    throw new Error("Rounding increment must be positive");
+  }
+  // Round to nearest increment
+  return Math.round(hours / increment) * increment;
+}
+
+/**
+ * Round hours down (floor) to the nearest increment.
+ *
+ * Use this for conservative billing where partial increments are not charged.
+ *
+ * @param hours - The raw hours value
+ * @param increment - The rounding increment (default: 0.25)
+ * @returns Hours rounded down to the nearest increment
+ */
+export function roundHoursDown(
+  hours: number,
+  increment: number = DEFAULT_HOURS_ROUNDING_INCREMENT
+): number {
+  if (increment <= 0) {
+    throw new Error("Rounding increment must be positive");
+  }
+  return Math.floor(hours / increment) * increment;
+}
+
+/**
+ * Round hours up (ceiling) to the nearest increment.
+ *
+ * Use this for billing where any work in an increment counts as full increment.
+ *
+ * @param hours - The raw hours value
+ * @param increment - The rounding increment (default: 0.25)
+ * @returns Hours rounded up to the nearest increment
+ */
+export function roundHoursUp(
+  hours: number,
+  increment: number = DEFAULT_HOURS_ROUNDING_INCREMENT
+): number {
+  if (increment <= 0) {
+    throw new Error("Rounding increment must be positive");
+  }
+  return Math.ceil(hours / increment) * increment;
+}
+
+/**
+ * Check if hours are already rounded to the given increment.
+ *
+ * @param hours - The hours value to check
+ * @param increment - The rounding increment (default: 0.25)
+ * @returns True if hours are already at a valid increment
+ */
+export function isHoursRounded(
+  hours: number,
+  increment: number = DEFAULT_HOURS_ROUNDING_INCREMENT
+): boolean {
+  if (increment <= 0) {
+    throw new Error("Rounding increment must be positive");
+  }
+  // Check if the value divided by increment is effectively a whole number
+  // Use small epsilon for floating point comparison
+  const divided = hours / increment;
+  return Math.abs(divided - Math.round(divided)) < 0.0001;
 }
