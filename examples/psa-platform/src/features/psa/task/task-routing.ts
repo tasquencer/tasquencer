@@ -26,6 +26,11 @@ export type TaskRouteConfig = {
 const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   // Sales tasks with forms - use dealId
   qualifyLead: { path: "/tasks/qualify", hasForm: true, domainIdType: 'deal' },
+  createEstimate: { path: "/deals/$dealId/estimate", hasForm: true, domainIdType: 'deal' },
+  createProposal: { path: "/deals/$dealId/proposal", hasForm: true, domainIdType: 'deal' },
+  sendProposal: { path: "/deals/$dealId/send-proposal", hasForm: true, domainIdType: 'deal' },
+  negotiateTerms: { path: "/deals/$dealId/negotiate", hasForm: true, domainIdType: 'deal' },
+  getProposalSigned: { path: "/deals/$dealId/sign", hasForm: true, domainIdType: 'deal' },
 
   // Planning/Resource/Close tasks with forms - use projectId
   setBudget: { path: "/tasks/setbudget", hasForm: true, domainIdType: 'project' },
@@ -59,8 +64,11 @@ export function getTaskRoute(
   if (routeConfig?.hasForm) {
     // Use domain-first routing: dealId for sales tasks, projectId for others
     const paramKey = routeConfig.domainIdType === 'deal' ? 'dealId' : 'projectId';
+    const routePath = routeConfig.path.includes(`$${paramKey}`)
+      ? routeConfig.path
+      : `${routeConfig.path}/$${paramKey}`;
     return {
-      to: `${routeConfig.path}/$${paramKey}`,
+      to: routePath,
       params: { [paramKey]: aggregateId },
       hasDirectForm: true,
     };

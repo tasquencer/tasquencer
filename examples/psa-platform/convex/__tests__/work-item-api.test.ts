@@ -2,9 +2,12 @@
 /**
  * Work Item API Tests
  *
- * Tests for work item release and admin override functionality.
+ * Tests for work item claim, release and admin override functionality.
  *
  * Key test scenarios:
+ * - User can claim available work items they have scope for
+ * - User cannot claim already claimed work items
+ * - User cannot claim work items without proper scope
  * - User can release their own claimed work items
  * - Non-admin cannot release other users' claimed work items
  * - Admin can release any user's claimed work items
@@ -339,6 +342,211 @@ describe('Work Item API', () => {
           workItemId,
         })
       ).rejects.toThrow('Work item is not claimed')
+    })
+  })
+
+  /**
+   * claimWorkItem Tests
+   *
+   * These tests verify that users can claim available work items and that
+   * proper authorization and state checks are enforced.
+   */
+  describe('claimWorkItem', () => {
+    it('user can claim an available work item with proper scope', async () => {
+      // Create test entities
+      const { workItemId, metadataId } = await createTestEntities(
+        t,
+        authResult.organizationId,
+        authResult.userId
+      )
+
+      // Verify work item is not claimed initially
+      const metadataBefore = await t.run(async (ctx) => {
+        return await ctx.db.get(metadataId)
+      })
+      expect(metadataBefore?.claim).toBeUndefined()
+
+      // Claim the work item
+      const result = await t.mutation(
+        api.workflows.dealToDelivery.api.workItems.claimWorkItem,
+        { workItemId }
+      )
+
+      // Verify result contains expected fields
+      expect(result).toBeDefined()
+      expect(result.workItemId).toBe(workItemId)
+      expect(result.claimedBy).toBe(authResult.userId)
+      expect(result.status).toBe('claimed')
+
+      // Verify the work item is now claimed in the database
+      const metadataAfter = await t.run(async (ctx) => {
+        return await ctx.db.get(metadataId)
+      })
+      expect(metadataAfter?.claim).toBeDefined()
+    })
+
+    it('cannot claim an already claimed work item', async () => {
+      // Create test entities
+      const { workItemId, metadataId } = await createTestEntities(
+        t,
+        authResult.organizationId,
+        authResult.userId
+      )
+
+      // Pre-claim the work item
+      await t.run(async (ctx) => {
+        await ctx.db.patch(metadataId, {
+          claim: {
+            type: 'human' as const,
+            userId: authResult.userId as unknown as string,
+            at: Date.now(),
+          },
+        })
+      })
+
+      // Try to claim again (should fail)
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.workItems.claimWorkItem, {
+          workItemId,
+        })
+      ).rejects.toThrow('Work item is already claimed')
+    })
+
+    it('cannot claim work item without proper scope', async () => {
+      // Create test entities with a scope the user doesn't have
+      const { workItemId } = await t.run(async (ctx) => {
+        const companyId = await ctx.db.insert('companies', {
+          organizationId: authResult.organizationId,
+          name: 'Test Company Inc',
+          billingAddress: {
+            street: '123 Main St',
+            city: 'San Francisco',
+            state: 'CA',
+            postalCode: '94102',
+            country: 'USA',
+          },
+          paymentTerms: 30,
+        })
+
+        const contactId = await ctx.db.insert('contacts', {
+          organizationId: authResult.organizationId,
+          companyId,
+          name: 'John Doe',
+          email: 'john@test.com',
+          phone: '+1-555-0123',
+          isPrimary: true,
+        })
+
+        const dealId = await ctx.db.insert('deals', {
+          organizationId: authResult.organizationId,
+          companyId,
+          contactId,
+          name: 'Test Deal',
+          value: 100000,
+          stage: 'Lead',
+          probability: 10,
+          ownerId: authResult.userId,
+          createdAt: Date.now(),
+        })
+
+        const workflowId = await ctx.db.insert('tasquencerWorkflows', {
+          name: 'dealToDelivery',
+          path: ['dealToDelivery'],
+          versionName: 'v1',
+          executionMode: 'normal',
+          realizedPath: ['dealToDelivery'],
+          state: 'started',
+        })
+
+        await ctx.db.insert('tasquencerTasks', {
+          name: 'adminTask',
+          path: ['dealToDelivery', 'adminTask'],
+          versionName: 'v1',
+          executionMode: 'normal',
+          workflowId,
+          realizedPath: ['dealToDelivery', 'adminTask'],
+          state: 'enabled',
+          generation: 1,
+        })
+
+        // Create work item requiring admin scope (which the user doesn't have)
+        const workItemId = await ctx.db.insert('tasquencerWorkItems', {
+          name: 'adminTask',
+          path: ['dealToDelivery', 'adminTask', 'adminTask'],
+          versionName: 'v1',
+          realizedPath: ['dealToDelivery', 'adminTask', 'adminTask'],
+          state: 'initialized',
+          parent: {
+            workflowId,
+            taskName: 'adminTask',
+            taskGeneration: 1,
+          },
+        })
+
+        // Metadata requires admin scope, which the test user doesn't have
+        await ctx.db.insert('dealToDeliveryWorkItems', {
+          workItemId,
+          workflowName: 'dealToDelivery',
+          offer: {
+            type: 'human' as const,
+            requiredScope: 'dealToDelivery:admin:superpower', // User doesn't have this scope
+          },
+          aggregateTableId: dealId,
+          payload: {
+            type: 'qualifyLead' as const,
+            taskName: 'Admin Task',
+            priority: 'normal' as const,
+          },
+        })
+
+        return { workItemId }
+      })
+
+      // Try to claim without proper scope (should fail)
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.workItems.claimWorkItem, {
+          workItemId,
+        })
+      ).rejects.toThrow('You do not have permission to claim this work item')
+    })
+
+    it('cannot claim a non-existent work item', async () => {
+      // Try to claim a work item that doesn't exist
+      // We need to create a valid ID format that doesn't exist
+      const fakeWorkItemId = await t.run(async (ctx) => {
+        // First create a workflow to get a valid ID
+        const workflowId = await ctx.db.insert('tasquencerWorkflows', {
+          name: 'temp',
+          path: ['temp'],
+          versionName: 'v1',
+          executionMode: 'normal',
+          realizedPath: ['temp'],
+          state: 'started',
+        })
+
+        // Create a work item and immediately delete it to get a valid-but-nonexistent ID
+        const id = await ctx.db.insert('tasquencerWorkItems', {
+          name: 'temp',
+          path: ['temp', 'temp'],
+          versionName: 'v1',
+          realizedPath: ['temp', 'temp'],
+          state: 'initialized',
+          parent: {
+            workflowId,
+            taskName: 'temp',
+            taskGeneration: 1,
+          },
+        })
+        await ctx.db.delete(id)
+        await ctx.db.delete(workflowId)
+        return id
+      })
+
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.workItems.claimWorkItem, {
+          workItemId: fakeWorkItemId,
+        })
+      ).rejects.toThrow('Work item not found')
     })
   })
 

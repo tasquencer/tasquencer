@@ -62,7 +62,10 @@ function getStageBadgeVariant(
   }
 }
 
-function getNextAction(stage: string): {
+function getNextAction(
+  stage: string,
+  hasEstimate: boolean
+): {
   label: string
   href: string
   icon: typeof FileText
@@ -75,6 +78,13 @@ function getNextAction(stage: string): {
         icon: ClipboardCheck,
       }
     case 'Qualified':
+      if (hasEstimate) {
+        return {
+          label: 'Create Proposal',
+          href: 'proposal',
+          icon: FileCheck,
+        }
+      }
       return {
         label: 'Create Estimate',
         href: 'estimate',
@@ -139,7 +149,8 @@ function DealDetailPage() {
     )
   }
 
-  const nextAction = getNextAction(deal.stage)
+  const hasEstimate = Boolean(deal.estimateId)
+  const nextAction = getNextAction(deal.stage, hasEstimate)
 
   return (
     <div className="min-h-full bg-gradient-to-b from-muted/30 to-background">
@@ -370,9 +381,15 @@ function DealDetailPage() {
                   )}
                   {deal.stage === 'Qualified' && (
                     <Button asChild>
-                      <a href={`/deals/${dealId}/estimate`}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Create Estimate
+                      <a
+                        href={`/deals/${dealId}/${hasEstimate ? 'proposal' : 'estimate'}`}
+                      >
+                        {hasEstimate ? (
+                          <FileCheck className="h-4 w-4 mr-2" />
+                        ) : (
+                          <FileText className="h-4 w-4 mr-2" />
+                        )}
+                        {hasEstimate ? 'Create Proposal' : 'Create Estimate'}
                       </a>
                     </Button>
                   )}
