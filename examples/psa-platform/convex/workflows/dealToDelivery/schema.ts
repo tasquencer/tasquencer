@@ -701,6 +701,13 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("createAndAssignTasks"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Execution strategy selection for the executeProjectWork dynamic composite
+      // Determines which workflow pattern to use for task execution
+      executionStrategy: v.optional(v.union(
+        v.literal("sequential"), // Tasks executed one at a time in order
+        v.literal("parallel"),   // Independent tasks executed concurrently
+        v.literal("conditional") // Branch-based execution (e.g., budget-dependent)
+      )),
     }),
     v.object({
       type: v.literal("completeTask"),

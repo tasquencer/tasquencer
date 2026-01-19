@@ -12,7 +12,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { insertTask, getNextTaskSortOrder } from "../db/tasks";
@@ -73,6 +73,11 @@ const createAndAssignTasksWorkItemActions = authService.builders.workItemActions
           priority: z.enum(["Low", "Medium", "High", "Urgent"]).default("Medium"),
         })
       ),
+      // Execution strategy for the executeProjectWork dynamic composite task
+      // - "sequential": Tasks executed one at a time in order (default, safest)
+      // - "parallel": Independent tasks executed concurrently (best for multiple resources)
+      // - "conditional": Branch-based execution (e.g., budget-dependent paths)
+      executionStrategy: z.enum(["sequential", "parallel", "conditional"]).optional().default("sequential"),
     }),
     tasksCreatePolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -122,6 +127,15 @@ const createAndAssignTasksWorkItemActions = authService.builders.workItemActions
       // TODO: Send notifications to assignees about new tasks
       // This would typically be done via a scheduled action
       // (deferred:execution-phase-notifications)
+
+      // Store the execution strategy in work item metadata for the dynamic composite task
+      // The executeProjectWork task's onEnabled will read this to select the appropriate workflow
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+        type: "createAndAssignTasks",
+        taskName: "Create and Assign Tasks",
+        priority: "high",
+        executionStrategy: payload.executionStrategy,
+      });
 
       await workItem.complete();
     }

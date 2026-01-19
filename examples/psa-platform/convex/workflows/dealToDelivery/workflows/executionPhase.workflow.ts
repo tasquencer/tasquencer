@@ -26,7 +26,68 @@ export const executionPhaseWorkflow = Builder.workflow('executionPhase')
   .startCondition('start')
   .endCondition('end')
   .task('createAndAssignTasks', createAndAssignTasksTask)
-  .dynamicCompositeTask('executeProjectWork', Builder.dynamicCompositeTask([sequentialExecutionWorkflow, parallelExecutionWorkflow, conditionalExecutionWorkflow]))
+  .dynamicCompositeTask('executeProjectWork', Builder.dynamicCompositeTask([sequentialExecutionWorkflow, parallelExecutionWorkflow, conditionalExecutionWorkflow])
+    .withActivities({
+      onEnabled: async ({ mutationCtx, workflow, parent }) => {
+        // Read execution strategy from createAndAssignTasks work item metadata
+        // TENET-ROUTING-DETERMINISM: Sort by _creationTime descending for deterministic selection
+
+        // Query work items for the createAndAssignTasks task
+        // Work items are linked via parent.workflowId and parent.taskName
+        const parentWorkflowId = parent.workflow.id
+
+        const workItems = await mutationCtx.db
+          .query("tasquencerWorkItems")
+          .withIndex("by_parent_workflow_id_task_name_task_generation_and_state")
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("parent.workflowId"), parentWorkflowId),
+              q.eq(q.field("parent.taskName"), "createAndAssignTasks")
+            )
+          )
+          .collect()
+
+        if (workItems.length === 0) {
+          // Fallback to sequential if no work items found
+          await workflow.initialize.sequentialExecution()
+          return
+        }
+
+        // Get metadata for the createAndAssignTasks work items
+        const workItemMetadata = await Promise.all(
+          workItems.map(wi =>
+            DealToDeliveryWorkItemHelpers.getWorkItemMetadata(mutationCtx.db, wi._id)
+          )
+        )
+
+        // Sort by _creationTime descending and find most recent with executionStrategy
+        type MetadataType = Awaited<ReturnType<typeof DealToDeliveryWorkItemHelpers.getWorkItemMetadata>>
+        const sortedMetadata = workItemMetadata
+          .filter((m): m is NonNullable<MetadataType> => m !== null)
+          .sort((a, b) => b._creationTime - a._creationTime)
+
+        for (const metadata of sortedMetadata) {
+          if (metadata.payload.type === 'createAndAssignTasks' && metadata.payload.executionStrategy) {
+            // Initialize the appropriate workflow based on the selected strategy
+            switch (metadata.payload.executionStrategy) {
+              case 'sequential':
+                await workflow.initialize.sequentialExecution()
+                return
+              case 'parallel':
+                await workflow.initialize.parallelExecution()
+                return
+              case 'conditional':
+                await workflow.initialize.conditionalExecution()
+                return
+            }
+          }
+        }
+
+        // Fallback: default to sequential if no strategy found
+        await workflow.initialize.sequentialExecution()
+      },
+    })
+  )
   .compositeTask('trackTime', Builder.compositeTask(timeTrackingWorkflow)
     .withJoinType('xor')
     .withSplitType('xor')

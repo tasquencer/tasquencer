@@ -1413,3 +1413,235 @@ describe('PauseWork Domain Logic', () => {
     expect(task2!.status).toBe('InProgress')
   })
 })
+
+describe('ExecuteProjectWork Dynamic Composite Selection', () => {
+  /**
+   * Helper to get the executeProjectWork child workflows from the execution phase
+   */
+  async function getExecuteProjectWorkChildWorkflows(
+    t: TestContext,
+    executionWorkflowId: Id<'tasquencerWorkflows'>
+  ) {
+    return await t.query(
+      internal.testing.tasquencer.getWorkflowCompositeTaskWorkflows,
+      { workflowId: executionWorkflowId, taskName: 'executeProjectWork' }
+    )
+  }
+
+  it('selects sequential execution by default when no strategy specified', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await completeResourcePlanningPhase(
+      testContext,
+      rootWorkflowId,
+      projectId,
+      developer1Id
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const executionWorkflowId = await getExecutionPhaseWorkflowId(testContext, rootWorkflowId)
+
+    // Complete createAndAssignTasks WITHOUT specifying executionStrategy (should default to sequential)
+    await completeWorkItem(
+      testContext,
+      executionWorkflowId,
+      'createAndAssignTasks',
+      ['dealToDelivery', 'execution', 'executionPhase', 'createAndAssignTasks', 'createAndAssignTasks'],
+      {
+        projectId,
+        tasks: [
+          {
+            name: 'Test Task 1',
+            description: 'Description',
+            assigneeIds: [developer1Id],
+            estimatedHours: 10,
+            priority: 'Medium',
+          },
+        ],
+        // executionStrategy not specified - defaults to 'sequential'
+      },
+      { projectId }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify executeProjectWork created the sequentialExecution child workflow
+    const childWorkflows = await getExecuteProjectWorkChildWorkflows(testContext, executionWorkflowId)
+
+    expect(childWorkflows.length).toBe(1)
+    expect(childWorkflows[0].name).toBe('sequentialExecution')
+  })
+
+  it('selects parallel execution when strategy is "parallel"', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id, developer2Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await completeResourcePlanningPhase(
+      testContext,
+      rootWorkflowId,
+      projectId,
+      developer1Id
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const executionWorkflowId = await getExecutionPhaseWorkflowId(testContext, rootWorkflowId)
+
+    // Complete createAndAssignTasks WITH executionStrategy = 'parallel'
+    await completeWorkItem(
+      testContext,
+      executionWorkflowId,
+      'createAndAssignTasks',
+      ['dealToDelivery', 'execution', 'executionPhase', 'createAndAssignTasks', 'createAndAssignTasks'],
+      {
+        projectId,
+        tasks: [
+          {
+            name: 'Parallel Task 1',
+            description: 'Description',
+            assigneeIds: [developer1Id],
+            estimatedHours: 10,
+            priority: 'High',
+          },
+          {
+            name: 'Parallel Task 2',
+            description: 'Description',
+            assigneeIds: [developer2Id],
+            estimatedHours: 10,
+            priority: 'High',
+          },
+        ],
+        executionStrategy: 'parallel',
+      },
+      { projectId }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify executeProjectWork created the parallelExecution child workflow
+    const childWorkflows = await getExecuteProjectWorkChildWorkflows(testContext, executionWorkflowId)
+
+    expect(childWorkflows.length).toBe(1)
+    expect(childWorkflows[0].name).toBe('parallelExecution')
+  })
+
+  it('selects conditional execution when strategy is "conditional"', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await completeResourcePlanningPhase(
+      testContext,
+      rootWorkflowId,
+      projectId,
+      developer1Id
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const executionWorkflowId = await getExecutionPhaseWorkflowId(testContext, rootWorkflowId)
+
+    // Complete createAndAssignTasks WITH executionStrategy = 'conditional'
+    await completeWorkItem(
+      testContext,
+      executionWorkflowId,
+      'createAndAssignTasks',
+      ['dealToDelivery', 'execution', 'executionPhase', 'createAndAssignTasks', 'createAndAssignTasks'],
+      {
+        projectId,
+        tasks: [
+          {
+            name: 'Conditional Task',
+            description: 'Description',
+            assigneeIds: [developer1Id],
+            estimatedHours: 20,
+            priority: 'High',
+          },
+        ],
+        executionStrategy: 'conditional',
+      },
+      { projectId }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify executeProjectWork created the conditionalExecution child workflow
+    const childWorkflows = await getExecuteProjectWorkChildWorkflows(testContext, executionWorkflowId)
+
+    expect(childWorkflows.length).toBe(1)
+    expect(childWorkflows[0].name).toBe('conditionalExecution')
+  })
+})
