@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -145,6 +145,8 @@ function CreateBookingModal({
   onClose,
   selectedPerson,
   selectedDate,
+  teamMembers,
+  onSelectPerson,
   projects,
   onSave,
 }: {
@@ -152,6 +154,8 @@ function CreateBookingModal({
   onClose: () => void
   selectedPerson: TeamMember | null
   selectedDate: Date | null
+  teamMembers: TeamMember[]
+  onSelectPerson: (member: TeamMember | null) => void
   projects: Array<{ _id: Id<'projects'>; name: string }> | undefined
   onSave: (booking: {
     userId: Id<'users'>
@@ -170,6 +174,7 @@ function CreateBookingModal({
   const [bookingType, setBookingType] = useState<
     'Tentative' | 'Confirmed' | 'TimeOff'
   >('Confirmed')
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
   const [notes, setNotes] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -189,15 +194,16 @@ function CreateBookingModal({
     }
     setHoursPerDay('8')
     setBookingType('Confirmed')
+    setSelectedUserId(selectedPerson?.user._id ?? '')
     setNotes('')
-  }, [selectedDate])
+  }, [selectedDate, selectedPerson?.user._id])
 
   // Reset when modal opens
-  useState(() => {
+  useEffect(() => {
     if (isOpen) {
       resetForm()
     }
-  })
+  }, [isOpen, resetForm])
 
   const handleSave = async () => {
     if (!selectedPerson) {
@@ -260,6 +266,31 @@ function CreateBookingModal({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          {!selectedPerson && (
+            <div className="grid gap-2">
+              <Label htmlFor="teamMember">Team Member *</Label>
+              <Select
+                value={selectedUserId}
+                onValueChange={(value) => {
+                  setSelectedUserId(value)
+                  const member =
+                    teamMembers.find((m) => m.user._id === value) ?? null
+                  onSelectPerson(member)
+                }}
+              >
+                <SelectTrigger id="teamMember">
+                  <SelectValue placeholder="Select a team member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.user._id} value={member.user._id}>
+                      {member.user.name} ({member.user.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="bookingType">Booking Type *</Label>
             <Select
@@ -805,6 +836,8 @@ function ResourceSchedulerPage() {
             }}
             selectedPerson={selectedPerson}
             selectedDate={selectedDate}
+            teamMembers={teamData ?? []}
+            onSelectPerson={setSelectedPerson}
             projects={projects}
             onSave={handleCreateBooking}
           />
