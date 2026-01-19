@@ -11,6 +11,7 @@ import { parallelExecutionWorkflow } from './parallelExecution.workflow'
 import { conditionalExecutionWorkflow } from './conditionalExecution.workflow'
 import { getProjectByWorkflowId } from '../db/projects'
 import { listChangeOrdersByProject } from '../db/changeOrders'
+import { listWorkItemsByParentTask } from '../db/workflows'
 import { assertProjectExists } from '../exceptions'
 import { DealToDeliveryWorkItemHelpers } from '../helpers'
 const finalizeTimeTrackingTask = Builder.dummyTask()
@@ -31,21 +32,16 @@ export const executionPhaseWorkflow = Builder.workflow('executionPhase')
       onEnabled: async ({ mutationCtx, workflow, parent }) => {
         // Read execution strategy from createAndAssignTasks work item metadata
         // TENET-ROUTING-DETERMINISM: Sort by _creationTime descending for deterministic selection
+        // TENET-DOMAIN-BOUNDARY: Use domain helper for work item queries
 
-        // Query work items for the createAndAssignTasks task
-        // Work items are linked via parent.workflowId and parent.taskName
         const parentWorkflowId = parent.workflow.id
 
-        const workItems = await mutationCtx.db
-          .query("tasquencerWorkItems")
-          .withIndex("by_parent_workflow_id_task_name_task_generation_and_state")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("parent.workflowId"), parentWorkflowId),
-              q.eq(q.field("parent.taskName"), "createAndAssignTasks")
-            )
-          )
-          .collect()
+        // Use domain helper instead of direct db query
+        const workItems = await listWorkItemsByParentTask(
+          mutationCtx.db,
+          parentWorkflowId,
+          "createAndAssignTasks"
+        )
 
         if (workItems.length === 0) {
           // Fallback to sequential if no work items found

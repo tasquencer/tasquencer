@@ -35,6 +35,7 @@ import {
 } from '../db/deals'
 import { getUser } from '../db/users'
 import { getCompany } from '../db/companies'
+import { getSalesPhaseWorkflow } from '../db/workflows'
 import { authComponent } from '../../../auth'
 
 /** Deal stages that appear as pipeline columns */
@@ -299,34 +300,8 @@ export const initializeDealToDelivery = mutation({
     )
 
     // Step 1.5: Resolve the sales phase workflow created by the composite task.
-    const salesTask = await ctx.db
-      .query('tasquencerTasks')
-      .withIndex('by_workflow_id_name_and_generation', (q) =>
-        q.eq('workflowId', workflowId).eq('name', 'sales')
-      )
-      .order('desc')
-      .first()
-    if (!salesTask) {
-      throw new Error(`Sales task not found for workflow ${workflowId}`)
-    }
-
-    const salesWorkflow = await ctx.db
-      .query('tasquencerWorkflows')
-      .withIndex(
-        'by_parent_workflow_id_task_name_task_generation_and_name',
-        (q) =>
-          q
-            .eq('parent.workflowId', workflowId)
-            .eq('parent.taskName', 'sales')
-            .eq('parent.taskGeneration', salesTask.generation)
-            .eq('name', 'salesPhase')
-      )
-      .first()
-    if (!salesWorkflow) {
-      throw new Error(
-        `Sales phase workflow not initialized for root workflow ${workflowId}`
-      )
-    }
+    // TENET-DOMAIN-BOUNDARY: Use domain helper for workflow resolution
+    const salesWorkflow = await getSalesPhaseWorkflow(ctx.db, workflowId)
 
     // Step 2: Initialize the createDeal work item
     const workItemId = await ctx.runMutation(
