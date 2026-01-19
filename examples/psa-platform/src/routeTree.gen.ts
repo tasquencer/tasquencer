@@ -48,6 +48,7 @@ import { Route as AppAdminRolesIndexRouteImport } from './routes/_app/admin/role
 import { Route as AppAdminGroupsIndexRouteImport } from './routes/_app/admin/groups.index'
 import { Route as AppTasksSetbudgetProjectIdRouteImport } from './routes/_app/tasks/setbudget.$projectId'
 import { Route as AppTasksQualifyDealIdRouteImport } from './routes/_app/tasks/qualify.$dealId'
+import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
 import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_app/tasks/confirmbookings.$projectId'
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
@@ -260,6 +261,12 @@ const AppTasksQualifyDealIdRoute = AppTasksQualifyDealIdRouteImport.update({
   path: '/qualify/$dealId',
   getParentRoute: () => AppTasksRoute,
 } as any)
+const AppTasksCreateprojectDealIdRoute =
+  AppTasksCreateprojectDealIdRouteImport.update({
+    id: '/createproject/$dealId',
+    path: '/createproject/$dealId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksConfirmbookingsProjectIdRoute =
   AppTasksConfirmbookingsProjectIdRouteImport.update({
     id: '/confirmbookings/$projectId',
@@ -396,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -440,6 +448,7 @@ export interface FileRoutesByTo {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/admin/groups': typeof AppAdminGroupsIndexRoute
@@ -498,6 +507,7 @@ export interface FileRoutesById {
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/_app/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/_app/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/_app/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/_app/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createproject/$dealId'
     | '/tasks/qualify/$dealId'
     | '/tasks/setbudget/$projectId'
     | '/admin/groups/'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createproject/$dealId'
     | '/tasks/qualify/$dealId'
     | '/tasks/setbudget/$projectId'
     | '/admin/groups'
@@ -657,6 +669,7 @@ export interface FileRouteTypes {
     | '/_app/tasks/closeproject/$projectId'
     | '/_app/tasks/conductretro/$projectId'
     | '/_app/tasks/confirmbookings/$projectId'
+    | '/_app/tasks/createproject/$dealId'
     | '/_app/tasks/qualify/$dealId'
     | '/_app/tasks/setbudget/$projectId'
     | '/_app/admin/groups/'
@@ -948,6 +961,13 @@ declare module '@tanstack/react-router' {
       path: '/qualify/$dealId'
       fullPath: '/tasks/qualify/$dealId'
       preLoaderRoute: typeof AppTasksQualifyDealIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/createproject/$dealId': {
+      id: '/_app/tasks/createproject/$dealId'
+      path: '/createproject/$dealId'
+      fullPath: '/tasks/createproject/$dealId'
+      preLoaderRoute: typeof AppTasksCreateprojectDealIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/confirmbookings/$projectId': {
@@ -1257,6 +1277,7 @@ interface AppTasksRouteChildren {
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
   AppTasksConfirmbookingsProjectIdRoute: typeof AppTasksConfirmbookingsProjectIdRoute
+  AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
   AppTasksQualifyDealIdRoute: typeof AppTasksQualifyDealIdRoute
   AppTasksSetbudgetProjectIdRoute: typeof AppTasksSetbudgetProjectIdRoute
 }
@@ -1266,6 +1287,7 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
   AppTasksConfirmbookingsProjectIdRoute: AppTasksConfirmbookingsProjectIdRoute,
+  AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
   AppTasksQualifyDealIdRoute: AppTasksQualifyDealIdRoute,
   AppTasksSetbudgetProjectIdRoute: AppTasksSetbudgetProjectIdRoute,
 }

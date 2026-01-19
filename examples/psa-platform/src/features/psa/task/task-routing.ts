@@ -31,6 +31,7 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   sendProposal: { path: "/deals/$dealId/send-proposal", hasForm: true, domainIdType: 'deal' },
   negotiateTerms: { path: "/deals/$dealId/negotiate", hasForm: true, domainIdType: 'deal' },
   getProposalSigned: { path: "/deals/$dealId/sign", hasForm: true, domainIdType: 'deal' },
+  createProject: { path: "/tasks/createproject", hasForm: true, domainIdType: 'deal' },
 
   // Planning/Resource/Close tasks with forms - use projectId
   setBudget: { path: "/tasks/setbudget", hasForm: true, domainIdType: 'project' },
