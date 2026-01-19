@@ -28,12 +28,15 @@ import { Route as AppResourcesIndexRouteImport } from './routes/_app/resources/i
 import { Route as AppProjectsIndexRouteImport } from './routes/_app/projects/index'
 import { Route as AppExpensesIndexRouteImport } from './routes/_app/expenses/index'
 import { Route as AppDealsIndexRouteImport } from './routes/_app/deals/index'
+import { Route as AppCompaniesIndexRouteImport } from './routes/_app/companies/index'
 import { Route as AppAuditIndexRouteImport } from './routes/_app/audit/index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app/projects/$projectId'
 import { Route as AppDealsNewRouteImport } from './routes/_app/deals/new'
 import { Route as AppDealsDealIdRouteImport } from './routes/_app/deals/$dealId'
+import { Route as AppCompaniesNewRouteImport } from './routes/_app/companies/new'
+import { Route as AppCompaniesCompanyIdRouteImport } from './routes/_app/companies/$companyId'
 import { Route as AppAuditTraceIdRouteImport } from './routes/_app/audit/$traceId'
 import { Route as AppApprovalsTimesheetsRouteImport } from './routes/_app/approvals/timesheets'
 import { Route as AppAdminUsersRouteImport } from './routes/_app/admin/users'
@@ -54,10 +57,12 @@ import { Route as AppDealsDealIdQualifyRouteImport } from './routes/_app/deals/$
 import { Route as AppDealsDealIdProposalRouteImport } from './routes/_app/deals/$dealId/proposal'
 import { Route as AppDealsDealIdNegotiateRouteImport } from './routes/_app/deals/$dealId/negotiate'
 import { Route as AppDealsDealIdEstimateRouteImport } from './routes/_app/deals/$dealId/estimate'
+import { Route as AppCompaniesCompanyIdEditRouteImport } from './routes/_app/companies/$companyId/edit'
 import { Route as AppAuditTraceIdVisualizerRouteImport } from './routes/_app/audit/$traceId.visualizer'
 import { Route as AppAdminRolesRoleIdRouteImport } from './routes/_app/admin/roles.$roleId'
 import { Route as AppAdminGroupsGroupIdRouteImport } from './routes/_app/admin/groups.$groupId'
 import { Route as AppProjectsProjectIdInvoicesNewRouteImport } from './routes/_app/projects/$projectId/invoices/new'
+import { Route as AppCompaniesCompanyIdContactsNewRouteImport } from './routes/_app/companies/$companyId/contacts/new'
 import { Route as AppAdminUsersUserIdAssignRouteImport } from './routes/_app/admin/users.$userId.assign'
 
 const LoginRoute = LoginRouteImport.update({
@@ -154,6 +159,11 @@ const AppDealsIndexRoute = AppDealsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppDealsRoute,
 } as any)
+const AppCompaniesIndexRoute = AppCompaniesIndexRouteImport.update({
+  id: '/companies/',
+  path: '/companies/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAuditIndexRoute = AppAuditIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -183,6 +193,16 @@ const AppDealsDealIdRoute = AppDealsDealIdRouteImport.update({
   id: '/$dealId',
   path: '/$dealId',
   getParentRoute: () => AppDealsRoute,
+} as any)
+const AppCompaniesNewRoute = AppCompaniesNewRouteImport.update({
+  id: '/companies/new',
+  path: '/companies/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCompaniesCompanyIdRoute = AppCompaniesCompanyIdRouteImport.update({
+  id: '/companies/$companyId',
+  path: '/companies/$companyId',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAuditTraceIdRoute = AppAuditTraceIdRouteImport.update({
   id: '/$traceId',
@@ -289,6 +309,12 @@ const AppDealsDealIdEstimateRoute = AppDealsDealIdEstimateRouteImport.update({
   path: '/estimate',
   getParentRoute: () => AppDealsDealIdRoute,
 } as any)
+const AppCompaniesCompanyIdEditRoute =
+  AppCompaniesCompanyIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AppCompaniesCompanyIdRoute,
+  } as any)
 const AppAuditTraceIdVisualizerRoute =
   AppAuditTraceIdVisualizerRouteImport.update({
     id: '/visualizer',
@@ -310,6 +336,12 @@ const AppProjectsProjectIdInvoicesNewRoute =
     id: '/invoices/new',
     path: '/invoices/new',
     getParentRoute: () => AppProjectsProjectIdRoute,
+  } as any)
+const AppCompaniesCompanyIdContactsNewRoute =
+  AppCompaniesCompanyIdContactsNewRouteImport.update({
+    id: '/contacts/new',
+    path: '/contacts/new',
+    getParentRoute: () => AppCompaniesCompanyIdRoute,
   } as any)
 const AppAdminUsersUserIdAssignRoute =
   AppAdminUsersUserIdAssignRouteImport.update({
@@ -336,12 +368,15 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AppAdminUsersRouteWithChildren
   '/approvals/timesheets': typeof AppApprovalsTimesheetsRoute
   '/audit/$traceId': typeof AppAuditTraceIdRouteWithChildren
+  '/companies/$companyId': typeof AppCompaniesCompanyIdRouteWithChildren
+  '/companies/new': typeof AppCompaniesNewRoute
   '/deals/$dealId': typeof AppDealsDealIdRouteWithChildren
   '/deals/new': typeof AppDealsNewRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof AppAdminIndexRoute
   '/audit/': typeof AppAuditIndexRoute
+  '/companies': typeof AppCompaniesIndexRoute
   '/deals/': typeof AppDealsIndexRoute
   '/expenses/': typeof AppExpensesIndexRoute
   '/projects/': typeof AppProjectsIndexRoute
@@ -351,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/admin/groups/$groupId': typeof AppAdminGroupsGroupIdRoute
   '/admin/roles/$roleId': typeof AppAdminRolesRoleIdRoute
   '/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
+  '/companies/$companyId/edit': typeof AppCompaniesCompanyIdEditRoute
   '/deals/$dealId/estimate': typeof AppDealsDealIdEstimateRoute
   '/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
@@ -367,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/': typeof AppAdminUsersIndexRoute
   '/audit/$traceId/': typeof AppAuditTraceIdIndexRoute
   '/admin/users/$userId/assign': typeof AppAdminUsersUserIdAssignRoute
+  '/companies/$companyId/contacts/new': typeof AppCompaniesCompanyIdContactsNewRoute
   '/projects/$projectId/invoices/new': typeof AppProjectsProjectIdInvoicesNewRoute
 }
 export interface FileRoutesByTo {
@@ -375,12 +412,15 @@ export interface FileRoutesByTo {
   '/approvals': typeof AppApprovalsRouteWithChildren
   '/homepage': typeof AppHomepageRoute
   '/approvals/timesheets': typeof AppApprovalsTimesheetsRoute
+  '/companies/$companyId': typeof AppCompaniesCompanyIdRouteWithChildren
+  '/companies/new': typeof AppCompaniesNewRoute
   '/deals/$dealId': typeof AppDealsDealIdRouteWithChildren
   '/deals/new': typeof AppDealsNewRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof AppAdminIndexRoute
   '/audit': typeof AppAuditIndexRoute
+  '/companies': typeof AppCompaniesIndexRoute
   '/deals': typeof AppDealsIndexRoute
   '/expenses': typeof AppExpensesIndexRoute
   '/projects': typeof AppProjectsIndexRoute
@@ -390,6 +430,7 @@ export interface FileRoutesByTo {
   '/admin/groups/$groupId': typeof AppAdminGroupsGroupIdRoute
   '/admin/roles/$roleId': typeof AppAdminRolesRoleIdRoute
   '/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
+  '/companies/$companyId/edit': typeof AppCompaniesCompanyIdEditRoute
   '/deals/$dealId/estimate': typeof AppDealsDealIdEstimateRoute
   '/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
@@ -406,6 +447,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AppAdminUsersIndexRoute
   '/audit/$traceId': typeof AppAuditTraceIdIndexRoute
   '/admin/users/$userId/assign': typeof AppAdminUsersUserIdAssignRoute
+  '/companies/$companyId/contacts/new': typeof AppCompaniesCompanyIdContactsNewRoute
   '/projects/$projectId/invoices/new': typeof AppProjectsProjectIdInvoicesNewRoute
 }
 export interface FileRoutesById {
@@ -428,12 +470,15 @@ export interface FileRoutesById {
   '/_app/admin/users': typeof AppAdminUsersRouteWithChildren
   '/_app/approvals/timesheets': typeof AppApprovalsTimesheetsRoute
   '/_app/audit/$traceId': typeof AppAuditTraceIdRouteWithChildren
+  '/_app/companies/$companyId': typeof AppCompaniesCompanyIdRouteWithChildren
+  '/_app/companies/new': typeof AppCompaniesNewRoute
   '/_app/deals/$dealId': typeof AppDealsDealIdRouteWithChildren
   '/_app/deals/new': typeof AppDealsNewRoute
   '/_app/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/audit/': typeof AppAuditIndexRoute
+  '/_app/companies/': typeof AppCompaniesIndexRoute
   '/_app/deals/': typeof AppDealsIndexRoute
   '/_app/expenses/': typeof AppExpensesIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
@@ -443,6 +488,7 @@ export interface FileRoutesById {
   '/_app/admin/groups/$groupId': typeof AppAdminGroupsGroupIdRoute
   '/_app/admin/roles/$roleId': typeof AppAdminRolesRoleIdRoute
   '/_app/audit/$traceId/visualizer': typeof AppAuditTraceIdVisualizerRoute
+  '/_app/companies/$companyId/edit': typeof AppCompaniesCompanyIdEditRoute
   '/_app/deals/$dealId/estimate': typeof AppDealsDealIdEstimateRoute
   '/_app/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/_app/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
@@ -459,6 +505,7 @@ export interface FileRoutesById {
   '/_app/admin/users/': typeof AppAdminUsersIndexRoute
   '/_app/audit/$traceId/': typeof AppAuditTraceIdIndexRoute
   '/_app/admin/users/$userId/assign': typeof AppAdminUsersUserIdAssignRoute
+  '/_app/companies/$companyId/contacts/new': typeof AppCompaniesCompanyIdContactsNewRoute
   '/_app/projects/$projectId/invoices/new': typeof AppProjectsProjectIdInvoicesNewRoute
 }
 export interface FileRouteTypes {
@@ -481,12 +528,15 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/approvals/timesheets'
     | '/audit/$traceId'
+    | '/companies/$companyId'
+    | '/companies/new'
     | '/deals/$dealId'
     | '/deals/new'
     | '/projects/$projectId'
     | '/api/auth/$'
     | '/admin/'
     | '/audit/'
+    | '/companies'
     | '/deals/'
     | '/expenses/'
     | '/projects/'
@@ -496,6 +546,7 @@ export interface FileRouteTypes {
     | '/admin/groups/$groupId'
     | '/admin/roles/$roleId'
     | '/audit/$traceId/visualizer'
+    | '/companies/$companyId/edit'
     | '/deals/$dealId/estimate'
     | '/deals/$dealId/negotiate'
     | '/deals/$dealId/proposal'
@@ -512,6 +563,7 @@ export interface FileRouteTypes {
     | '/admin/users/'
     | '/audit/$traceId/'
     | '/admin/users/$userId/assign'
+    | '/companies/$companyId/contacts/new'
     | '/projects/$projectId/invoices/new'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -520,12 +572,15 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/homepage'
     | '/approvals/timesheets'
+    | '/companies/$companyId'
+    | '/companies/new'
     | '/deals/$dealId'
     | '/deals/new'
     | '/projects/$projectId'
     | '/api/auth/$'
     | '/admin'
     | '/audit'
+    | '/companies'
     | '/deals'
     | '/expenses'
     | '/projects'
@@ -535,6 +590,7 @@ export interface FileRouteTypes {
     | '/admin/groups/$groupId'
     | '/admin/roles/$roleId'
     | '/audit/$traceId/visualizer'
+    | '/companies/$companyId/edit'
     | '/deals/$dealId/estimate'
     | '/deals/$dealId/negotiate'
     | '/deals/$dealId/proposal'
@@ -551,6 +607,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/audit/$traceId'
     | '/admin/users/$userId/assign'
+    | '/companies/$companyId/contacts/new'
     | '/projects/$projectId/invoices/new'
   id:
     | '__root__'
@@ -572,12 +629,15 @@ export interface FileRouteTypes {
     | '/_app/admin/users'
     | '/_app/approvals/timesheets'
     | '/_app/audit/$traceId'
+    | '/_app/companies/$companyId'
+    | '/_app/companies/new'
     | '/_app/deals/$dealId'
     | '/_app/deals/new'
     | '/_app/projects/$projectId'
     | '/api/auth/$'
     | '/_app/admin/'
     | '/_app/audit/'
+    | '/_app/companies/'
     | '/_app/deals/'
     | '/_app/expenses/'
     | '/_app/projects/'
@@ -587,6 +647,7 @@ export interface FileRouteTypes {
     | '/_app/admin/groups/$groupId'
     | '/_app/admin/roles/$roleId'
     | '/_app/audit/$traceId/visualizer'
+    | '/_app/companies/$companyId/edit'
     | '/_app/deals/$dealId/estimate'
     | '/_app/deals/$dealId/negotiate'
     | '/_app/deals/$dealId/proposal'
@@ -603,6 +664,7 @@ export interface FileRouteTypes {
     | '/_app/admin/users/'
     | '/_app/audit/$traceId/'
     | '/_app/admin/users/$userId/assign'
+    | '/_app/companies/$companyId/contacts/new'
     | '/_app/projects/$projectId/invoices/new'
   fileRoutesById: FileRoutesById
 }
@@ -748,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDealsIndexRouteImport
       parentRoute: typeof AppDealsRoute
     }
+    '/_app/companies/': {
+      id: '/_app/companies/'
+      path: '/companies'
+      fullPath: '/companies'
+      preLoaderRoute: typeof AppCompaniesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/audit/': {
       id: '/_app/audit/'
       path: '/'
@@ -789,6 +858,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/deals/$dealId'
       preLoaderRoute: typeof AppDealsDealIdRouteImport
       parentRoute: typeof AppDealsRoute
+    }
+    '/_app/companies/new': {
+      id: '/_app/companies/new'
+      path: '/companies/new'
+      fullPath: '/companies/new'
+      preLoaderRoute: typeof AppCompaniesNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/companies/$companyId': {
+      id: '/_app/companies/$companyId'
+      path: '/companies/$companyId'
+      fullPath: '/companies/$companyId'
+      preLoaderRoute: typeof AppCompaniesCompanyIdRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/audit/$traceId': {
       id: '/_app/audit/$traceId'
@@ -930,6 +1013,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDealsDealIdEstimateRouteImport
       parentRoute: typeof AppDealsDealIdRoute
     }
+    '/_app/companies/$companyId/edit': {
+      id: '/_app/companies/$companyId/edit'
+      path: '/edit'
+      fullPath: '/companies/$companyId/edit'
+      preLoaderRoute: typeof AppCompaniesCompanyIdEditRouteImport
+      parentRoute: typeof AppCompaniesCompanyIdRoute
+    }
     '/_app/audit/$traceId/visualizer': {
       id: '/_app/audit/$traceId/visualizer'
       path: '/visualizer'
@@ -957,6 +1047,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$projectId/invoices/new'
       preLoaderRoute: typeof AppProjectsProjectIdInvoicesNewRouteImport
       parentRoute: typeof AppProjectsProjectIdRoute
+    }
+    '/_app/companies/$companyId/contacts/new': {
+      id: '/_app/companies/$companyId/contacts/new'
+      path: '/contacts/new'
+      fullPath: '/companies/$companyId/contacts/new'
+      preLoaderRoute: typeof AppCompaniesCompanyIdContactsNewRouteImport
+      parentRoute: typeof AppCompaniesCompanyIdRoute
     }
     '/_app/admin/users/$userId/assign': {
       id: '/_app/admin/users/$userId/assign'
@@ -1189,6 +1286,21 @@ const AppTimesheetRouteWithChildren = AppTimesheetRoute._addFileChildren(
   AppTimesheetRouteChildren,
 )
 
+interface AppCompaniesCompanyIdRouteChildren {
+  AppCompaniesCompanyIdEditRoute: typeof AppCompaniesCompanyIdEditRoute
+  AppCompaniesCompanyIdContactsNewRoute: typeof AppCompaniesCompanyIdContactsNewRoute
+}
+
+const AppCompaniesCompanyIdRouteChildren: AppCompaniesCompanyIdRouteChildren = {
+  AppCompaniesCompanyIdEditRoute: AppCompaniesCompanyIdEditRoute,
+  AppCompaniesCompanyIdContactsNewRoute: AppCompaniesCompanyIdContactsNewRoute,
+}
+
+const AppCompaniesCompanyIdRouteWithChildren =
+  AppCompaniesCompanyIdRoute._addFileChildren(
+    AppCompaniesCompanyIdRouteChildren,
+  )
+
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
   AppApprovalsRoute: typeof AppApprovalsRouteWithChildren
@@ -1200,6 +1312,9 @@ interface AppRouteChildren {
   AppResourcesRoute: typeof AppResourcesRouteWithChildren
   AppTasksRoute: typeof AppTasksRouteWithChildren
   AppTimesheetRoute: typeof AppTimesheetRouteWithChildren
+  AppCompaniesCompanyIdRoute: typeof AppCompaniesCompanyIdRouteWithChildren
+  AppCompaniesNewRoute: typeof AppCompaniesNewRoute
+  AppCompaniesIndexRoute: typeof AppCompaniesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1213,6 +1328,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppResourcesRoute: AppResourcesRouteWithChildren,
   AppTasksRoute: AppTasksRouteWithChildren,
   AppTimesheetRoute: AppTimesheetRouteWithChildren,
+  AppCompaniesCompanyIdRoute: AppCompaniesCompanyIdRouteWithChildren,
+  AppCompaniesNewRoute: AppCompaniesNewRoute,
+  AppCompaniesIndexRoute: AppCompaniesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

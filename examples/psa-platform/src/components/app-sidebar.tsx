@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Briefcase, FolderKanban, Search, Shield, Clock, CheckCircle, ListTodo, Users } from 'lucide-react'
+import { Briefcase, Building2, FolderKanban, Search, Shield, Clock, CheckCircle, ListTodo, Users } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
@@ -36,6 +36,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {
                   title: 'Deals',
                   renderLink: () => <Link to="/deals">Deals</Link>,
+                },
+              ],
+            },
+            {
+              title: 'Customers',
+              icon: Building2,
+              isActive: () => true,
+              items: [
+                {
+                  title: 'Companies',
+                  renderLink: () => <Link to="/companies">Companies</Link>,
                 },
               ],
             },
