@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useMutation, skip } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@repo/ui/components/button'
 import {
   Card,
@@ -61,6 +61,16 @@ function SendProposalPage() {
     dealId: dealId as Id<'deals'>,
   })
 
+  const contact = useQuery(
+    api.workflows.dealToDelivery.api.companies.getContact,
+    deal ? { contactId: deal.contactId } : skip
+  )
+
+  const company = useQuery(
+    api.workflows.dealToDelivery.api.companies.getCompany,
+    deal ? { companyId: deal.companyId } : skip
+  )
+
   const latestProposal = useQuery(
     api.workflows.dealToDelivery.api.proposals.getLatestProposal,
     { dealId: dealId as Id<'deals'> }
@@ -86,6 +96,29 @@ function SendProposalPage() {
       personalMessage: '',
     },
   })
+
+  useEffect(() => {
+    if (form.formState.isDirty) {
+      return
+    }
+
+    let recipientName = contact?.name ?? ''
+    let recipientEmail = contact?.email ?? ''
+
+    if ((!recipientName || !recipientEmail) && company?.contacts?.length) {
+      const primaryContact =
+        company.contacts.find((c) => c.isPrimary) ?? company.contacts[0]
+      if (!recipientName) recipientName = primaryContact?.name ?? ''
+      if (!recipientEmail) recipientEmail = primaryContact?.email ?? ''
+    }
+
+    if (recipientName) {
+      form.setValue('recipientName', recipientName, { shouldDirty: false })
+    }
+    if (recipientEmail) {
+      form.setValue('recipientEmail', recipientEmail, { shouldDirty: false })
+    }
+  }, [company, contact, form])
 
   // Find the sendProposal work item
   const sendWorkItem = workItems?.find(
