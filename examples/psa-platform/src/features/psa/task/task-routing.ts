@@ -54,7 +54,8 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
 export function getTaskRoute(
   taskType: string,
   _workItemId: Id<"tasquencerWorkItems">, // Keep for API compatibility; domain IDs used for routing
-  aggregateId: string
+  aggregateId: string,
+  projectId?: string
 ): {
   to: string;
   params?: Record<string, string>;
@@ -65,12 +66,14 @@ export function getTaskRoute(
   if (routeConfig?.hasForm) {
     // Use domain-first routing: dealId for sales tasks, projectId for others
     const paramKey = routeConfig.domainIdType === 'deal' ? 'dealId' : 'projectId';
+    const routeId =
+      routeConfig.domainIdType === 'project' ? projectId ?? aggregateId : aggregateId;
     const routePath = routeConfig.path.includes(`$${paramKey}`)
       ? routeConfig.path
       : `${routeConfig.path}/$${paramKey}`;
     return {
       to: routePath,
-      params: { [paramKey]: aggregateId },
+      params: { [paramKey]: routeId },
       hasDirectForm: true,
     };
   }

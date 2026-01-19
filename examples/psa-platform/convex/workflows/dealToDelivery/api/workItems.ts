@@ -20,6 +20,7 @@ import { authComponent } from '../../../auth'
 import { isHumanOffer, isHumanClaim } from '@repo/tasquencer'
 import {
   getProject,
+  getProjectByDealId,
   getWorkItem,
   listActiveClaimedWorkItemsForUser,
   listActiveHumanWorkItems,
@@ -36,7 +37,11 @@ function mapWorkItemToResponse(
     >
   >,
   workItem: { state: string; name: string } | null,
-  options: { includeGroupName?: boolean; includeWorkItemState?: boolean } = {},
+  options: {
+    includeGroupName?: boolean
+    includeWorkItemState?: boolean
+    projectId?: Id<'projects'>
+  } = {},
 ) {
   const payload = metadata.payload as { type?: string; taskName?: string }
   const taskName = payload.taskName ?? workItem?.name ?? 'Task'
@@ -63,7 +68,31 @@ function mapWorkItemToResponse(
   return {
     ...baseResponse,
     ...(options.includeWorkItemState && { workItemState: workItem?.state }),
+    ...(options.projectId && { projectId: options.projectId }),
   }
+}
+
+async function getProjectIdsByDealId(
+  db: Parameters<typeof getProjectByDealId>[0],
+  dealIds: Array<Id<'deals'>>,
+): Promise<Map<Id<'deals'>, Id<'projects'>>> {
+  const uniqueDealIds = Array.from(new Set(dealIds))
+  const entries = await Promise.all(
+    uniqueDealIds.map(
+      async (dealId): Promise<[Id<'deals'>, Id<'projects'>] | null> => {
+        const project = await getProjectByDealId(db, dealId)
+        return project ? [dealId, project._id] : null
+      },
+    ),
+  )
+
+  const projectByDealId = new Map<Id<'deals'>, Id<'projects'>>()
+  for (const entry of entries) {
+    if (entry) {
+      projectByDealId.set(entry[0], entry[1])
+    }
+  }
+  return projectByDealId
 }
 
 /**
@@ -101,8 +130,17 @@ export const getMyAvailableTasks = query({
         userId,
       )
 
+    const projectByDealId = await getProjectIdsByDealId(
+      ctx.db,
+      items.map((item) => item.metadata.aggregateTableId as Id<'deals'>),
+    )
+
     return items.map((item) =>
-      mapWorkItemToResponse(item.metadata, item.workItem),
+      mapWorkItemToResponse(item.metadata, item.workItem, {
+        projectId: projectByDealId.get(
+          item.metadata.aggregateTableId as Id<'deals'>,
+        ),
+      }),
     )
   },
 })
@@ -127,8 +165,16 @@ export const getMyClaimedTasks = query({
     // Use domain layer function to get claimed work items
     const activeItems = await listActiveClaimedWorkItemsForUser(ctx.db, userId)
 
+    const projectByDealId = await getProjectIdsByDealId(
+      ctx.db,
+      activeItems.map((item) => item.metadata.aggregateTableId as Id<'deals'>),
+    )
+
     return activeItems.map(({ metadata, workItem }) =>
-      mapWorkItemToResponse(metadata, workItem, { includeWorkItemState: true }),
+      mapWorkItemToResponse(metadata, workItem, {
+        includeWorkItemState: true,
+        projectId: projectByDealId.get(metadata.aggregateTableId as Id<'deals'>),
+      }),
     )
   },
 })
@@ -147,9 +193,15 @@ export const getAllAvailableTasks = query({
     // Use domain layer function to get active human work items
     const activeItems = await listActiveHumanWorkItems(ctx.db)
 
+    const projectByDealId = await getProjectIdsByDealId(
+      ctx.db,
+      activeItems.map((item) => item.metadata.aggregateTableId as Id<'deals'>),
+    )
+
     return activeItems.map(({ metadata, workItem }) =>
       mapWorkItemToResponse(metadata, workItem, {
         includeWorkItemState: true,
+        projectId: projectByDealId.get(metadata.aggregateTableId as Id<'deals'>),
       }),
     )
   },
@@ -170,7 +222,9 @@ export const getTasksByDeal = query({
     const activeItems = await listActiveHumanWorkItemsByDeal(ctx.db, args.dealId)
 
     return activeItems.map(({ metadata, workItem }) =>
-      mapWorkItemToResponse(metadata, workItem, { includeWorkItemState: true }),
+      mapWorkItemToResponse(metadata, workItem, {
+        includeWorkItemState: true,
+      }),
     )
   },
 })
@@ -197,7 +251,10 @@ export const getTasksByProject = query({
     const activeItems = await listActiveHumanWorkItemsByDeal(ctx.db, project.dealId)
 
     return activeItems.map(({ metadata, workItem }) =>
-      mapWorkItemToResponse(metadata, workItem, { includeWorkItemState: true }),
+      mapWorkItemToResponse(metadata, workItem, {
+        includeWorkItemState: true,
+        projectId: args.projectId,
+      }),
     )
   },
 })
@@ -406,8 +463,11 @@ export const getWorkItemByDealAndType = query({
 
     if (!matchingItem) return null
 
+    const project = await getProjectByDealId(ctx.db, args.dealId)
+
     return mapWorkItemToResponse(matchingItem.metadata, matchingItem.workItem, {
       includeWorkItemState: true,
+      projectId: project?._id,
     })
   },
 })
@@ -459,6 +519,7 @@ export const getWorkItemByProjectAndType = query({
 
     return mapWorkItemToResponse(matchingItem.metadata, matchingItem.workItem, {
       includeWorkItemState: true,
+      projectId: args.projectId,
     })
   },
 })

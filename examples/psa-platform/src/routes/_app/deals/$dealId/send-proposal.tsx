@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery, useMutation, skip } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { useForm } from 'react-hook-form'
@@ -63,12 +63,12 @@ function SendProposalPage() {
 
   const contact = useQuery(
     api.workflows.dealToDelivery.api.companies.getContact,
-    deal ? { contactId: deal.contactId } : skip
+    deal ? { contactId: deal.contactId } : 'skip'
   )
 
   const company = useQuery(
     api.workflows.dealToDelivery.api.companies.getCompany,
-    deal ? { companyId: deal.companyId } : skip
+    deal ? { companyId: deal.companyId } : 'skip'
   )
 
   const latestProposal = useQuery(

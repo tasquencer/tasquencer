@@ -49,6 +49,7 @@ type WorkItemResponse = {
   _creationTime: number
   workItemId: Id<'tasquencerWorkItems'>
   aggregateTableId: Id<'deals'>
+  projectId?: Id<'projects'>
   taskName: string
   taskType: string
   status: 'pending' | 'claimed' | 'completed'
@@ -62,7 +63,12 @@ type WorkItemResponse = {
 function TaskCard({ task }: { task: WorkItemResponse }) {
   const category = getTaskCategory(task.taskType)
   const label = TASK_TYPE_LABELS[task.taskType] ?? task.taskName
-  const routeInfo = getTaskRoute(task.taskType, task.workItemId, task.aggregateTableId)
+  const routeInfo = getTaskRoute(
+    task.taskType,
+    task.workItemId,
+    task.aggregateTableId,
+    task.projectId
+  )
 
   return (
     <Card className="hover:shadow-md transition-shadow">
