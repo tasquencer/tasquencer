@@ -814,4 +814,300 @@ describe('Deals API', () => {
       expect(user1Deals[0].name).toBe('Org1 Deal')
     })
   })
+
+  // =============================================================================
+  // updateDealStage Tests
+  // =============================================================================
+
+  describe('updateDealStage', () => {
+    it('should transition deal from Lead to Qualified with probability update', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+        probability: 10,
+      })
+
+      const result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Qualified',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.newProbability).toBe(25)
+
+      // Verify the deal was updated
+      const deal = await t.run(async (ctx) => ctx.db.get(dealId))
+      expect(deal?.stage).toBe('Qualified')
+      expect(deal?.probability).toBe(25)
+    })
+
+    it('should transition through full pipeline with correct probabilities', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+        probability: 10,
+      })
+
+      // Lead → Qualified (10% → 25%)
+      let result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Qualified',
+      })
+      expect(result.newProbability).toBe(25)
+
+      // Qualified → Proposal (25% → 50%)
+      result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Proposal',
+      })
+      expect(result.newProbability).toBe(50)
+
+      // Proposal → Negotiation (50% → 75%)
+      result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Negotiation',
+      })
+      expect(result.newProbability).toBe(75)
+
+      // Negotiation → Won (75% → 100%)
+      result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Won',
+      })
+      expect(result.newProbability).toBe(100)
+    })
+
+    it('should reject invalid stage transition (skipping stages)', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+        probability: 10,
+      })
+
+      // Lead → Proposal should fail (must go through Qualified first)
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+          dealId,
+          stage: 'Proposal',
+        })
+      ).rejects.toThrow(/Invalid deal stage transition/)
+    })
+
+    it('should reject backward transitions', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Negotiation',
+        probability: 75,
+      })
+
+      // Negotiation → Qualified should fail
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+          dealId,
+          stage: 'Qualified',
+        })
+      ).rejects.toThrow(/Invalid deal stage transition/)
+    })
+
+    it('should allow Negotiation to Proposal for revisions', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Negotiation',
+        probability: 75,
+      })
+
+      // Negotiation → Proposal is valid (proposal revision loop)
+      const result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Proposal',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.newProbability).toBe(50)
+    })
+
+    it('should return current probability if already in target stage', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Qualified',
+        probability: 25,
+      })
+
+      // Qualified → Qualified (no-op)
+      const result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Qualified',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.newProbability).toBe(25)
+    })
+
+    it('should accept optional reason parameter', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+        probability: 10,
+      })
+
+      // Reason is accepted but not stored (for audit logging purposes)
+      const result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Qualified',
+        reason: 'BANT criteria met',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.newProbability).toBe(25)
+    })
+
+    it('should transition to Lost with 0% probability', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Negotiation',
+        probability: 75,
+      })
+
+      const result = await t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+        dealId,
+        stage: 'Lost',
+        reason: 'Competitor won the deal',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.newProbability).toBe(0)
+
+      const deal = await t.run(async (ctx) => ctx.db.get(dealId))
+      expect(deal?.stage).toBe('Lost')
+      expect(deal?.probability).toBe(0)
+    })
+
+    it('should reject transitions from terminal states', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Won',
+        probability: 100,
+      })
+
+      // Won → Lead should fail (Won is terminal)
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+          dealId,
+          stage: 'Lead',
+        })
+      ).rejects.toThrow(/Invalid deal stage transition/)
+    })
+
+    it('should throw error for non-existent deal', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      // Create and then delete a deal to get a valid but non-existent ID
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+      })
+      await t.run(async (ctx) => ctx.db.delete(dealId))
+
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+          dealId,
+          stage: 'Qualified',
+        })
+      ).rejects.toThrow(/Deal not found/)
+    })
+
+    it('should require staff scope', async () => {
+      const t = setup()
+      const { organizationId: orgId, userId } = await setupUserWithRole(
+        t,
+        'staff-user',
+        STAFF_SCOPES
+      )
+      const { companyId, contactId } = await setupDealPrerequisites(t, orgId, userId)
+
+      const dealId = await createDealDirectly(t, orgId, companyId, contactId, userId, {
+        stage: 'Lead',
+        probability: 10,
+      })
+
+      // Reset mocks to remove scopes
+      vi.restoreAllMocks()
+      await setupUserWithRole(t, 'guest', [])
+
+      await expect(
+        t.mutation(api.workflows.dealToDelivery.api.deals.updateDealStage, {
+          dealId,
+          stage: 'Qualified',
+        })
+      ).rejects.toThrow()
+    })
+  })
 })

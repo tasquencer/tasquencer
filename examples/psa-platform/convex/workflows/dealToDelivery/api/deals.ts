@@ -30,6 +30,8 @@ import {
   listDealsByStage,
   listDealsByOwner,
   updateDeal as updateDealFromDb,
+  updateDealStage as updateDealStageFromDb,
+  type DealStage,
 } from '../db/deals'
 import { getUser } from '../db/users'
 import { getCompany } from '../db/companies'
@@ -408,5 +410,82 @@ export const updateDeal = mutation({
     }
 
     return { success: true }
+  },
+})
+
+/**
+ * Stage to probability mapping.
+ *
+ * Per spec 03-workflow-sales-phase.md line 99 and line 389:
+ * "Create deal with stage = 'Lead', probability = 10"
+ * "Probability auto-updates with stage changes"
+ *
+ * Standard PSA platform probabilities based on pipeline stage:
+ * - Lead: 10% - Initial contact, low confidence
+ * - Qualified: 25% - BANT qualified, higher confidence
+ * - Proposal: 50% - Proposal submitted, equal chance
+ * - Negotiation: 75% - Active negotiation, high confidence
+ * - Won: 100% - Deal closed successfully
+ * - Lost: 0% - Deal lost
+ * - Disqualified: 0% - Lead disqualified
+ */
+const STAGE_PROBABILITY: Record<DealStage, number> = {
+  Lead: 10,
+  Qualified: 25,
+  Proposal: 50,
+  Negotiation: 75,
+  Won: 100,
+  Lost: 0,
+  Disqualified: 0,
+}
+
+/**
+ * Updates a deal's stage with validation and auto-updates probability.
+ *
+ * This mutation validates stage transitions per spec 03-workflow-sales-phase.md lines 388-389:
+ * - Stage progression must be sequential (Lead → Qualified → Proposal → Negotiation → Won/Lost)
+ * - Probability auto-updates with stage changes
+ *
+ * Authorization: Requires dealToDelivery:staff scope.
+ *
+ * Reference: .review/recipes/psa-platform/specs/26-api-endpoints.md lines 81-88
+ *
+ * @param args.dealId - The deal ID to update
+ * @param args.stage - The new stage (must be a valid transition from current stage)
+ * @param args.reason - Optional reason for stage change (useful for audit/notes)
+ * @returns Success status and the new probability
+ */
+export const updateDealStage = mutation({
+  args: {
+    dealId: v.id('deals'),
+    stage: dealStageValidator,
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<{ success: boolean; newProbability: number }> => {
+    await requirePsaStaffMember(ctx)
+
+    // Get the deal to validate it exists
+    const deal = await getDealFromDb(ctx.db, args.dealId)
+    if (!deal) {
+      throw new Error(`Deal not found: ${args.dealId}`)
+    }
+
+    // Get the new probability based on the target stage
+    const newProbability = STAGE_PROBABILITY[args.stage as DealStage]
+
+    // If already in the target stage, just return current state
+    if (deal.stage === args.stage) {
+      return { success: true, newProbability }
+    }
+
+    // Update the stage (this will validate the transition)
+    await updateDealStageFromDb(ctx.db, args.dealId, args.stage as DealStage)
+
+    // Update the probability to match the new stage
+    await updateDealFromDb(ctx.db, args.dealId, {
+      probability: newProbability,
+    })
+
+    return { success: true, newProbability }
   },
 })
