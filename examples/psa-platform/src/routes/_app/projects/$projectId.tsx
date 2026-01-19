@@ -20,6 +20,7 @@ import {
   Clock,
   Receipt,
   FileText,
+  Activity,
 } from 'lucide-react'
 import { cn } from '@repo/ui/lib/utils'
 
@@ -146,6 +147,18 @@ function ProjectDetailPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* View Workflow Button */}
+            {project.workflowId && (
+              <Button asChild variant="outline">
+                <Link
+                  to="/audit/$traceId/visualizer"
+                  params={{ traceId: project.workflowId }}
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  View Workflow
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link
                 to="/projects/$projectId/invoices/new"

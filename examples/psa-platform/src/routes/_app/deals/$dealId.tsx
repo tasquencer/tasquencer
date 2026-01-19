@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
+import { WorkItemActivityFeed } from '@/features/psa/components/WorkItemActivityFeed'
 import { Button } from '@repo/ui/components/button'
 import {
   Card,
@@ -23,6 +24,8 @@ import {
   Send,
   MessageSquare,
   Award,
+  Activity,
+  History,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/deals/$dealId')({
@@ -175,15 +178,30 @@ function DealDetailPage() {
             </div>
           </div>
 
-          {/* Next Action Button */}
-          {nextAction && (
-            <Button asChild>
-              <a href={`/deals/${dealId}/${nextAction.href}`}>
-                <nextAction.icon className="h-4 w-4 mr-2" />
-                {nextAction.label}
-              </a>
-            </Button>
-          )}
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {/* View Workflow Button */}
+            {deal.workflowId && (
+              <Button asChild variant="outline">
+                <Link
+                  to="/audit/$traceId/visualizer"
+                  params={{ traceId: deal.workflowId }}
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  View Workflow
+                </Link>
+              </Button>
+            )}
+            {/* Next Action Button */}
+            {nextAction && (
+              <Button asChild>
+                <a href={`/deals/${dealId}/${nextAction.href}`}>
+                  <nextAction.icon className="h-4 w-4 mr-2" />
+                  {nextAction.label}
+                </a>
+              </Button>
+            )}
+          </div>
         </div>
 
         <Separator />
@@ -303,6 +321,24 @@ function DealDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Work Item History */}
+        {deal.workflowId && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Work Item History
+              </CardTitle>
+              <CardDescription>
+                Timeline of workflow activities and task completions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WorkItemActivityFeed dealId={dealId as Id<'deals'>} limit={20} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Actions Panel for current stage */}
         {deal.stage !== 'Won' &&

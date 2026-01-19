@@ -16,7 +16,7 @@
  */
 import { v } from 'convex/values'
 import { mutation, query } from '../../../_generated/server'
-import { internal } from '../../../_generated/api'
+import { internal, components } from '../../../_generated/api'
 import type { Id } from '../../../_generated/dataModel'
 import { dealToDeliveryVersionManager } from '../definition'
 import {
@@ -505,5 +505,62 @@ export const updateDealStage = mutation({
     })
 
     return { success: true, newProbability }
+  },
+})
+
+/** Work item history event type */
+export type WorkItemHistoryEvent = {
+  type: string
+  description: string
+  spanId: string
+  timestamp: number
+  workflowName?: string
+}
+
+/**
+ * Gets work item history events for a deal's workflow.
+ * Returns a timeline of all work item lifecycle events (initialized, started, completed, etc.).
+ *
+ * Authorization: Requires dealToDelivery:staff scope.
+ *
+ * @param args.dealId - The deal ID to get history for
+ * @param args.limit - Optional: Limit results (default 50, max 200)
+ * @returns Array of work item history events sorted by timestamp (newest first)
+ */
+export const getWorkItemHistory = query({
+  args: {
+    dealId: v.id('deals'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<WorkItemHistoryEvent[]> => {
+    await requirePsaStaffMember(ctx)
+
+    // Get the deal to get its workflow ID
+    const deal = await getDealFromDb(ctx.db, args.dealId)
+    if (!deal?.workflowId) {
+      return []
+    }
+
+    // Get all key events from the audit system
+    const keyEvents = await ctx.runQuery(
+      components.tasquencerAudit.api.getKeyEvents,
+      { traceId: deal.workflowId },
+    )
+
+    // Filter to work item events only and map to our return type
+    const workItemEvents = keyEvents
+      .filter((event) => event.category === 'workItem')
+      .map((event) => ({
+        type: event.type,
+        description: event.description,
+        spanId: event.spanId,
+        timestamp: event.timestamp,
+        workflowName: event.workflowName,
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp) // Newest first
+
+    // Apply limit
+    const limit = Math.min(args.limit ?? 50, 200)
+    return workItemEvents.slice(0, limit)
   },
 })
