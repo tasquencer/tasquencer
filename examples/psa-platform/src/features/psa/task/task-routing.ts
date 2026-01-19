@@ -35,6 +35,7 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
 
   // Planning/Resource/Close tasks with forms - use projectId
   setBudget: { path: "/tasks/setbudget", hasForm: true, domainIdType: 'project' },
+  viewTeamAvailability: { path: "/tasks/viewteamavailability", hasForm: true, domainIdType: 'project' },
   confirmBookings: { path: "/tasks/confirmbookings", hasForm: true, domainIdType: 'project' },
   closeProject: { path: "/tasks/closeproject", hasForm: true, domainIdType: 'project' },
   conductRetro: { path: "/tasks/conductretro", hasForm: true, domainIdType: 'project' },

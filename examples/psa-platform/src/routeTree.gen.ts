@@ -46,6 +46,7 @@ import { Route as AppAuditTraceIdIndexRouteImport } from './routes/_app/audit/$t
 import { Route as AppAdminUsersIndexRouteImport } from './routes/_app/admin/users.index'
 import { Route as AppAdminRolesIndexRouteImport } from './routes/_app/admin/roles.index'
 import { Route as AppAdminGroupsIndexRouteImport } from './routes/_app/admin/groups.index'
+import { Route as AppTasksViewteamavailabilityProjectIdRouteImport } from './routes/_app/tasks/viewteamavailability.$projectId'
 import { Route as AppTasksSetbudgetProjectIdRouteImport } from './routes/_app/tasks/setbudget.$projectId'
 import { Route as AppTasksQualifyDealIdRouteImport } from './routes/_app/tasks/qualify.$dealId'
 import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
@@ -250,6 +251,12 @@ const AppAdminGroupsIndexRoute = AppAdminGroupsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppAdminGroupsRoute,
 } as any)
+const AppTasksViewteamavailabilityProjectIdRoute =
+  AppTasksViewteamavailabilityProjectIdRouteImport.update({
+    id: '/viewteamavailability/$projectId',
+    path: '/viewteamavailability/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksSetbudgetProjectIdRoute =
   AppTasksSetbudgetProjectIdRouteImport.update({
     id: '/setbudget/$projectId',
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
+  '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups/': typeof AppAdminGroupsIndexRoute
   '/admin/roles/': typeof AppAdminRolesIndexRoute
   '/admin/users/': typeof AppAdminUsersIndexRoute
@@ -451,6 +459,7 @@ export interface FileRoutesByTo {
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
+  '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups': typeof AppAdminGroupsIndexRoute
   '/admin/roles': typeof AppAdminRolesIndexRoute
   '/admin/users': typeof AppAdminUsersIndexRoute
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/_app/tasks/qualify/$dealId': typeof AppTasksQualifyDealIdRoute
   '/_app/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
+  '/_app/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/_app/admin/groups/': typeof AppAdminGroupsIndexRoute
   '/_app/admin/roles/': typeof AppAdminRolesIndexRoute
   '/_app/admin/users/': typeof AppAdminUsersIndexRoute
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/tasks/createproject/$dealId'
     | '/tasks/qualify/$dealId'
     | '/tasks/setbudget/$projectId'
+    | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups/'
     | '/admin/roles/'
     | '/admin/users/'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/tasks/createproject/$dealId'
     | '/tasks/qualify/$dealId'
     | '/tasks/setbudget/$projectId'
+    | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups'
     | '/admin/roles'
     | '/admin/users'
@@ -672,6 +684,7 @@ export interface FileRouteTypes {
     | '/_app/tasks/createproject/$dealId'
     | '/_app/tasks/qualify/$dealId'
     | '/_app/tasks/setbudget/$projectId'
+    | '/_app/tasks/viewteamavailability/$projectId'
     | '/_app/admin/groups/'
     | '/_app/admin/roles/'
     | '/_app/admin/users/'
@@ -948,6 +961,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/groups/'
       preLoaderRoute: typeof AppAdminGroupsIndexRouteImport
       parentRoute: typeof AppAdminGroupsRoute
+    }
+    '/_app/tasks/viewteamavailability/$projectId': {
+      id: '/_app/tasks/viewteamavailability/$projectId'
+      path: '/viewteamavailability/$projectId'
+      fullPath: '/tasks/viewteamavailability/$projectId'
+      preLoaderRoute: typeof AppTasksViewteamavailabilityProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/setbudget/$projectId': {
       id: '/_app/tasks/setbudget/$projectId'
@@ -1280,6 +1300,7 @@ interface AppTasksRouteChildren {
   AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
   AppTasksQualifyDealIdRoute: typeof AppTasksQualifyDealIdRoute
   AppTasksSetbudgetProjectIdRoute: typeof AppTasksSetbudgetProjectIdRoute
+  AppTasksViewteamavailabilityProjectIdRoute: typeof AppTasksViewteamavailabilityProjectIdRoute
 }
 
 const AppTasksRouteChildren: AppTasksRouteChildren = {
@@ -1290,6 +1311,8 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
   AppTasksQualifyDealIdRoute: AppTasksQualifyDealIdRoute,
   AppTasksSetbudgetProjectIdRoute: AppTasksSetbudgetProjectIdRoute,
+  AppTasksViewteamavailabilityProjectIdRoute:
+    AppTasksViewteamavailabilityProjectIdRoute,
 }
 
 const AppTasksRouteWithChildren = AppTasksRoute._addFileChildren(
