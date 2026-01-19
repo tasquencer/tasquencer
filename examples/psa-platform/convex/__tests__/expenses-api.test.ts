@@ -1135,3 +1135,321 @@ describe('Expense Lifecycle', () => {
     expect(expense?.receiptUrl).toBe('https://storage.example.com/receipt.pdf')
   })
 })
+
+// =============================================================================
+// Bulk Expense Approval Tests (approveExpenses, rejectExpenses)
+// =============================================================================
+
+describe('approveExpenses (bulk)', () => {
+  it('approves multiple expenses in batch', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    // Create 3 submitted expenses
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 1',
+      amount: 1000,
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 2',
+      amount: 2000,
+    })
+    const expense3 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 3',
+      amount: 3000,
+    })
+
+    // Bulk approve
+    const result = await t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+      expenseIds: [expense1, expense2, expense3],
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.approvedCount).toBe(3)
+
+    // Verify all approved
+    for (const expenseId of [expense1, expense2, expense3]) {
+      const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+        expenseId,
+      })
+      expect(expense?.status).toBe('Approved')
+      expect(expense?.approvedBy).toBe(userId)
+      expect(expense?.approvedAt).toBeDefined()
+    }
+  })
+
+  it('applies billable adjustment to all expenses', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      billable: true,
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      billable: true,
+    })
+
+    await t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+      expenseIds: [expense1, expense2],
+      finalBillable: false,
+    })
+
+    for (const expenseId of [expense1, expense2]) {
+      const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+        expenseId,
+      })
+      expect(expense?.billable).toBe(false)
+      expect(expense?.status).toBe('Approved')
+    }
+  })
+
+  it('applies markup rate adjustment to all expenses', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      markupRate: 1.0,
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      markupRate: 1.0,
+    })
+
+    await t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+      expenseIds: [expense1, expense2],
+      finalMarkup: 1.3,
+    })
+
+    for (const expenseId of [expense1, expense2]) {
+      const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+        expenseId,
+      })
+      expect(expense?.markupRate).toBe(1.3)
+      expect(expense?.status).toBe('Approved')
+    }
+  })
+
+  it('fails if any expense is not in Submitted status', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Draft', // Not submitted
+    })
+
+    await expect(
+      t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+        expenseIds: [expense1, expense2],
+      })
+    ).rejects.toThrow('Cannot approve expense with status "Draft"')
+  })
+
+  it('returns 0 approvedCount for empty array', async () => {
+    const t = setup()
+    await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+
+    const result = await t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+      expenseIds: [],
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.approvedCount).toBe(0)
+  })
+
+  it('requires staff scope', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+    const expenseId = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+
+    // Reset user to have no scopes
+    vi.restoreAllMocks()
+    await setupUserWithRole(t, 'guest', [])
+
+    await expect(
+      t.mutation(api.workflows.dealToDelivery.api.expenses.approveExpenses, {
+        expenseIds: [expenseId],
+      })
+    ).rejects.toThrow()
+  })
+})
+
+describe('rejectExpenses (bulk)', () => {
+  it('rejects multiple expenses with shared reason', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    // Create 3 submitted expenses
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 1',
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 2',
+    })
+    const expense3 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+      description: 'Expense 3',
+    })
+
+    const rejectionReason = 'Missing receipts for all expenses'
+
+    // Bulk reject
+    const result = await t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+      expenseIds: [expense1, expense2, expense3],
+      rejectionReason,
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.rejectedCount).toBe(3)
+
+    // Verify all rejected with same reason
+    for (const expenseId of [expense1, expense2, expense3]) {
+      const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+        expenseId,
+      })
+      expect(expense?.status).toBe('Rejected')
+      expect(expense?.rejectionComments).toBe(rejectionReason)
+      expect(expense?.rejectedAt).toBeDefined()
+    }
+  })
+
+  it('includes issues with rejection', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+
+    const issues = [
+      { type: 'receipt', details: 'Receipt missing' },
+      { type: 'description', details: 'Description too vague' },
+    ]
+
+    await t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+      expenseIds: [expense1, expense2],
+      rejectionReason: 'Multiple issues found',
+      issues,
+    })
+
+    for (const expenseId of [expense1, expense2]) {
+      const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+        expenseId,
+      })
+      expect(expense?.status).toBe('Rejected')
+      expect(expense?.rejectionIssues).toEqual(issues)
+    }
+  })
+
+  it('fails if any expense is not in Submitted status', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expense1 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+    const expense2 = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Approved', // Already approved
+    })
+
+    await expect(
+      t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+        expenseIds: [expense1, expense2],
+        rejectionReason: 'Test rejection',
+      })
+    ).rejects.toThrow('Cannot reject expense with status "Approved"')
+  })
+
+  it('requires rejection reason', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expenseId = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+
+    await expect(
+      t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+        expenseIds: [expenseId],
+        rejectionReason: '', // Empty reason
+      })
+    ).rejects.toThrow('Rejection reason is required')
+  })
+
+  it('trims whitespace from rejection reason', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+
+    const expenseId = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+
+    await t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+      expenseIds: [expenseId],
+      rejectionReason: '  Missing receipt  ',
+    })
+
+    const expense = await t.query(api.workflows.dealToDelivery.api.expenses.getExpense, {
+      expenseId,
+    })
+    expect(expense?.rejectionComments).toBe('Missing receipt')
+  })
+
+  it('returns 0 rejectedCount for empty array', async () => {
+    const t = setup()
+    await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+
+    const result = await t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+      expenseIds: [],
+      rejectionReason: 'Test rejection',
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.rejectedCount).toBe(0)
+  })
+
+  it('requires staff scope', async () => {
+    const t = setup()
+    const { userId, organizationId: orgId } = await setupUserWithRole(t, 'staff', STAFF_SCOPES)
+    const { projectId } = await setupExpensePrerequisites(t, orgId, userId)
+    const expenseId = await createExpenseDirectly(t, orgId, projectId, userId, {
+      status: 'Submitted',
+    })
+
+    // Reset user to have no scopes
+    vi.restoreAllMocks()
+    await setupUserWithRole(t, 'guest', [])
+
+    await expect(
+      t.mutation(api.workflows.dealToDelivery.api.expenses.rejectExpenses, {
+        expenseIds: [expenseId],
+        rejectionReason: 'Test rejection',
+      })
+    ).rejects.toThrow()
+  })
+})

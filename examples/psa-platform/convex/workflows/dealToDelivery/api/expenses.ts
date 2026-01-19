@@ -427,3 +427,122 @@ export const rejectExpense = mutation({
     return { success: true }
   },
 })
+
+/**
+ * Approves multiple expenses in batch.
+ * Changes status from Submitted to Approved for all specified expenses.
+ * Authorization: Requires dealToDelivery:staff scope (manager role).
+ *
+ * Reference: .review/recipes/psa-platform/specs/26-api-endpoints.md
+ * Per spec 09-workflow-timesheet-approval.md pattern for bulk operations.
+ *
+ * @param args.expenseIds - Array of expense IDs to approve
+ * @param args.finalBillable - Optional adjustment to billable flag (applied to all)
+ * @param args.finalMarkup - Optional adjustment to markup rate (applied to all)
+ * @returns Success status with count of approved expenses
+ */
+export const approveExpenses = mutation({
+  args: {
+    expenseIds: v.array(v.id('expenses')),
+    finalBillable: v.optional(v.boolean()),
+    finalMarkup: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const approverId = await requirePsaStaffMember(ctx)
+
+    let approvedCount = 0
+
+    for (const expenseId of args.expenseIds) {
+      const expense = await getExpenseFromDb(ctx.db, expenseId)
+      if (!expense) {
+        throw new Error(`Expense not found: ${expenseId}`)
+      }
+
+      if (expense.status !== 'Submitted') {
+        throw new Error(
+          `Cannot approve expense with status "${expense.status}". Only Submitted expenses can be approved.`
+        )
+      }
+
+      // Build updates
+      const updates: Record<string, unknown> = {
+        status: 'Approved',
+        approvedBy: approverId,
+        approvedAt: Date.now(),
+      }
+
+      // Apply optional adjustments
+      if (args.finalBillable !== undefined) {
+        updates.billable = args.finalBillable
+      }
+      if (args.finalMarkup !== undefined) {
+        updates.markupRate = args.finalMarkup
+      }
+
+      await updateExpenseFromDb(ctx.db, expenseId, updates)
+      approvedCount++
+    }
+
+    return { success: true, approvedCount }
+  },
+})
+
+/**
+ * Rejects multiple expenses in batch with a shared reason.
+ * Changes status from Submitted to Rejected for all specified expenses.
+ * Authorization: Requires dealToDelivery:staff scope (manager role).
+ *
+ * Reference: .review/recipes/psa-platform/specs/26-api-endpoints.md
+ * Per spec 10-workflow-expense-approval.md for rejection handling.
+ *
+ * @param args.expenseIds - Array of expense IDs to reject
+ * @param args.rejectionReason - Required rejection reason (applied to all)
+ * @param args.issues - Optional array of specific issues (applied to all)
+ * @returns Success status with count of rejected expenses
+ */
+export const rejectExpenses = mutation({
+  args: {
+    expenseIds: v.array(v.id('expenses')),
+    rejectionReason: v.string(),
+    issues: v.optional(
+      v.array(
+        v.object({
+          type: v.string(),
+          details: v.string(),
+        }),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => {
+    await requirePsaStaffMember(ctx)
+
+    if (!args.rejectionReason || args.rejectionReason.trim().length === 0) {
+      throw new Error('Rejection reason is required')
+    }
+
+    let rejectedCount = 0
+
+    for (const expenseId of args.expenseIds) {
+      const expense = await getExpenseFromDb(ctx.db, expenseId)
+      if (!expense) {
+        throw new Error(`Expense not found: ${expenseId}`)
+      }
+
+      if (expense.status !== 'Submitted') {
+        throw new Error(
+          `Cannot reject expense with status "${expense.status}". Only Submitted expenses can be rejected.`
+        )
+      }
+
+      await updateExpenseFromDb(ctx.db, expenseId, {
+        status: 'Rejected',
+        rejectionComments: args.rejectionReason.trim(),
+        rejectionIssues: args.issues,
+        rejectedAt: Date.now(),
+      })
+      rejectedCount++
+    }
+
+    return { success: true, rejectedCount }
+  },
+})
