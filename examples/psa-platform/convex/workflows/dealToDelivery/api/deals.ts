@@ -446,6 +446,11 @@ const STAGE_PROBABILITY: Record<DealStage, number> = {
  * - Stage progression must be sequential (Lead → Qualified → Proposal → Negotiation → Won/Lost)
  * - Probability auto-updates with stage changes
  *
+ * TENET-WF-EXEC: For deals with active workflows, stage transitions should happen
+ * through workflow work items (qualifyLead, createProposal, negotiateTerms, getProposalSigned).
+ * This mutation enforces this by requiring `bypassWorkflowCheck: true` for deals with workflows.
+ * See spec 03-workflow-sales-phase.md line 393: "Stage updates happen via work item completion."
+ *
  * Authorization: Requires dealToDelivery:staff scope.
  *
  * Reference: .review/recipes/psa-platform/specs/26-api-endpoints.md lines 81-88
@@ -453,6 +458,8 @@ const STAGE_PROBABILITY: Record<DealStage, number> = {
  * @param args.dealId - The deal ID to update
  * @param args.stage - The new stage (must be a valid transition from current stage)
  * @param args.reason - Optional reason for stage change (useful for audit/notes)
+ * @param args.bypassWorkflowCheck - Set to true to allow stage updates on deals with active workflows
+ *                                   (admin override, use with caution - bypasses audit trail)
  * @returns Success status and the new probability
  */
 export const updateDealStage = mutation({
@@ -460,6 +467,7 @@ export const updateDealStage = mutation({
     dealId: v.id('deals'),
     stage: dealStageValidator,
     reason: v.optional(v.string()),
+    bypassWorkflowCheck: v.optional(v.boolean()),
   },
   handler: async (ctx, args): Promise<{ success: boolean; newProbability: number }> => {
     await requirePsaStaffMember(ctx)
@@ -468,6 +476,16 @@ export const updateDealStage = mutation({
     const deal = await getDealFromDb(ctx.db, args.dealId)
     if (!deal) {
       throw new Error(`Deal not found: ${args.dealId}`)
+    }
+
+    // TENET-WF-EXEC: Enforce workflow-driven stage transitions for deals with active workflows
+    // Per spec 03-workflow-sales-phase.md line 393: "Stage updates happen via work item completion."
+    if (deal.workflowId && !args.bypassWorkflowCheck) {
+      throw new Error(
+        `Deal ${args.dealId} has an active workflow (${deal.workflowId}). ` +
+        `Stage transitions must happen through workflow work items (e.g., qualifyLead, createProposal, negotiateTerms, getProposalSigned) ` +
+        `to maintain audit trail. Set bypassWorkflowCheck=true only for admin overrides.`
+      )
     }
 
     // Get the new probability based on the target stage

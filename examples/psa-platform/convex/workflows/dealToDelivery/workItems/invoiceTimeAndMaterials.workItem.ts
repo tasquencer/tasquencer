@@ -21,6 +21,8 @@ import { listBillableUninvoicedTimeEntries } from "../db/timeEntries";
 import { listBillableUninvoicedExpenses } from "../db/expenses";
 import { insertInvoice, insertInvoiceLineItem, recalculateInvoiceTotals } from "../db/invoices";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { getTask } from "../db/tasks";
+import { getUser } from "../db/users";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
 import type { Id, Doc } from "../../../_generated/dataModel";
 
@@ -166,12 +168,12 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
           byTask.get(key)!.push(entry);
         }
 
-        // Load task names for descriptions
+        // Load task names for descriptions (using domain function per TENET-DOMAIN-BOUNDARY)
         const taskIds = [...byTask.keys()]
           .filter((k) => k !== "no_task")
           .map((k) => k as Id<"tasks">);
         const tasks = await Promise.all(
-          taskIds.map((id) => mutationCtx.db.get(id))
+          taskIds.map((id) => getTask(mutationCtx.db, id))
         );
         const taskMap = new Map(tasks.filter(Boolean).map((t) => [t!._id.toString(), t!]));
 
@@ -254,10 +256,10 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
           byPerson.get(key)!.push(entry);
         }
 
-        // Load user names for descriptions
+        // Load user names for descriptions (using domain function per TENET-DOMAIN-BOUNDARY)
         const userIds = [...byPerson.keys()].map((k) => k as Id<"users">);
         const users = await Promise.all(
-          userIds.map((id) => mutationCtx.db.get(id))
+          userIds.map((id) => getUser(mutationCtx.db, id))
         );
         const userMap = new Map(users.filter(Boolean).map((u) => [u!._id.toString(), u!]));
 
