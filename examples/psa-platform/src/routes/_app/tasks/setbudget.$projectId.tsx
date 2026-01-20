@@ -93,6 +93,13 @@ function SetBudgetTask() {
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
     { projectId, taskType: "setBudget" }
   );
+  const [hadWorkItem, setHadWorkItem] = useState(false);
+
+  useEffect(() => {
+    if (workItem) {
+      setHadWorkItem(true);
+    }
+  }, [workItem]);
 
   if (project === undefined || workItem === undefined) {
     return <SpinningLoader />;
@@ -108,6 +115,9 @@ function SetBudgetTask() {
 
   // No active work item for this task - redirect to projects page
   if (workItem === null) {
+    if (hadWorkItem) {
+      return <Navigate to="/projects" replace />;
+    }
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground mb-4">

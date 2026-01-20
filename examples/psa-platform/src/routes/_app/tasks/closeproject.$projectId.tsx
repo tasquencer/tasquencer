@@ -5,7 +5,7 @@
  * The workItemId is looked up from the project for workflow execution.
  */
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
@@ -185,6 +185,13 @@ function CloseProjectTask() {
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
     { projectId, taskType: "closeProject" }
   );
+  const [hadWorkItem, setHadWorkItem] = useState(false);
+
+  useEffect(() => {
+    if (workItem) {
+      setHadWorkItem(true);
+    }
+  }, [workItem]);
 
   // Loading state
   if (workItem === undefined) {
@@ -193,6 +200,9 @@ function CloseProjectTask() {
 
   // No active work item for this task - redirect to projects page
   if (workItem === null) {
+    if (hadWorkItem) {
+      return <Navigate to="/projects" replace />;
+    }
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground mb-4">
