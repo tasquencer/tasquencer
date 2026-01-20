@@ -62,57 +62,47 @@ function getStageBadgeVariant(
   }
 }
 
-function getNextAction(
-  stage: string,
-  hasEstimate: boolean,
-  proposalStatus?: string
-): {
+type TaskAvailability = {
+  qualifyLead: boolean
+  createEstimate: boolean
+  createProposal: boolean
+  sendProposal: boolean
+  negotiateTerms: boolean
+  reviseProposal: boolean
+  getProposalSigned: boolean
+}
+
+function getNextActionFromTasks(tasks: TaskAvailability): {
   label: string
   href: string
   icon: typeof FileText
 } | null {
-  switch (stage) {
-    case 'Lead':
-      return {
-        label: 'Qualify Lead',
-        href: 'qualify',
-        icon: ClipboardCheck,
-      }
-    case 'Qualified':
-      if (hasEstimate) {
-        return {
-          label: 'Create Proposal',
-          href: 'proposal',
-          icon: FileCheck,
-        }
-      }
-      return {
-        label: 'Create Estimate',
-        href: 'estimate',
-        icon: FileText,
-      }
-    case 'Proposal':
-      return {
-        label: 'Send Proposal',
-        href: 'send-proposal',
-        icon: Send,
-      }
-    case 'Negotiation':
-      if (proposalStatus === 'Rejected') {
-        return {
-          label: 'Revise Proposal',
-          href: 'revise-proposal',
-          icon: FileCheck,
-        }
-      }
-      return {
-        label: 'Mark as Signed',
-        href: 'sign',
-        icon: Award,
-      }
-    default:
-      return null
+  if (tasks.qualifyLead) {
+    return { label: 'Qualify Lead', href: 'qualify', icon: ClipboardCheck }
   }
+  if (tasks.createEstimate) {
+    return { label: 'Create Estimate', href: 'estimate', icon: FileText }
+  }
+  if (tasks.createProposal) {
+    return { label: 'Create Proposal', href: 'proposal', icon: FileCheck }
+  }
+  if (tasks.sendProposal) {
+    return { label: 'Send Proposal', href: 'send-proposal', icon: Send }
+  }
+  if (tasks.negotiateTerms) {
+    return {
+      label: 'Record Client Response',
+      href: 'negotiate',
+      icon: MessageSquare,
+    }
+  }
+  if (tasks.reviseProposal) {
+    return { label: 'Revise Proposal', href: 'revise-proposal', icon: FileCheck }
+  }
+  if (tasks.getProposalSigned) {
+    return { label: 'Mark as Signed', href: 'sign', icon: Award }
+  }
+  return null
 }
 
 function DealDetailPage() {
@@ -125,8 +115,12 @@ function DealDetailPage() {
     api.workflows.dealToDelivery.api.proposals.getLatestProposal,
     { dealId: dealId as Id<'deals'> }
   )
+  const workItems = useQuery(
+    api.workflows.dealToDelivery.api.workItems.getTasksByDeal,
+    { dealId: dealId as Id<'deals'> }
+  )
 
-  if (deal === undefined || latestProposal === undefined) {
+  if (deal === undefined || latestProposal === undefined || workItems === undefined) {
     return (
       <div className="min-h-full bg-gradient-to-b from-muted/30 to-background">
         <div className="p-6 md:p-8 lg:p-10">
@@ -162,8 +156,44 @@ function DealDetailPage() {
     )
   }
 
-  const hasEstimate = Boolean(deal.estimateId)
-  const nextAction = getNextAction(deal.stage, hasEstimate, latestProposal?.status)
+  const taskFlags: TaskAvailability = {
+    qualifyLead: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'qualifyLead' && wi.status !== 'completed'
+      )
+    ),
+    createEstimate: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'createEstimate' && wi.status !== 'completed'
+      )
+    ),
+    createProposal: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'createProposal' && wi.status !== 'completed'
+      )
+    ),
+    sendProposal: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'sendProposal' && wi.status !== 'completed'
+      )
+    ),
+    negotiateTerms: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'negotiateTerms' && wi.status !== 'completed'
+      )
+    ),
+    reviseProposal: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'reviseProposal' && wi.status !== 'completed'
+      )
+    ),
+    getProposalSigned: Boolean(
+      workItems.find(
+        (wi) => wi.taskType === 'getProposalSigned' && wi.status !== 'completed'
+      )
+    ),
+  }
+  const nextAction = getNextActionFromTasks(taskFlags)
   const dealPath = `/deals/${dealId}`
   const showActionForm = location.pathname !== dealPath
 
@@ -406,7 +436,7 @@ function DealDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-3">
-                  {deal.stage === 'Lead' && (
+                  {deal.stage === 'Lead' && taskFlags.qualifyLead && (
                     <>
                       <Button asChild>
                         <a href={`/deals/${dealId}/qualify`}>
@@ -421,57 +451,66 @@ function DealDetailPage() {
                       </Button>
                     </>
                   )}
-                  {deal.stage === 'Qualified' && (
-                    <Button asChild>
-                      <a
-                        href={`/deals/${dealId}/${hasEstimate ? 'proposal' : 'estimate'}`}
-                      >
-                        {hasEstimate ? (
-                          <FileCheck className="h-4 w-4 mr-2" />
+                  {deal.stage === 'Qualified' &&
+                    (taskFlags.createProposal || taskFlags.createEstimate) && (
+                      <Button asChild>
+                        {taskFlags.createProposal ? (
+                          <a href={`/deals/${dealId}/proposal`}>
+                            <FileCheck className="h-4 w-4 mr-2" />
+                            Create Proposal
+                          </a>
                         ) : (
-                          <FileText className="h-4 w-4 mr-2" />
+                          <a href={`/deals/${dealId}/estimate`}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Create Estimate
+                          </a>
                         )}
-                        {hasEstimate ? 'Create Proposal' : 'Create Estimate'}
-                      </a>
-                    </Button>
-                  )}
+                      </Button>
+                    )}
                   {deal.stage === 'Proposal' && (
                     <>
-                      <Button asChild>
-                        <a href={`/deals/${dealId}/send-proposal`}>
-                          <Send className="h-4 w-4 mr-2" />
-                          Send Proposal
-                        </a>
-                      </Button>
+                      {taskFlags.sendProposal && (
+                        <Button asChild>
+                          <a href={`/deals/${dealId}/send-proposal`}>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Proposal
+                          </a>
+                        </Button>
+                      )}
                       <Button variant="outline" asChild>
                         <a href={`/deals/${dealId}/proposal`}>
                           <FileCheck className="h-4 w-4 mr-2" />
                           View Proposal
                         </a>
                       </Button>
-                      <Button variant="outline" asChild>
-                        <a href={`/deals/${dealId}/negotiate`}>
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Record Client Response
-                        </a>
-                      </Button>
+                      {taskFlags.negotiateTerms && (
+                        <Button variant="outline" asChild>
+                          <a href={`/deals/${dealId}/negotiate`}>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Record Client Response
+                          </a>
+                        </Button>
+                      )}
                     </>
                   )}
                   {deal.stage === 'Negotiation' && (
                     <>
-                      <Button asChild>
-                        {latestProposal?.status === 'Rejected' ? (
+                      {taskFlags.reviseProposal && (
+                        <Button asChild>
                           <a href={`/deals/${dealId}/revise-proposal`}>
                             <FileCheck className="h-4 w-4 mr-2" />
                             Revise Proposal
                           </a>
-                        ) : (
+                        </Button>
+                      )}
+                      {taskFlags.getProposalSigned && (
+                        <Button asChild>
                           <a href={`/deals/${dealId}/sign`}>
                             <Award className="h-4 w-4 mr-2" />
                             Mark as Signed
                           </a>
-                        )}
-                      </Button>
+                        </Button>
+                      )}
                       <Button variant="outline" asChild>
                         <a href={`/deals/${dealId}/proposal`}>
                           <FileCheck className="h-4 w-4 mr-2" />

@@ -121,6 +121,12 @@ function ProposalPage() {
   const proposalWorkItem = workItems?.find(
     (wi) => wi.taskType === 'createProposal' && wi.status !== 'completed'
   )
+  const sendWorkItem = workItems?.find(
+    (wi) => wi.taskType === 'sendProposal' && wi.status !== 'completed'
+  )
+  const negotiateWorkItem = workItems?.find(
+    (wi) => wi.taskType === 'negotiateTerms' && wi.status !== 'completed'
+  )
 
   async function onSubmit(data: ProposalFormValues) {
     if (!proposalWorkItem) {
@@ -334,7 +340,7 @@ function ProposalPage() {
                 Back to Deal
               </a>
             </Button>
-            {latestProposal.status === 'Draft' && (
+            {latestProposal.status === 'Draft' && sendWorkItem && (
               <Button asChild>
                 <a href={`/deals/${dealId}/send-proposal`}>
                   <Send className="h-4 w-4 mr-2" />
@@ -342,13 +348,14 @@ function ProposalPage() {
                 </a>
               </Button>
             )}
-            {(latestProposal.status === 'Sent' || latestProposal.status === 'Viewed') && (
-              <Button asChild>
-                <a href={`/deals/${dealId}/negotiate`}>
-                  Record Client Response
-                </a>
-              </Button>
-            )}
+            {(latestProposal.status === 'Sent' || latestProposal.status === 'Viewed') &&
+              negotiateWorkItem && (
+                <Button asChild>
+                  <a href={`/deals/${dealId}/negotiate`}>
+                    Record Client Response
+                  </a>
+                </Button>
+              )}
           </div>
         </CardContent>
       </Card>
