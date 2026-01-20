@@ -444,11 +444,6 @@ function DealDetailPage() {
                           Qualify Lead
                         </a>
                       </Button>
-                      <Button variant="outline" asChild>
-                        <a href={`/deals/${dealId}/disqualify`}>
-                          Disqualify
-                        </a>
-                      </Button>
                     </>
                   )}
                   {deal.stage === 'Qualified' &&
@@ -477,12 +472,6 @@ function DealDetailPage() {
                           </a>
                         </Button>
                       )}
-                      <Button variant="outline" asChild>
-                        <a href={`/deals/${dealId}/proposal`}>
-                          <FileCheck className="h-4 w-4 mr-2" />
-                          View Proposal
-                        </a>
-                      </Button>
                       {taskFlags.negotiateTerms && (
                         <Button variant="outline" asChild>
                           <a href={`/deals/${dealId}/negotiate`}>
@@ -511,12 +500,6 @@ function DealDetailPage() {
                           </a>
                         </Button>
                       )}
-                      <Button variant="outline" asChild>
-                        <a href={`/deals/${dealId}/proposal`}>
-                          <FileCheck className="h-4 w-4 mr-2" />
-                          View Proposal
-                        </a>
-                      </Button>
                     </>
                   )}
                 </div>
