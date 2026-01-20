@@ -10,7 +10,7 @@
 import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
-import { cleanupWorkItemOnCancel } from "./helpers";
+import { cleanupWorkItemOnCancel, startAndClaimWorkItem } from "./helpers";
 import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
@@ -53,9 +53,8 @@ const checkConfirmationNeededWorkItemActions =
         });
       }
     )
-    .start(z.never(), systemPolicy, async ({ workItem }) => {
-      // System tasks auto-start, no claim needed
-      await workItem.start();
+    .start(z.never(), systemPolicy, async ({ mutationCtx, workItem }) => {
+      await startAndClaimWorkItem(mutationCtx, workItem);
     })
     .complete(
       z.object({

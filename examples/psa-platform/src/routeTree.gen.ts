@@ -56,6 +56,7 @@ import { Route as AppTasksCreatebookingsProjectIdRouteImport } from './routes/_a
 import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_app/tasks/confirmbookings.$projectId'
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
+import { Route as AppTasksCheckconfirmationneededProjectIdRouteImport } from './routes/_app/tasks/checkconfirmationneeded.$projectId'
 import { Route as AppDealsDealIdSignRouteImport } from './routes/_app/deals/$dealId/sign'
 import { Route as AppDealsDealIdSendProposalRouteImport } from './routes/_app/deals/$dealId/send-proposal'
 import { Route as AppDealsDealIdReviseProposalRouteImport } from './routes/_app/deals/$dealId/revise-proposal'
@@ -315,6 +316,12 @@ const AppTasksCloseprojectProjectIdRoute =
     path: '/closeproject/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksCheckconfirmationneededProjectIdRoute =
+  AppTasksCheckconfirmationneededProjectIdRouteImport.update({
+    id: '/checkconfirmationneeded/$projectId',
+    path: '/checkconfirmationneeded/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppDealsDealIdSignRoute = AppDealsDealIdSignRouteImport.update({
   id: '/sign',
   path: '/sign',
@@ -437,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
@@ -487,6 +495,7 @@ export interface FileRoutesByTo {
   '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
@@ -551,6 +560,7 @@ export interface FileRoutesById {
   '/_app/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/_app/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/_app/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/_app/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/_app/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
@@ -615,6 +625,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
+    | '/tasks/checkconfirmationneeded/$projectId'
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
@@ -665,6 +676,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
+    | '/tasks/checkconfirmationneeded/$projectId'
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
@@ -728,6 +740,7 @@ export interface FileRouteTypes {
     | '/_app/deals/$dealId/revise-proposal'
     | '/_app/deals/$dealId/send-proposal'
     | '/_app/deals/$dealId/sign'
+    | '/_app/tasks/checkconfirmationneeded/$projectId'
     | '/_app/tasks/closeproject/$projectId'
     | '/_app/tasks/conductretro/$projectId'
     | '/_app/tasks/confirmbookings/$projectId'
@@ -1085,6 +1098,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksCloseprojectProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/checkconfirmationneeded/$projectId': {
+      id: '/_app/tasks/checkconfirmationneeded/$projectId'
+      path: '/checkconfirmationneeded/$projectId'
+      fullPath: '/tasks/checkconfirmationneeded/$projectId'
+      preLoaderRoute: typeof AppTasksCheckconfirmationneededProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/deals/$dealId/sign': {
       id: '/_app/deals/$dealId/sign'
       path: '/sign'
@@ -1377,6 +1397,7 @@ const AppResourcesRouteWithChildren = AppResourcesRoute._addFileChildren(
 
 interface AppTasksRouteChildren {
   AppTasksIndexRoute: typeof AppTasksIndexRoute
+  AppTasksCheckconfirmationneededProjectIdRoute: typeof AppTasksCheckconfirmationneededProjectIdRoute
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
   AppTasksConfirmbookingsProjectIdRoute: typeof AppTasksConfirmbookingsProjectIdRoute
@@ -1391,6 +1412,8 @@ interface AppTasksRouteChildren {
 
 const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksIndexRoute: AppTasksIndexRoute,
+  AppTasksCheckconfirmationneededProjectIdRoute:
+    AppTasksCheckconfirmationneededProjectIdRoute,
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
   AppTasksConfirmbookingsProjectIdRoute: AppTasksConfirmbookingsProjectIdRoute,
