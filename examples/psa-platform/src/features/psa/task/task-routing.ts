@@ -38,6 +38,8 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   setBudget: { path: "/tasks/setbudget", hasForm: true, domainIdType: 'project' },
   viewTeamAvailability: { path: "/tasks/viewteamavailability", hasForm: true, domainIdType: 'project' },
   filterBySkillsRole: { path: "/tasks/filterbyskillsrole", hasForm: true, domainIdType: 'project' },
+  recordPlannedTimeOff: { path: "/tasks/recordtimeoff", hasForm: true, domainIdType: 'project' },
+  createBookings: { path: "/tasks/createbookings", hasForm: true, domainIdType: 'project' },
   confirmBookings: { path: "/tasks/confirmbookings", hasForm: true, domainIdType: 'project' },
   closeProject: { path: "/tasks/closeproject", hasForm: true, domainIdType: 'project' },
   conductRetro: { path: "/tasks/conductretro", hasForm: true, domainIdType: 'project' },

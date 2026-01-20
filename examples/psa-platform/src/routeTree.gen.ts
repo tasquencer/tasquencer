@@ -48,8 +48,10 @@ import { Route as AppAdminRolesIndexRouteImport } from './routes/_app/admin/role
 import { Route as AppAdminGroupsIndexRouteImport } from './routes/_app/admin/groups.index'
 import { Route as AppTasksViewteamavailabilityProjectIdRouteImport } from './routes/_app/tasks/viewteamavailability.$projectId'
 import { Route as AppTasksSetbudgetProjectIdRouteImport } from './routes/_app/tasks/setbudget.$projectId'
+import { Route as AppTasksRecordtimeoffProjectIdRouteImport } from './routes/_app/tasks/recordtimeoff.$projectId'
 import { Route as AppTasksFilterbyskillsroleProjectIdRouteImport } from './routes/_app/tasks/filterbyskillsrole.$projectId'
 import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
+import { Route as AppTasksCreatebookingsProjectIdRouteImport } from './routes/_app/tasks/createbookings.$projectId'
 import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_app/tasks/confirmbookings.$projectId'
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
@@ -264,6 +266,12 @@ const AppTasksSetbudgetProjectIdRoute =
     path: '/setbudget/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksRecordtimeoffProjectIdRoute =
+  AppTasksRecordtimeoffProjectIdRouteImport.update({
+    id: '/recordtimeoff/$projectId',
+    path: '/recordtimeoff/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksFilterbyskillsroleProjectIdRoute =
   AppTasksFilterbyskillsroleProjectIdRouteImport.update({
     id: '/filterbyskillsrole/$projectId',
@@ -274,6 +282,12 @@ const AppTasksCreateprojectDealIdRoute =
   AppTasksCreateprojectDealIdRouteImport.update({
     id: '/createproject/$dealId',
     path: '/createproject/$dealId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksCreatebookingsProjectIdRoute =
+  AppTasksCreatebookingsProjectIdRouteImport.update({
+    id: '/createbookings/$projectId',
+    path: '/createbookings/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksConfirmbookingsProjectIdRoute =
@@ -419,8 +433,10 @@ export interface FileRoutesByFullPath {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -466,8 +482,10 @@ export interface FileRoutesByTo {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups': typeof AppAdminGroupsIndexRoute
@@ -527,8 +545,10 @@ export interface FileRoutesById {
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/_app/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/_app/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/_app/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/_app/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
   '/_app/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/_app/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/_app/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -588,8 +608,10 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/recordtimeoff/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups/'
@@ -635,8 +657,10 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/recordtimeoff/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups'
@@ -695,8 +719,10 @@ export interface FileRouteTypes {
     | '/_app/tasks/closeproject/$projectId'
     | '/_app/tasks/conductretro/$projectId'
     | '/_app/tasks/confirmbookings/$projectId'
+    | '/_app/tasks/createbookings/$projectId'
     | '/_app/tasks/createproject/$dealId'
     | '/_app/tasks/filterbyskillsrole/$projectId'
+    | '/_app/tasks/recordtimeoff/$projectId'
     | '/_app/tasks/setbudget/$projectId'
     | '/_app/tasks/viewteamavailability/$projectId'
     | '/_app/admin/groups/'
@@ -990,6 +1016,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksSetbudgetProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/recordtimeoff/$projectId': {
+      id: '/_app/tasks/recordtimeoff/$projectId'
+      path: '/recordtimeoff/$projectId'
+      fullPath: '/tasks/recordtimeoff/$projectId'
+      preLoaderRoute: typeof AppTasksRecordtimeoffProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/filterbyskillsrole/$projectId': {
       id: '/_app/tasks/filterbyskillsrole/$projectId'
       path: '/filterbyskillsrole/$projectId'
@@ -1002,6 +1035,13 @@ declare module '@tanstack/react-router' {
       path: '/createproject/$dealId'
       fullPath: '/tasks/createproject/$dealId'
       preLoaderRoute: typeof AppTasksCreateprojectDealIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/createbookings/$projectId': {
+      id: '/_app/tasks/createbookings/$projectId'
+      path: '/createbookings/$projectId'
+      fullPath: '/tasks/createbookings/$projectId'
+      preLoaderRoute: typeof AppTasksCreatebookingsProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/confirmbookings/$projectId': {
@@ -1320,8 +1360,10 @@ interface AppTasksRouteChildren {
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
   AppTasksConfirmbookingsProjectIdRoute: typeof AppTasksConfirmbookingsProjectIdRoute
+  AppTasksCreatebookingsProjectIdRoute: typeof AppTasksCreatebookingsProjectIdRoute
   AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
   AppTasksFilterbyskillsroleProjectIdRoute: typeof AppTasksFilterbyskillsroleProjectIdRoute
+  AppTasksRecordtimeoffProjectIdRoute: typeof AppTasksRecordtimeoffProjectIdRoute
   AppTasksSetbudgetProjectIdRoute: typeof AppTasksSetbudgetProjectIdRoute
   AppTasksViewteamavailabilityProjectIdRoute: typeof AppTasksViewteamavailabilityProjectIdRoute
 }
@@ -1331,9 +1373,11 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
   AppTasksConfirmbookingsProjectIdRoute: AppTasksConfirmbookingsProjectIdRoute,
+  AppTasksCreatebookingsProjectIdRoute: AppTasksCreatebookingsProjectIdRoute,
   AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
   AppTasksFilterbyskillsroleProjectIdRoute:
     AppTasksFilterbyskillsroleProjectIdRoute,
+  AppTasksRecordtimeoffProjectIdRoute: AppTasksRecordtimeoffProjectIdRoute,
   AppTasksSetbudgetProjectIdRoute: AppTasksSetbudgetProjectIdRoute,
   AppTasksViewteamavailabilityProjectIdRoute:
     AppTasksViewteamavailabilityProjectIdRoute,
