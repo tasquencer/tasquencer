@@ -298,7 +298,9 @@ function ProjectDetailPage() {
                           {service.estimatedHours}h @ {formatCurrency(service.rate)}/hr
                         </p>
                       </div>
-                      <span className="font-medium">{formatCurrency(service.estimatedHours * service.rate)}</span>
+                      <span className="font-medium">
+                        {formatCurrency(service.totalAmount)}
+                      </span>
                     </div>
                   ))}
                 </div>

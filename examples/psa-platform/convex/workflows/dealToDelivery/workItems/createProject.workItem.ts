@@ -124,6 +124,19 @@ const createProjectWorkItemActions = authService.builders.workItemActions
         });
       }
 
+      const estimateTotal = estimate.total;
+      const negotiationDelta = deal.value - estimateTotal;
+      if (negotiationDelta !== 0) {
+        await insertService(mutationCtx.db, {
+          budgetId,
+          organizationId: deal.organizationId,
+          name: "Negotiation Adjustment",
+          rate: 0,
+          estimatedHours: 0,
+          totalAmount: negotiationDelta,
+        });
+      }
+
       // Recalculate budget total from services
       await recalculateBudgetTotal(mutationCtx.db, budgetId);
 

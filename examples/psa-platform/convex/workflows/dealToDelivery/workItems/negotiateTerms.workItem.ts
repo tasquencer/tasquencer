@@ -17,6 +17,11 @@ import {
 import { initializeDealWorkItemAuth, initializeWorkItemWithDealAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { updateDeal } from "../db/deals";
+import {
+  getLatestProposalForDeal,
+  markProposalRejected,
+  markProposalViewed,
+} from "../db/proposals";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 
 // Policy: Requires 'dealToDelivery:deals:negotiate' scope
@@ -56,6 +61,7 @@ const negotiateTermsWorkItemActions = authService.builders.workItemActions
   .complete(
     z.object({
       dealId: zid("deals"),
+      outcome: z.enum(["proceed", "revise", "lost"]),
       negotiationNotes: z.string().optional(),
       adjustedValue: z.number().min(0).optional(),
     }),
@@ -71,17 +77,40 @@ const negotiateTermsWorkItemActions = authService.builders.workItemActions
         throw new Error(`Deal mismatch: expected ${deal._id}, got ${payload.dealId}`);
       }
 
-      // Transition deal stage to Negotiation (stores previous stage for potential rollback)
+      const latestProposal = await getLatestProposalForDeal(
+        mutationCtx.db,
+        payload.dealId
+      );
+      if (!latestProposal) {
+        throw new Error(`No proposal found for deal ${payload.dealId}`);
+      }
+
+      const nextStage = payload.outcome === "lost" ? "Lost" : "Negotiation";
+
+      // Transition deal stage (stores previous stage for potential rollback)
       await transitionDealStageForWorkItem(
         mutationCtx,
         workItem.id,
         payload.dealId,
-        "Negotiation"
+        nextStage
       );
 
+      if (payload.outcome === "revise") {
+        await markProposalRejected(mutationCtx.db, latestProposal._id);
+      } else if (payload.outcome === "lost") {
+        await markProposalRejected(mutationCtx.db, latestProposal._id);
+      } else {
+        await markProposalViewed(mutationCtx.db, latestProposal._id);
+      }
+
       // Update deal with negotiation results
-      const updates: { probability: number; value?: number; qualificationNotes?: string } = {
-        probability: 70, // 70% probability at Negotiation stage
+      const updates: {
+        probability: number;
+        value?: number;
+        qualificationNotes?: string;
+        lostReason?: string;
+      } = {
+        probability: payload.outcome === "lost" ? 0 : 70,
       };
 
       if (payload.adjustedValue !== undefined) {
@@ -90,6 +119,9 @@ const negotiateTermsWorkItemActions = authService.builders.workItemActions
 
       if (payload.negotiationNotes) {
         updates.qualificationNotes = payload.negotiationNotes;
+        if (payload.outcome === "lost") {
+          updates.lostReason = payload.negotiationNotes;
+        }
       }
 
       await updateDeal(mutationCtx.db, payload.dealId, updates);

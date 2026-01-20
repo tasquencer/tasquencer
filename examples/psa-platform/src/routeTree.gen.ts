@@ -55,6 +55,7 @@ import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
 import { Route as AppDealsDealIdSignRouteImport } from './routes/_app/deals/$dealId/sign'
 import { Route as AppDealsDealIdSendProposalRouteImport } from './routes/_app/deals/$dealId/send-proposal'
+import { Route as AppDealsDealIdReviseProposalRouteImport } from './routes/_app/deals/$dealId/revise-proposal'
 import { Route as AppDealsDealIdQualifyRouteImport } from './routes/_app/deals/$dealId/qualify'
 import { Route as AppDealsDealIdProposalRouteImport } from './routes/_app/deals/$dealId/proposal'
 import { Route as AppDealsDealIdNegotiateRouteImport } from './routes/_app/deals/$dealId/negotiate'
@@ -304,6 +305,12 @@ const AppDealsDealIdSendProposalRoute =
     path: '/send-proposal',
     getParentRoute: () => AppDealsDealIdRoute,
   } as any)
+const AppDealsDealIdReviseProposalRoute =
+  AppDealsDealIdReviseProposalRouteImport.update({
+    id: '/revise-proposal',
+    path: '/revise-proposal',
+    getParentRoute: () => AppDealsDealIdRoute,
+  } as any)
 const AppDealsDealIdQualifyRoute = AppDealsDealIdQualifyRouteImport.update({
   id: '/qualify',
   path: '/qualify',
@@ -406,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
   '/deals/$dealId/qualify': typeof AppDealsDealIdQualifyRoute
+  '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
@@ -452,6 +460,7 @@ export interface FileRoutesByTo {
   '/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
   '/deals/$dealId/qualify': typeof AppDealsDealIdQualifyRoute
+  '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
@@ -512,6 +521,7 @@ export interface FileRoutesById {
   '/_app/deals/$dealId/negotiate': typeof AppDealsDealIdNegotiateRoute
   '/_app/deals/$dealId/proposal': typeof AppDealsDealIdProposalRoute
   '/_app/deals/$dealId/qualify': typeof AppDealsDealIdQualifyRoute
+  '/_app/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/_app/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/_app/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
@@ -572,6 +582,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId/negotiate'
     | '/deals/$dealId/proposal'
     | '/deals/$dealId/qualify'
+    | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
     | '/tasks/closeproject/$projectId'
@@ -618,6 +629,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId/negotiate'
     | '/deals/$dealId/proposal'
     | '/deals/$dealId/qualify'
+    | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
     | '/tasks/closeproject/$projectId'
@@ -677,6 +689,7 @@ export interface FileRouteTypes {
     | '/_app/deals/$dealId/negotiate'
     | '/_app/deals/$dealId/proposal'
     | '/_app/deals/$dealId/qualify'
+    | '/_app/deals/$dealId/revise-proposal'
     | '/_app/deals/$dealId/send-proposal'
     | '/_app/deals/$dealId/sign'
     | '/_app/tasks/closeproject/$projectId'
@@ -1026,6 +1039,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDealsDealIdSendProposalRouteImport
       parentRoute: typeof AppDealsDealIdRoute
     }
+    '/_app/deals/$dealId/revise-proposal': {
+      id: '/_app/deals/$dealId/revise-proposal'
+      path: '/revise-proposal'
+      fullPath: '/deals/$dealId/revise-proposal'
+      preLoaderRoute: typeof AppDealsDealIdReviseProposalRouteImport
+      parentRoute: typeof AppDealsDealIdRoute
+    }
     '/_app/deals/$dealId/qualify': {
       id: '/_app/deals/$dealId/qualify'
       path: '/qualify'
@@ -1211,6 +1231,7 @@ interface AppDealsDealIdRouteChildren {
   AppDealsDealIdNegotiateRoute: typeof AppDealsDealIdNegotiateRoute
   AppDealsDealIdProposalRoute: typeof AppDealsDealIdProposalRoute
   AppDealsDealIdQualifyRoute: typeof AppDealsDealIdQualifyRoute
+  AppDealsDealIdReviseProposalRoute: typeof AppDealsDealIdReviseProposalRoute
   AppDealsDealIdSendProposalRoute: typeof AppDealsDealIdSendProposalRoute
   AppDealsDealIdSignRoute: typeof AppDealsDealIdSignRoute
 }
@@ -1220,6 +1241,7 @@ const AppDealsDealIdRouteChildren: AppDealsDealIdRouteChildren = {
   AppDealsDealIdNegotiateRoute: AppDealsDealIdNegotiateRoute,
   AppDealsDealIdProposalRoute: AppDealsDealIdProposalRoute,
   AppDealsDealIdQualifyRoute: AppDealsDealIdQualifyRoute,
+  AppDealsDealIdReviseProposalRoute: AppDealsDealIdReviseProposalRoute,
   AppDealsDealIdSendProposalRoute: AppDealsDealIdSendProposalRoute,
   AppDealsDealIdSignRoute: AppDealsDealIdSignRoute,
 }

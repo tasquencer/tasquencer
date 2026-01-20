@@ -387,6 +387,7 @@ async function completeSalesPhaseWithWonDeal(
     ['dealToDelivery', 'sales', 'salesPhase', 'negotiateTerms', 'negotiateTerms'],
     {
       dealId,
+      outcome: 'proceed',
       negotiationNotes: 'Terms accepted',
     }
   )

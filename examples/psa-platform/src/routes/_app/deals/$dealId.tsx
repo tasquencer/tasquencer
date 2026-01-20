@@ -64,7 +64,8 @@ function getStageBadgeVariant(
 
 function getNextAction(
   stage: string,
-  hasEstimate: boolean
+  hasEstimate: boolean,
+  proposalStatus?: string
 ): {
   label: string
   href: string
@@ -97,6 +98,13 @@ function getNextAction(
         icon: Send,
       }
     case 'Negotiation':
+      if (proposalStatus === 'Rejected') {
+        return {
+          label: 'Revise Proposal',
+          href: 'revise-proposal',
+          icon: FileCheck,
+        }
+      }
       return {
         label: 'Mark as Signed',
         href: 'sign',
@@ -113,8 +121,12 @@ function DealDetailPage() {
   const deal = useQuery(api.workflows.dealToDelivery.api.deals.getDeal, {
     dealId: dealId as Id<'deals'>,
   })
+  const latestProposal = useQuery(
+    api.workflows.dealToDelivery.api.proposals.getLatestProposal,
+    { dealId: dealId as Id<'deals'> }
+  )
 
-  if (deal === undefined) {
+  if (deal === undefined || latestProposal === undefined) {
     return (
       <div className="min-h-full bg-gradient-to-b from-muted/30 to-background">
         <div className="p-6 md:p-8 lg:p-10">
@@ -151,7 +163,7 @@ function DealDetailPage() {
   }
 
   const hasEstimate = Boolean(deal.estimateId)
-  const nextAction = getNextAction(deal.stage, hasEstimate)
+  const nextAction = getNextAction(deal.stage, hasEstimate, latestProposal?.status)
   const dealPath = `/deals/${dealId}`
   const showActionForm = location.pathname !== dealPath
 
@@ -448,10 +460,17 @@ function DealDetailPage() {
                   {deal.stage === 'Negotiation' && (
                     <>
                       <Button asChild>
-                        <a href={`/deals/${dealId}/sign`}>
-                          <Award className="h-4 w-4 mr-2" />
-                          Mark as Signed
-                        </a>
+                        {latestProposal?.status === 'Rejected' ? (
+                          <a href={`/deals/${dealId}/revise-proposal`}>
+                            <FileCheck className="h-4 w-4 mr-2" />
+                            Revise Proposal
+                          </a>
+                        ) : (
+                          <a href={`/deals/${dealId}/sign`}>
+                            <Award className="h-4 w-4 mr-2" />
+                            Mark as Signed
+                          </a>
+                        )}
                       </Button>
                       <Button variant="outline" asChild>
                         <a href={`/deals/${dealId}/proposal`}>

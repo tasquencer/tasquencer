@@ -28,6 +28,7 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   qualifyLead: { path: "/deals/$dealId/qualify", hasForm: true, domainIdType: 'deal' },
   createEstimate: { path: "/deals/$dealId/estimate", hasForm: true, domainIdType: 'deal' },
   createProposal: { path: "/deals/$dealId/proposal", hasForm: true, domainIdType: 'deal' },
+  reviseProposal: { path: "/deals/$dealId/revise-proposal", hasForm: true, domainIdType: 'deal' },
   sendProposal: { path: "/deals/$dealId/send-proposal", hasForm: true, domainIdType: 'deal' },
   negotiateTerms: { path: "/deals/$dealId/negotiate", hasForm: true, domainIdType: 'deal' },
   getProposalSigned: { path: "/deals/$dealId/sign", hasForm: true, domainIdType: 'deal' },

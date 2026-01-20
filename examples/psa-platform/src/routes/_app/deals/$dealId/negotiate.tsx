@@ -19,6 +19,7 @@ import { Input } from '@repo/ui/components/input'
 import { Textarea } from '@repo/ui/components/textarea'
 import { Separator } from '@repo/ui/components/separator'
 import { Badge } from '@repo/ui/components/badge'
+import { RadioGroup, RadioGroupItem } from '@repo/ui/components/radio-group'
 import {
   ArrowLeft,
   AlertTriangle,
@@ -36,6 +37,9 @@ export const Route = createFileRoute('/_app/deals/$dealId/negotiate')({
 })
 
 const negotiateFormSchema = z.object({
+  outcome: z.enum(['proceed', 'revise', 'lost'], {
+    message: 'Select a negotiation outcome',
+  }),
   adjustedValue: z.number().min(0, 'Value must be positive').optional(),
   negotiationNotes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
 })
@@ -81,6 +85,7 @@ function NegotiatePage() {
   const form = useForm<NegotiateFormValues>({
     resolver: zodResolver(negotiateFormSchema),
     defaultValues: {
+      outcome: 'proceed',
       negotiationNotes: '',
     },
   })
@@ -118,6 +123,7 @@ function NegotiatePage() {
           name: 'negotiateTerms' as const,
           payload: {
             dealId: dealId as Id<'deals'>,
+            outcome: data.outcome,
             negotiationNotes: data.negotiationNotes || undefined,
             adjustedValue: data.adjustedValue ? Math.round(data.adjustedValue * 100) : undefined,
           },
@@ -255,6 +261,53 @@ function NegotiatePage() {
 
           <Separator />
 
+          {/* Outcome */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium">Negotiation Outcome *</Label>
+            <RadioGroup
+              value={form.watch('outcome')}
+              onValueChange={(value: string) =>
+                form.setValue('outcome', value as 'proceed' | 'revise' | 'lost')
+              }
+              className="grid gap-3"
+            >
+              <div className="flex items-start gap-3 rounded-lg border p-3">
+                <RadioGroupItem value="proceed" id="outcome-proceed" />
+                <Label htmlFor="outcome-proceed" className="grid gap-1">
+                  <span className="font-medium">Ready to sign</span>
+                  <span className="text-sm text-muted-foreground">
+                    Client accepts the proposal. Move toward signature.
+                  </span>
+                </Label>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border p-3">
+                <RadioGroupItem value="revise" id="outcome-revise" />
+                <Label htmlFor="outcome-revise" className="grid gap-1">
+                  <span className="font-medium">Needs revision</span>
+                  <span className="text-sm text-muted-foreground">
+                    Client requested changes. Create a revised proposal.
+                  </span>
+                </Label>
+              </div>
+              <div className="flex items-start gap-3 rounded-lg border p-3">
+                <RadioGroupItem value="lost" id="outcome-lost" />
+                <Label htmlFor="outcome-lost" className="grid gap-1">
+                  <span className="font-medium">Deal lost</span>
+                  <span className="text-sm text-muted-foreground">
+                    Client declined. Archive the deal.
+                  </span>
+                </Label>
+              </div>
+            </RadioGroup>
+            {form.formState.errors.outcome && (
+              <p className="text-sm text-destructive">
+                {form.formState.errors.outcome.message}
+              </p>
+            )}
+          </div>
+
+          <Separator />
+
           {/* Adjusted Value */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -308,14 +361,8 @@ function NegotiatePage() {
               What happens next?
             </h4>
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              After recording the negotiation, the deal will move to the "Negotiation" stage
-              with 70% probability. You can then either:
+              We will route to the next step based on your selected outcome.
             </p>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 list-disc list-inside space-y-1">
-              <li>Mark the proposal as signed (deal won)</li>
-              <li>Create a revised proposal if more changes are needed</li>
-              <li>Archive the deal if the client decides not to proceed</li>
-            </ul>
           </div>
 
           <Separator />

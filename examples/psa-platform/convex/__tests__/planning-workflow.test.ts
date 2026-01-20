@@ -211,7 +211,8 @@ async function completeSalesPhaseWithWonDeal(
   orgId: Id<'organizations'>,
   userId: Id<'users'>,
   companyId: Id<'companies'>,
-  contactId: Id<'contacts'>
+  contactId: Id<'contacts'>,
+  options?: { adjustedValue?: number }
 ): Promise<{ dealId: Id<'deals'>; salesWorkflowId: Id<'tasquencerWorkflows'> }> {
   const salesWorkflowId = await getSalesPhaseWorkflowId(t, rootWorkflowId)
 
@@ -302,10 +303,22 @@ async function completeSalesPhaseWithWonDeal(
     salesWorkflowId,
     'negotiateTerms',
     ['dealToDelivery', 'sales', 'salesPhase', 'negotiateTerms', 'negotiateTerms'],
-    {
-      dealId,
-      negotiationNotes: 'Client accepted terms',
-    }
+    (() => {
+      const payload: {
+        dealId: Id<'deals'>
+        outcome: 'proceed'
+        negotiationNotes?: string
+        adjustedValue?: number
+      } = {
+        dealId,
+        outcome: 'proceed',
+        negotiationNotes: 'Client accepted terms',
+      }
+      if (options?.adjustedValue !== undefined) {
+        payload.adjustedValue = options.adjustedValue
+      }
+      return payload
+    })()
   )
   await flushWorkflow(t, 15)
 
@@ -327,6 +340,118 @@ async function completeSalesPhaseWithWonDeal(
   if (!wonDeal || wonDeal.stage !== 'Won') {
     throw new Error(`Expected deal stage Won, got ${wonDeal?.stage}`)
   }
+
+  return { dealId, salesWorkflowId }
+}
+
+async function completeSalesPhaseToNegotiation(
+  t: TestContext,
+  rootWorkflowId: Id<'tasquencerWorkflows'>,
+  orgId: Id<'organizations'>,
+  userId: Id<'users'>,
+  companyId: Id<'companies'>,
+  contactId: Id<'contacts'>,
+  options: { outcome: 'proceed' | 'revise' | 'lost'; adjustedValue?: number }
+): Promise<{ dealId: Id<'deals'>; salesWorkflowId: Id<'tasquencerWorkflows'> }> {
+  const salesWorkflowId = await getSalesPhaseWorkflowId(t, rootWorkflowId)
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'createDeal',
+    ['dealToDelivery', 'sales', 'salesPhase', 'createDeal', 'createDeal'],
+    {
+      organizationId: orgId,
+      companyId,
+      contactId,
+      name: 'Negotiation Test Deal',
+      value: 50000,
+      ownerId: userId,
+    }
+  )
+  await flushWorkflow(t, 10)
+
+  const deal = await getDealByWorkflowId(t, rootWorkflowId)
+  if (!deal) throw new Error('Deal not created')
+  const dealId = deal._id
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'qualifyLead',
+    ['dealToDelivery', 'sales', 'salesPhase', 'qualifyLead', 'qualifyLead'],
+    {
+      dealId,
+      qualified: true,
+      qualificationNotes: 'Good fit',
+      budget: true,
+      authority: true,
+      need: true,
+      timeline: true,
+    }
+  )
+  await flushWorkflow(t, 20)
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'createEstimate',
+    ['dealToDelivery', 'sales', 'salesPhase', 'createEstimate', 'createEstimate'],
+    {
+      dealId,
+      services: [
+        { name: 'Consulting', hours: 40, rate: 15000 },
+        { name: 'Development', hours: 80, rate: 12000 },
+      ],
+      notes: 'Estimate for negotiation test',
+    }
+  )
+  await flushWorkflow(t, 15)
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'createProposal',
+    ['dealToDelivery', 'sales', 'salesPhase', 'createProposal', 'createProposal'],
+    {
+      dealId,
+      documentUrl: 'https://example.com/proposal-negotiation.pdf',
+    }
+  )
+  await flushWorkflow(t, 15)
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'sendProposal',
+    ['dealToDelivery', 'sales', 'salesPhase', 'sendProposal', 'sendProposal'],
+    { dealId }
+  )
+  await flushWorkflow(t, 15)
+
+  await completeWorkItem(
+    t,
+    salesWorkflowId,
+    'negotiateTerms',
+    ['dealToDelivery', 'sales', 'salesPhase', 'negotiateTerms', 'negotiateTerms'],
+    (() => {
+      const payload: {
+        dealId: Id<'deals'>
+        outcome: 'proceed' | 'revise' | 'lost'
+        negotiationNotes?: string
+        adjustedValue?: number
+      } = {
+        dealId,
+        outcome: options.outcome,
+        negotiationNotes: 'Client responded',
+      }
+      if (options.adjustedValue !== undefined) {
+        payload.adjustedValue = options.adjustedValue
+      }
+      return payload
+    })()
+  )
+  await flushWorkflow(t, 15)
 
   return { dealId, salesWorkflowId }
 }
@@ -431,6 +556,64 @@ describe('CreateProject Work Item Lifecycle', () => {
     await assertTaskState(testContext, planningWorkflowId, 'createProject', 'completed')
   })
 
+  it('adds negotiation adjustment when deal value differs from estimate', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const estimateTotal = 40 * 15000 + 80 * 12000
+    const adjustedValue = estimateTotal - 60000
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      { adjustedValue }
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const planningWorkflowId = await getPlanningPhaseWorkflowId(testContext, rootWorkflowId)
+
+    await completeWorkItem(
+      testContext,
+      planningWorkflowId,
+      'createProject',
+      ['dealToDelivery', 'planning', 'planningPhase', 'createProject', 'createProject'],
+      { dealId }
+    )
+
+    const project = await getProjectByWorkflowId(testContext, rootWorkflowId)
+    expect(project).not.toBeNull()
+    const budgetId = project!.budgetId
+
+    const services = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('services')
+        .withIndex('by_budget', (q) => q.eq('budgetId', budgetId!))
+        .collect()
+    })
+    const adjustment = services.find(
+      (service) => service.name === 'Negotiation Adjustment'
+    )
+    expect(adjustment).toBeDefined()
+
+    const estimatedServicesTotal = services
+      .filter((service) => service.name !== 'Negotiation Adjustment')
+      .reduce((sum, service) => sum + service.totalAmount, 0)
+    expect(adjustment?.totalAmount).toBe(adjustedValue - estimatedServicesTotal)
+
+    const budget = await testContext.run(async (ctx) => {
+      return await ctx.db.get(budgetId!)
+    })
+    expect(budget?.totalAmount).toBe(adjustedValue)
+  })
+
   it('enables setBudget task after createProject completes', async () => {
     const rootWorkflowId = await initializeRootWorkflow(testContext)
     const { companyId, contactId } = await createTestEntities(
@@ -469,6 +652,40 @@ describe('CreateProject Work Item Lifecycle', () => {
     const workItems = await getTaskWorkItems(testContext, planningWorkflowId, 'setBudget')
     expect(workItems.length).toBe(1)
     expect(workItems[0].state).toBe('initialized')
+  })
+})
+
+describe('Sales Phase Negotiation Routing', () => {
+  it('routes negotiation outcome to reviseProposal when revision is requested', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId, salesWorkflowId } = await completeSalesPhaseToNegotiation(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      { outcome: 'revise' }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    await assertTaskState(testContext, salesWorkflowId, 'reviseProposal', 'enabled')
+
+    const latestProposal = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('proposals')
+        .withIndex('by_deal', (q) => q.eq('dealId', dealId))
+        .order('desc')
+        .first()
+    })
+    expect(latestProposal).not.toBeNull()
+    expect(latestProposal?.status).toBe('Rejected')
   })
 })
 
