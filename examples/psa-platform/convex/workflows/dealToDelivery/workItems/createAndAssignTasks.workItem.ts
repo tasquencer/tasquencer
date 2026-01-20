@@ -12,7 +12,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  updateWorkItemMetadataPayload,
+  initializeWorkItemWithProjectAuth,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { insertTask, getNextTaskSortOrder } from "../db/tasks";
@@ -161,4 +165,9 @@ export const createAndAssignTasksWorkItem = Builder.workItem("createAndAssignTas
 /**
  * The createAndAssignTasks task.
  */
-export const createAndAssignTasksTask = Builder.task(createAndAssignTasksWorkItem);
+export const createAndAssignTasksTask = Builder.task(createAndAssignTasksWorkItem)
+  .withActivities({
+    onEnabled: async ({ workItem, mutationCtx, parent }) => {
+      await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+    },
+  });
