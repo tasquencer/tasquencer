@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -77,7 +77,9 @@ function formatCurrency(cents: number): string {
 
 function EstimatePage() {
   const { dealId } = Route.useParams()
+  const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const deal = useQuery(api.workflows.dealToDelivery.api.deals.getDeal, {
     dealId: dealId as Id<'deals'>,
@@ -164,8 +166,10 @@ function EstimatePage() {
         `Estimate created - ${formatCurrency(Math.round(subtotal * 100))}`
       )
 
+      setIsRedirecting(true)
+
       // Navigate back to deal detail
-      window.location.href = `/deals/${dealId}`
+      navigate({ to: '/deals/$dealId', params: { dealId } })
     } catch (error) {
       console.error('Failed to create estimate:', error)
       toast.error('Failed to create estimate. Please try again.')
@@ -196,6 +200,24 @@ function EstimatePage() {
               Back to Deals
             </a>
           </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isRedirecting || isSubmitting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">
+            {isRedirecting ? 'Estimate saved' : 'Submitting estimate'}
+          </h3>
+          <p className="text-muted-foreground mt-1">
+            {isRedirecting
+              ? 'Redirecting back to the deal.'
+              : 'This should only take a moment.'}
+          </p>
         </CardContent>
       </Card>
     )
