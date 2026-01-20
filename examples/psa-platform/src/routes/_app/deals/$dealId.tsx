@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -109,6 +109,7 @@ function getNextAction(
 
 function DealDetailPage() {
   const { dealId } = Route.useParams()
+  const location = useLocation()
   const deal = useQuery(api.workflows.dealToDelivery.api.deals.getDeal, {
     dealId: dealId as Id<'deals'>,
   })
@@ -151,6 +152,35 @@ function DealDetailPage() {
 
   const hasEstimate = Boolean(deal.estimateId)
   const nextAction = getNextAction(deal.stage, hasEstimate)
+  const dealPath = `/deals/${dealId}`
+  const showActionForm = location.pathname !== dealPath
+
+  if (showActionForm) {
+    return (
+      <div className="min-h-full bg-gradient-to-b from-muted/30 to-background">
+        <div className="p-6 md:p-8 lg:p-10 max-w-4xl mx-auto space-y-6">
+          <Link
+            to="/deals/$dealId"
+            params={{ dealId }}
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Deal Overview
+          </Link>
+
+          <div id="deal-action-form" className="space-y-4">
+            <div>
+              <h1 className="text-xl font-semibold">Current Action</h1>
+              <p className="text-sm text-muted-foreground">
+                Complete the active step for this deal below.
+              </p>
+            </div>
+            <Outlet />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-full bg-gradient-to-b from-muted/30 to-background">
@@ -435,9 +465,6 @@ function DealDetailPage() {
               </CardContent>
             </Card>
           )}
-
-        {/* Outlet for nested routes (qualify, estimate, etc.) */}
-        <Outlet />
       </div>
     </div>
   )

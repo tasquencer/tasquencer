@@ -8,7 +8,7 @@ import type { Id } from "@/convex/_generated/dataModel";
  * Workflow execution still uses workItemId internally.
  */
 export type TaskRouteConfig = {
-  /** The path pattern for the task form (e.g., "/tasks/qualify/$dealId") */
+  /** The path pattern for the task form (e.g., "/deals/$dealId/qualify") */
   path: string;
   /** Whether the task has a dedicated completion form */
   hasForm: boolean;
@@ -25,7 +25,7 @@ export type TaskRouteConfig = {
  */
 const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   // Sales tasks with forms - use dealId
-  qualifyLead: { path: "/tasks/qualify", hasForm: true, domainIdType: 'deal' },
+  qualifyLead: { path: "/deals/$dealId/qualify", hasForm: true, domainIdType: 'deal' },
   createEstimate: { path: "/deals/$dealId/estimate", hasForm: true, domainIdType: 'deal' },
   createProposal: { path: "/deals/$dealId/proposal", hasForm: true, domainIdType: 'deal' },
   sendProposal: { path: "/deals/$dealId/send-proposal", hasForm: true, domainIdType: 'deal' },
