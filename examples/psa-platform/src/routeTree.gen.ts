@@ -53,6 +53,7 @@ import { Route as AppTasksRecordtimeoffProjectIdRouteImport } from './routes/_ap
 import { Route as AppTasksFilterbyskillsroleProjectIdRouteImport } from './routes/_app/tasks/filterbyskillsrole.$projectId'
 import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
 import { Route as AppTasksCreatebookingsProjectIdRouteImport } from './routes/_app/tasks/createbookings.$projectId'
+import { Route as AppTasksCreateandassigntasksProjectIdRouteImport } from './routes/_app/tasks/createandassigntasks.$projectId'
 import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_app/tasks/confirmbookings.$projectId'
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
@@ -298,6 +299,12 @@ const AppTasksCreatebookingsProjectIdRoute =
     path: '/createbookings/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksCreateandassigntasksProjectIdRoute =
+  AppTasksCreateandassigntasksProjectIdRouteImport.update({
+    id: '/createandassigntasks/$projectId',
+    path: '/createandassigntasks/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksConfirmbookingsProjectIdRoute =
   AppTasksConfirmbookingsProjectIdRouteImport.update({
     id: '/confirmbookings/$projectId',
@@ -448,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
@@ -499,6 +507,7 @@ export interface FileRoutesByTo {
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
@@ -564,6 +573,7 @@ export interface FileRoutesById {
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/_app/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
+  '/_app/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/_app/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
   '/_app/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
     | '/tasks/filterbyskillsrole/$projectId'
@@ -680,6 +691,7 @@ export interface FileRouteTypes {
     | '/tasks/closeproject/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
+    | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
     | '/tasks/filterbyskillsrole/$projectId'
@@ -744,6 +756,7 @@ export interface FileRouteTypes {
     | '/_app/tasks/closeproject/$projectId'
     | '/_app/tasks/conductretro/$projectId'
     | '/_app/tasks/confirmbookings/$projectId'
+    | '/_app/tasks/createandassigntasks/$projectId'
     | '/_app/tasks/createbookings/$projectId'
     | '/_app/tasks/createproject/$dealId'
     | '/_app/tasks/filterbyskillsrole/$projectId'
@@ -1077,6 +1090,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksCreatebookingsProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/createandassigntasks/$projectId': {
+      id: '/_app/tasks/createandassigntasks/$projectId'
+      path: '/createandassigntasks/$projectId'
+      fullPath: '/tasks/createandassigntasks/$projectId'
+      preLoaderRoute: typeof AppTasksCreateandassigntasksProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/confirmbookings/$projectId': {
       id: '/_app/tasks/confirmbookings/$projectId'
       path: '/confirmbookings/$projectId'
@@ -1401,6 +1421,7 @@ interface AppTasksRouteChildren {
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
   AppTasksConfirmbookingsProjectIdRoute: typeof AppTasksConfirmbookingsProjectIdRoute
+  AppTasksCreateandassigntasksProjectIdRoute: typeof AppTasksCreateandassigntasksProjectIdRoute
   AppTasksCreatebookingsProjectIdRoute: typeof AppTasksCreatebookingsProjectIdRoute
   AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
   AppTasksFilterbyskillsroleProjectIdRoute: typeof AppTasksFilterbyskillsroleProjectIdRoute
@@ -1417,6 +1438,8 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
   AppTasksConfirmbookingsProjectIdRoute: AppTasksConfirmbookingsProjectIdRoute,
+  AppTasksCreateandassigntasksProjectIdRoute:
+    AppTasksCreateandassigntasksProjectIdRoute,
   AppTasksCreatebookingsProjectIdRoute: AppTasksCreatebookingsProjectIdRoute,
   AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
   AppTasksFilterbyskillsroleProjectIdRoute:

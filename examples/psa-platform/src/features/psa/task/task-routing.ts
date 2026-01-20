@@ -43,6 +43,7 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   checkConfirmationNeeded: { path: "/tasks/checkconfirmationneeded", hasForm: true, domainIdType: 'project' },
   reviewBookings: { path: "/tasks/reviewbookings", hasForm: true, domainIdType: 'project' },
   confirmBookings: { path: "/tasks/confirmbookings", hasForm: true, domainIdType: 'project' },
+  createAndAssignTasks: { path: "/tasks/createandassigntasks", hasForm: true, domainIdType: 'project' },
   closeProject: { path: "/tasks/closeproject", hasForm: true, domainIdType: 'project' },
   conductRetro: { path: "/tasks/conductretro", hasForm: true, domainIdType: 'project' },
 };
