@@ -5,7 +5,7 @@
  * The workItemId is looked up from the project for workflow execution.
  */
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
@@ -203,18 +203,14 @@ function ReviewBookingsTask() {
     );
   }
 
-  const bookingSummaries = useMemo(
-    () =>
-      bookings.map((booking) => ({
-        _id: booking._id,
-        userName: booking.userName ?? "Unknown",
-        type: booking.type,
-        startDate: booking.startDate,
-        endDate: booking.endDate,
-        hoursPerDay: booking.hoursPerDay,
-      })),
-    [bookings]
-  );
+  const bookingSummaries = bookings.map((booking) => ({
+    _id: booking._id,
+    userName: booking.userName ?? "Unknown",
+    type: booking.type,
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    hoursPerDay: booking.hoursPerDay,
+  }));
 
   const Component = ReviewBookingsTaskComponentFactory(
     projectId,
