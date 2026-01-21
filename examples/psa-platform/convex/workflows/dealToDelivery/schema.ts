@@ -399,6 +399,7 @@ const invoices = defineTable({
   method: invoiceMethod,
   subtotal: v.number(), // Subtotal in cents
   tax: v.number(), // Tax amount in cents
+  discount: v.optional(v.number()), // Discount amount in cents (editDraft work item)
   total: v.number(), // Total in cents
   dueDate: v.number(),
   notes: v.optional(v.string()), // Optional notes added during finalization
