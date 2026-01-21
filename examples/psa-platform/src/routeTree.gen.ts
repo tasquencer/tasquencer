@@ -53,11 +53,24 @@ import { Route as AppTasksSubmittimeentryProjectIdRouteImport } from './routes/_
 import { Route as AppTasksSubmitexpenseProjectIdRouteImport } from './routes/_app/tasks/submitexpense.$projectId'
 import { Route as AppTasksSetbudgetProjectIdRouteImport } from './routes/_app/tasks/setbudget.$projectId'
 import { Route as AppTasksSetbillablerateProjectIdRouteImport } from './routes/_app/tasks/setbillablerate.$projectId'
+import { Route as AppTasksSendviaportalProjectIdRouteImport } from './routes/_app/tasks/sendviaportal.$projectId'
+import { Route as AppTasksSendviapdfProjectIdRouteImport } from './routes/_app/tasks/sendviapdf.$projectId'
+import { Route as AppTasksSendviaemailProjectIdRouteImport } from './routes/_app/tasks/sendviaemail.$projectId'
+import { Route as AppTasksSendinvoiceProjectIdRouteImport } from './routes/_app/tasks/sendinvoice.$projectId'
+import { Route as AppTasksSelectinvoicingmethodProjectIdRouteImport } from './routes/_app/tasks/selectinvoicingmethod.$projectId'
 import { Route as AppTasksSelectexpensetypeProjectIdRouteImport } from './routes/_app/tasks/selectexpensetype.$projectId'
 import { Route as AppTasksSelectentrymethodProjectIdRouteImport } from './routes/_app/tasks/selectentrymethod.$projectId'
+import { Route as AppTasksRevisetimesheetProjectIdRouteImport } from './routes/_app/tasks/revisetimesheet.$projectId'
+import { Route as AppTasksReviseexpenseProjectIdRouteImport } from './routes/_app/tasks/reviseexpense.$projectId'
+import { Route as AppTasksReviewtimesheetProjectIdRouteImport } from './routes/_app/tasks/reviewtimesheet.$projectId'
+import { Route as AppTasksReviewexpenseProjectIdRouteImport } from './routes/_app/tasks/reviewexpense.$projectId'
+import { Route as AppTasksReviewdraftProjectIdRouteImport } from './routes/_app/tasks/reviewdraft.$projectId'
 import { Route as AppTasksReviewbookingsProjectIdRouteImport } from './routes/_app/tasks/reviewbookings.$projectId'
 import { Route as AppTasksRequestchangeorderProjectIdRouteImport } from './routes/_app/tasks/requestchangeorder.$projectId'
+import { Route as AppTasksRejecttimesheetProjectIdRouteImport } from './routes/_app/tasks/rejecttimesheet.$projectId'
+import { Route as AppTasksRejectexpenseProjectIdRouteImport } from './routes/_app/tasks/rejectexpense.$projectId'
 import { Route as AppTasksRecordtimeoffProjectIdRouteImport } from './routes/_app/tasks/recordtimeoff.$projectId'
+import { Route as AppTasksRecordpaymentProjectIdRouteImport } from './routes/_app/tasks/recordpayment.$projectId'
 import { Route as AppTasksPauseworkProjectIdRouteImport } from './routes/_app/tasks/pausework.$projectId'
 import { Route as AppTasksMonitorbudgetburnProjectIdRouteImport } from './routes/_app/tasks/monitorbudgetburn.$projectId'
 import { Route as AppTasksMarkbillableProjectIdRouteImport } from './routes/_app/tasks/markbillable.$projectId'
@@ -67,16 +80,22 @@ import { Route as AppTasksLogsubcontractorexpenseProjectIdRouteImport } from './
 import { Route as AppTasksLogsoftwareexpenseProjectIdRouteImport } from './routes/_app/tasks/logsoftwareexpense.$projectId'
 import { Route as AppTasksLogotherexpenseProjectIdRouteImport } from './routes/_app/tasks/logotherexpense.$projectId'
 import { Route as AppTasksLogmaterialsexpenseProjectIdRouteImport } from './routes/_app/tasks/logmaterialsexpense.$projectId'
+import { Route as AppTasksInvoicetimematerialsProjectIdRouteImport } from './routes/_app/tasks/invoicetimematerials.$projectId'
+import { Route as AppTasksInvoicerecurringProjectIdRouteImport } from './routes/_app/tasks/invoicerecurring.$projectId'
+import { Route as AppTasksInvoicemilestoneProjectIdRouteImport } from './routes/_app/tasks/invoicemilestone.$projectId'
+import { Route as AppTasksInvoicefixedfeeProjectIdRouteImport } from './routes/_app/tasks/invoicefixedfee.$projectId'
 import { Route as AppTasksInitparalleltasksProjectIdRouteImport } from './routes/_app/tasks/initparalleltasks.$projectId'
 import { Route as AppTasksImportfromcalendarProjectIdRouteImport } from './routes/_app/tasks/importfromcalendar.$projectId'
 import { Route as AppTasksGetnexttaskProjectIdRouteImport } from './routes/_app/tasks/getnexttask.$projectId'
 import { Route as AppTasksGetchangeorderapprovalProjectIdRouteImport } from './routes/_app/tasks/getchangeorderapproval.$projectId'
+import { Route as AppTasksFinalizeinvoiceProjectIdRouteImport } from './routes/_app/tasks/finalizeinvoice.$projectId'
 import { Route as AppTasksFilterbyskillsroleProjectIdRouteImport } from './routes/_app/tasks/filterbyskillsrole.$projectId'
 import { Route as AppTasksExecutetaskProjectIdRouteImport } from './routes/_app/tasks/executetask.$projectId'
 import { Route as AppTasksExecuteprimarybranchProjectIdRouteImport } from './routes/_app/tasks/executeprimarybranch.$projectId'
 import { Route as AppTasksExecuteparalleltaskProjectIdRouteImport } from './routes/_app/tasks/executeparalleltask.$projectId'
 import { Route as AppTasksExecutealternatebranchProjectIdRouteImport } from './routes/_app/tasks/executealternatebranch.$projectId'
 import { Route as AppTasksEvaluateconditionProjectIdRouteImport } from './routes/_app/tasks/evaluatecondition.$projectId'
+import { Route as AppTasksEditdraftProjectIdRouteImport } from './routes/_app/tasks/editdraft.$projectId'
 import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
 import { Route as AppTasksCreatebookingsProjectIdRouteImport } from './routes/_app/tasks/createbookings.$projectId'
 import { Route as AppTasksCreateandassigntasksProjectIdRouteImport } from './routes/_app/tasks/createandassigntasks.$projectId'
@@ -84,9 +103,12 @@ import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
 import { Route as AppTasksCompletetaskProjectIdRouteImport } from './routes/_app/tasks/completetask.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
+import { Route as AppTasksCheckmorebillingProjectIdRouteImport } from './routes/_app/tasks/checkmorebilling.$projectId'
 import { Route as AppTasksCheckconfirmationneededProjectIdRouteImport } from './routes/_app/tasks/checkconfirmationneeded.$projectId'
 import { Route as AppTasksAutofrombookingsProjectIdRouteImport } from './routes/_app/tasks/autofrombookings.$projectId'
 import { Route as AppTasksAttachreceiptProjectIdRouteImport } from './routes/_app/tasks/attachreceipt.$projectId'
+import { Route as AppTasksApprovetimesheetProjectIdRouteImport } from './routes/_app/tasks/approvetimesheet.$projectId'
+import { Route as AppTasksApproveexpenseProjectIdRouteImport } from './routes/_app/tasks/approveexpense.$projectId'
 import { Route as AppDealsDealIdSignRouteImport } from './routes/_app/deals/$dealId/sign'
 import { Route as AppDealsDealIdSendProposalRouteImport } from './routes/_app/deals/$dealId/send-proposal'
 import { Route as AppDealsDealIdReviseProposalRouteImport } from './routes/_app/deals/$dealId/revise-proposal'
@@ -328,6 +350,36 @@ const AppTasksSetbillablerateProjectIdRoute =
     path: '/setbillablerate/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksSendviaportalProjectIdRoute =
+  AppTasksSendviaportalProjectIdRouteImport.update({
+    id: '/sendviaportal/$projectId',
+    path: '/sendviaportal/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksSendviapdfProjectIdRoute =
+  AppTasksSendviapdfProjectIdRouteImport.update({
+    id: '/sendviapdf/$projectId',
+    path: '/sendviapdf/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksSendviaemailProjectIdRoute =
+  AppTasksSendviaemailProjectIdRouteImport.update({
+    id: '/sendviaemail/$projectId',
+    path: '/sendviaemail/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksSendinvoiceProjectIdRoute =
+  AppTasksSendinvoiceProjectIdRouteImport.update({
+    id: '/sendinvoice/$projectId',
+    path: '/sendinvoice/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksSelectinvoicingmethodProjectIdRoute =
+  AppTasksSelectinvoicingmethodProjectIdRouteImport.update({
+    id: '/selectinvoicingmethod/$projectId',
+    path: '/selectinvoicingmethod/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksSelectexpensetypeProjectIdRoute =
   AppTasksSelectexpensetypeProjectIdRouteImport.update({
     id: '/selectexpensetype/$projectId',
@@ -338,6 +390,36 @@ const AppTasksSelectentrymethodProjectIdRoute =
   AppTasksSelectentrymethodProjectIdRouteImport.update({
     id: '/selectentrymethod/$projectId',
     path: '/selectentrymethod/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksRevisetimesheetProjectIdRoute =
+  AppTasksRevisetimesheetProjectIdRouteImport.update({
+    id: '/revisetimesheet/$projectId',
+    path: '/revisetimesheet/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksReviseexpenseProjectIdRoute =
+  AppTasksReviseexpenseProjectIdRouteImport.update({
+    id: '/reviseexpense/$projectId',
+    path: '/reviseexpense/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksReviewtimesheetProjectIdRoute =
+  AppTasksReviewtimesheetProjectIdRouteImport.update({
+    id: '/reviewtimesheet/$projectId',
+    path: '/reviewtimesheet/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksReviewexpenseProjectIdRoute =
+  AppTasksReviewexpenseProjectIdRouteImport.update({
+    id: '/reviewexpense/$projectId',
+    path: '/reviewexpense/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksReviewdraftProjectIdRoute =
+  AppTasksReviewdraftProjectIdRouteImport.update({
+    id: '/reviewdraft/$projectId',
+    path: '/reviewdraft/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksReviewbookingsProjectIdRoute =
@@ -352,10 +434,28 @@ const AppTasksRequestchangeorderProjectIdRoute =
     path: '/requestchangeorder/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksRejecttimesheetProjectIdRoute =
+  AppTasksRejecttimesheetProjectIdRouteImport.update({
+    id: '/rejecttimesheet/$projectId',
+    path: '/rejecttimesheet/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksRejectexpenseProjectIdRoute =
+  AppTasksRejectexpenseProjectIdRouteImport.update({
+    id: '/rejectexpense/$projectId',
+    path: '/rejectexpense/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksRecordtimeoffProjectIdRoute =
   AppTasksRecordtimeoffProjectIdRouteImport.update({
     id: '/recordtimeoff/$projectId',
     path: '/recordtimeoff/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksRecordpaymentProjectIdRoute =
+  AppTasksRecordpaymentProjectIdRouteImport.update({
+    id: '/recordpayment/$projectId',
+    path: '/recordpayment/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksPauseworkProjectIdRoute =
@@ -412,6 +512,30 @@ const AppTasksLogmaterialsexpenseProjectIdRoute =
     path: '/logmaterialsexpense/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksInvoicetimematerialsProjectIdRoute =
+  AppTasksInvoicetimematerialsProjectIdRouteImport.update({
+    id: '/invoicetimematerials/$projectId',
+    path: '/invoicetimematerials/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksInvoicerecurringProjectIdRoute =
+  AppTasksInvoicerecurringProjectIdRouteImport.update({
+    id: '/invoicerecurring/$projectId',
+    path: '/invoicerecurring/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksInvoicemilestoneProjectIdRoute =
+  AppTasksInvoicemilestoneProjectIdRouteImport.update({
+    id: '/invoicemilestone/$projectId',
+    path: '/invoicemilestone/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksInvoicefixedfeeProjectIdRoute =
+  AppTasksInvoicefixedfeeProjectIdRouteImport.update({
+    id: '/invoicefixedfee/$projectId',
+    path: '/invoicefixedfee/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksInitparalleltasksProjectIdRoute =
   AppTasksInitparalleltasksProjectIdRouteImport.update({
     id: '/initparalleltasks/$projectId',
@@ -434,6 +558,12 @@ const AppTasksGetchangeorderapprovalProjectIdRoute =
   AppTasksGetchangeorderapprovalProjectIdRouteImport.update({
     id: '/getchangeorderapproval/$projectId',
     path: '/getchangeorderapproval/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksFinalizeinvoiceProjectIdRoute =
+  AppTasksFinalizeinvoiceProjectIdRouteImport.update({
+    id: '/finalizeinvoice/$projectId',
+    path: '/finalizeinvoice/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksFilterbyskillsroleProjectIdRoute =
@@ -470,6 +600,12 @@ const AppTasksEvaluateconditionProjectIdRoute =
   AppTasksEvaluateconditionProjectIdRouteImport.update({
     id: '/evaluatecondition/$projectId',
     path: '/evaluatecondition/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksEditdraftProjectIdRoute =
+  AppTasksEditdraftProjectIdRouteImport.update({
+    id: '/editdraft/$projectId',
+    path: '/editdraft/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksCreateprojectDealIdRoute =
@@ -514,6 +650,12 @@ const AppTasksCloseprojectProjectIdRoute =
     path: '/closeproject/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksCheckmorebillingProjectIdRoute =
+  AppTasksCheckmorebillingProjectIdRouteImport.update({
+    id: '/checkmorebilling/$projectId',
+    path: '/checkmorebilling/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksCheckconfirmationneededProjectIdRoute =
   AppTasksCheckconfirmationneededProjectIdRouteImport.update({
     id: '/checkconfirmationneeded/$projectId',
@@ -530,6 +672,18 @@ const AppTasksAttachreceiptProjectIdRoute =
   AppTasksAttachreceiptProjectIdRouteImport.update({
     id: '/attachreceipt/$projectId',
     path: '/attachreceipt/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksApprovetimesheetProjectIdRoute =
+  AppTasksApprovetimesheetProjectIdRouteImport.update({
+    id: '/approvetimesheet/$projectId',
+    path: '/approvetimesheet/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksApproveexpenseProjectIdRoute =
+  AppTasksApproveexpenseProjectIdRouteImport.update({
+    id: '/approveexpense/$projectId',
+    path: '/approveexpense/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppDealsDealIdSignRoute = AppDealsDealIdSignRouteImport.update({
@@ -654,9 +808,12 @@ export interface FileRoutesByFullPath {
   '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/tasks/approveexpense/$projectId': typeof AppTasksApproveexpenseProjectIdRoute
+  '/tasks/approvetimesheet/$projectId': typeof AppTasksApprovetimesheetProjectIdRoute
   '/tasks/attachreceipt/$projectId': typeof AppTasksAttachreceiptProjectIdRoute
   '/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
+  '/tasks/checkmorebilling/$projectId': typeof AppTasksCheckmorebillingProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
@@ -664,16 +821,22 @@ export interface FileRoutesByFullPath {
   '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/tasks/editdraft/$projectId': typeof AppTasksEditdraftProjectIdRoute
   '/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
   '/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
   '/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
   '/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
   '/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/finalizeinvoice/$projectId': typeof AppTasksFinalizeinvoiceProjectIdRoute
   '/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
   '/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
   '/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
+  '/tasks/invoicefixedfee/$projectId': typeof AppTasksInvoicefixedfeeProjectIdRoute
+  '/tasks/invoicemilestone/$projectId': typeof AppTasksInvoicemilestoneProjectIdRoute
+  '/tasks/invoicerecurring/$projectId': typeof AppTasksInvoicerecurringProjectIdRoute
+  '/tasks/invoicetimematerials/$projectId': typeof AppTasksInvoicetimematerialsProjectIdRoute
   '/tasks/logmaterialsexpense/$projectId': typeof AppTasksLogmaterialsexpenseProjectIdRoute
   '/tasks/logotherexpense/$projectId': typeof AppTasksLogotherexpenseProjectIdRoute
   '/tasks/logsoftwareexpense/$projectId': typeof AppTasksLogsoftwareexpenseProjectIdRoute
@@ -683,11 +846,24 @@ export interface FileRoutesByFullPath {
   '/tasks/markbillable/$projectId': typeof AppTasksMarkbillableProjectIdRoute
   '/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
   '/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
+  '/tasks/recordpayment/$projectId': typeof AppTasksRecordpaymentProjectIdRoute
   '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/tasks/rejectexpense/$projectId': typeof AppTasksRejectexpenseProjectIdRoute
+  '/tasks/rejecttimesheet/$projectId': typeof AppTasksRejecttimesheetProjectIdRoute
   '/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
+  '/tasks/reviewdraft/$projectId': typeof AppTasksReviewdraftProjectIdRoute
+  '/tasks/reviewexpense/$projectId': typeof AppTasksReviewexpenseProjectIdRoute
+  '/tasks/reviewtimesheet/$projectId': typeof AppTasksReviewtimesheetProjectIdRoute
+  '/tasks/reviseexpense/$projectId': typeof AppTasksReviseexpenseProjectIdRoute
+  '/tasks/revisetimesheet/$projectId': typeof AppTasksRevisetimesheetProjectIdRoute
   '/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/tasks/selectexpensetype/$projectId': typeof AppTasksSelectexpensetypeProjectIdRoute
+  '/tasks/selectinvoicingmethod/$projectId': typeof AppTasksSelectinvoicingmethodProjectIdRoute
+  '/tasks/sendinvoice/$projectId': typeof AppTasksSendinvoiceProjectIdRoute
+  '/tasks/sendviaemail/$projectId': typeof AppTasksSendviaemailProjectIdRoute
+  '/tasks/sendviapdf/$projectId': typeof AppTasksSendviapdfProjectIdRoute
+  '/tasks/sendviaportal/$projectId': typeof AppTasksSendviaportalProjectIdRoute
   '/tasks/setbillablerate/$projectId': typeof AppTasksSetbillablerateProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/submitexpense/$projectId': typeof AppTasksSubmitexpenseProjectIdRoute
@@ -735,9 +911,12 @@ export interface FileRoutesByTo {
   '/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/tasks/approveexpense/$projectId': typeof AppTasksApproveexpenseProjectIdRoute
+  '/tasks/approvetimesheet/$projectId': typeof AppTasksApprovetimesheetProjectIdRoute
   '/tasks/attachreceipt/$projectId': typeof AppTasksAttachreceiptProjectIdRoute
   '/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
+  '/tasks/checkmorebilling/$projectId': typeof AppTasksCheckmorebillingProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
@@ -745,16 +924,22 @@ export interface FileRoutesByTo {
   '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/tasks/editdraft/$projectId': typeof AppTasksEditdraftProjectIdRoute
   '/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
   '/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
   '/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
   '/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
   '/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/finalizeinvoice/$projectId': typeof AppTasksFinalizeinvoiceProjectIdRoute
   '/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
   '/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
   '/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
+  '/tasks/invoicefixedfee/$projectId': typeof AppTasksInvoicefixedfeeProjectIdRoute
+  '/tasks/invoicemilestone/$projectId': typeof AppTasksInvoicemilestoneProjectIdRoute
+  '/tasks/invoicerecurring/$projectId': typeof AppTasksInvoicerecurringProjectIdRoute
+  '/tasks/invoicetimematerials/$projectId': typeof AppTasksInvoicetimematerialsProjectIdRoute
   '/tasks/logmaterialsexpense/$projectId': typeof AppTasksLogmaterialsexpenseProjectIdRoute
   '/tasks/logotherexpense/$projectId': typeof AppTasksLogotherexpenseProjectIdRoute
   '/tasks/logsoftwareexpense/$projectId': typeof AppTasksLogsoftwareexpenseProjectIdRoute
@@ -764,11 +949,24 @@ export interface FileRoutesByTo {
   '/tasks/markbillable/$projectId': typeof AppTasksMarkbillableProjectIdRoute
   '/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
   '/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
+  '/tasks/recordpayment/$projectId': typeof AppTasksRecordpaymentProjectIdRoute
   '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/tasks/rejectexpense/$projectId': typeof AppTasksRejectexpenseProjectIdRoute
+  '/tasks/rejecttimesheet/$projectId': typeof AppTasksRejecttimesheetProjectIdRoute
   '/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
+  '/tasks/reviewdraft/$projectId': typeof AppTasksReviewdraftProjectIdRoute
+  '/tasks/reviewexpense/$projectId': typeof AppTasksReviewexpenseProjectIdRoute
+  '/tasks/reviewtimesheet/$projectId': typeof AppTasksReviewtimesheetProjectIdRoute
+  '/tasks/reviseexpense/$projectId': typeof AppTasksReviseexpenseProjectIdRoute
+  '/tasks/revisetimesheet/$projectId': typeof AppTasksRevisetimesheetProjectIdRoute
   '/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/tasks/selectexpensetype/$projectId': typeof AppTasksSelectexpensetypeProjectIdRoute
+  '/tasks/selectinvoicingmethod/$projectId': typeof AppTasksSelectinvoicingmethodProjectIdRoute
+  '/tasks/sendinvoice/$projectId': typeof AppTasksSendinvoiceProjectIdRoute
+  '/tasks/sendviaemail/$projectId': typeof AppTasksSendviaemailProjectIdRoute
+  '/tasks/sendviapdf/$projectId': typeof AppTasksSendviapdfProjectIdRoute
+  '/tasks/sendviaportal/$projectId': typeof AppTasksSendviaportalProjectIdRoute
   '/tasks/setbillablerate/$projectId': typeof AppTasksSetbillablerateProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/submitexpense/$projectId': typeof AppTasksSubmitexpenseProjectIdRoute
@@ -830,9 +1028,12 @@ export interface FileRoutesById {
   '/_app/deals/$dealId/revise-proposal': typeof AppDealsDealIdReviseProposalRoute
   '/_app/deals/$dealId/send-proposal': typeof AppDealsDealIdSendProposalRoute
   '/_app/deals/$dealId/sign': typeof AppDealsDealIdSignRoute
+  '/_app/tasks/approveexpense/$projectId': typeof AppTasksApproveexpenseProjectIdRoute
+  '/_app/tasks/approvetimesheet/$projectId': typeof AppTasksApprovetimesheetProjectIdRoute
   '/_app/tasks/attachreceipt/$projectId': typeof AppTasksAttachreceiptProjectIdRoute
   '/_app/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/_app/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
+  '/_app/tasks/checkmorebilling/$projectId': typeof AppTasksCheckmorebillingProjectIdRoute
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
   '/_app/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
@@ -840,16 +1041,22 @@ export interface FileRoutesById {
   '/_app/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/_app/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/_app/tasks/editdraft/$projectId': typeof AppTasksEditdraftProjectIdRoute
   '/_app/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
   '/_app/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
   '/_app/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
   '/_app/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
   '/_app/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/_app/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/_app/tasks/finalizeinvoice/$projectId': typeof AppTasksFinalizeinvoiceProjectIdRoute
   '/_app/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
   '/_app/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/_app/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
   '/_app/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
+  '/_app/tasks/invoicefixedfee/$projectId': typeof AppTasksInvoicefixedfeeProjectIdRoute
+  '/_app/tasks/invoicemilestone/$projectId': typeof AppTasksInvoicemilestoneProjectIdRoute
+  '/_app/tasks/invoicerecurring/$projectId': typeof AppTasksInvoicerecurringProjectIdRoute
+  '/_app/tasks/invoicetimematerials/$projectId': typeof AppTasksInvoicetimematerialsProjectIdRoute
   '/_app/tasks/logmaterialsexpense/$projectId': typeof AppTasksLogmaterialsexpenseProjectIdRoute
   '/_app/tasks/logotherexpense/$projectId': typeof AppTasksLogotherexpenseProjectIdRoute
   '/_app/tasks/logsoftwareexpense/$projectId': typeof AppTasksLogsoftwareexpenseProjectIdRoute
@@ -859,11 +1066,24 @@ export interface FileRoutesById {
   '/_app/tasks/markbillable/$projectId': typeof AppTasksMarkbillableProjectIdRoute
   '/_app/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
   '/_app/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
+  '/_app/tasks/recordpayment/$projectId': typeof AppTasksRecordpaymentProjectIdRoute
   '/_app/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/_app/tasks/rejectexpense/$projectId': typeof AppTasksRejectexpenseProjectIdRoute
+  '/_app/tasks/rejecttimesheet/$projectId': typeof AppTasksRejecttimesheetProjectIdRoute
   '/_app/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/_app/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
+  '/_app/tasks/reviewdraft/$projectId': typeof AppTasksReviewdraftProjectIdRoute
+  '/_app/tasks/reviewexpense/$projectId': typeof AppTasksReviewexpenseProjectIdRoute
+  '/_app/tasks/reviewtimesheet/$projectId': typeof AppTasksReviewtimesheetProjectIdRoute
+  '/_app/tasks/reviseexpense/$projectId': typeof AppTasksReviseexpenseProjectIdRoute
+  '/_app/tasks/revisetimesheet/$projectId': typeof AppTasksRevisetimesheetProjectIdRoute
   '/_app/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/_app/tasks/selectexpensetype/$projectId': typeof AppTasksSelectexpensetypeProjectIdRoute
+  '/_app/tasks/selectinvoicingmethod/$projectId': typeof AppTasksSelectinvoicingmethodProjectIdRoute
+  '/_app/tasks/sendinvoice/$projectId': typeof AppTasksSendinvoiceProjectIdRoute
+  '/_app/tasks/sendviaemail/$projectId': typeof AppTasksSendviaemailProjectIdRoute
+  '/_app/tasks/sendviapdf/$projectId': typeof AppTasksSendviapdfProjectIdRoute
+  '/_app/tasks/sendviaportal/$projectId': typeof AppTasksSendviaportalProjectIdRoute
   '/_app/tasks/setbillablerate/$projectId': typeof AppTasksSetbillablerateProjectIdRoute
   '/_app/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/_app/tasks/submitexpense/$projectId': typeof AppTasksSubmitexpenseProjectIdRoute
@@ -925,9 +1145,12 @@ export interface FileRouteTypes {
     | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
+    | '/tasks/approveexpense/$projectId'
+    | '/tasks/approvetimesheet/$projectId'
     | '/tasks/attachreceipt/$projectId'
     | '/tasks/autofrombookings/$projectId'
     | '/tasks/checkconfirmationneeded/$projectId'
+    | '/tasks/checkmorebilling/$projectId'
     | '/tasks/closeproject/$projectId'
     | '/tasks/completetask/$projectId'
     | '/tasks/conductretro/$projectId'
@@ -935,16 +1158,22 @@ export interface FileRouteTypes {
     | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
+    | '/tasks/editdraft/$projectId'
     | '/tasks/evaluatecondition/$projectId'
     | '/tasks/executealternatebranch/$projectId'
     | '/tasks/executeparalleltask/$projectId'
     | '/tasks/executeprimarybranch/$projectId'
     | '/tasks/executetask/$projectId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/finalizeinvoice/$projectId'
     | '/tasks/getchangeorderapproval/$projectId'
     | '/tasks/getnexttask/$projectId'
     | '/tasks/importfromcalendar/$projectId'
     | '/tasks/initparalleltasks/$projectId'
+    | '/tasks/invoicefixedfee/$projectId'
+    | '/tasks/invoicemilestone/$projectId'
+    | '/tasks/invoicerecurring/$projectId'
+    | '/tasks/invoicetimematerials/$projectId'
     | '/tasks/logmaterialsexpense/$projectId'
     | '/tasks/logotherexpense/$projectId'
     | '/tasks/logsoftwareexpense/$projectId'
@@ -954,11 +1183,24 @@ export interface FileRouteTypes {
     | '/tasks/markbillable/$projectId'
     | '/tasks/monitorbudgetburn/$projectId'
     | '/tasks/pausework/$projectId'
+    | '/tasks/recordpayment/$projectId'
     | '/tasks/recordtimeoff/$projectId'
+    | '/tasks/rejectexpense/$projectId'
+    | '/tasks/rejecttimesheet/$projectId'
     | '/tasks/requestchangeorder/$projectId'
     | '/tasks/reviewbookings/$projectId'
+    | '/tasks/reviewdraft/$projectId'
+    | '/tasks/reviewexpense/$projectId'
+    | '/tasks/reviewtimesheet/$projectId'
+    | '/tasks/reviseexpense/$projectId'
+    | '/tasks/revisetimesheet/$projectId'
     | '/tasks/selectentrymethod/$projectId'
     | '/tasks/selectexpensetype/$projectId'
+    | '/tasks/selectinvoicingmethod/$projectId'
+    | '/tasks/sendinvoice/$projectId'
+    | '/tasks/sendviaemail/$projectId'
+    | '/tasks/sendviapdf/$projectId'
+    | '/tasks/sendviaportal/$projectId'
     | '/tasks/setbillablerate/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/submitexpense/$projectId'
@@ -1006,9 +1248,12 @@ export interface FileRouteTypes {
     | '/deals/$dealId/revise-proposal'
     | '/deals/$dealId/send-proposal'
     | '/deals/$dealId/sign'
+    | '/tasks/approveexpense/$projectId'
+    | '/tasks/approvetimesheet/$projectId'
     | '/tasks/attachreceipt/$projectId'
     | '/tasks/autofrombookings/$projectId'
     | '/tasks/checkconfirmationneeded/$projectId'
+    | '/tasks/checkmorebilling/$projectId'
     | '/tasks/closeproject/$projectId'
     | '/tasks/completetask/$projectId'
     | '/tasks/conductretro/$projectId'
@@ -1016,16 +1261,22 @@ export interface FileRouteTypes {
     | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
+    | '/tasks/editdraft/$projectId'
     | '/tasks/evaluatecondition/$projectId'
     | '/tasks/executealternatebranch/$projectId'
     | '/tasks/executeparalleltask/$projectId'
     | '/tasks/executeprimarybranch/$projectId'
     | '/tasks/executetask/$projectId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/finalizeinvoice/$projectId'
     | '/tasks/getchangeorderapproval/$projectId'
     | '/tasks/getnexttask/$projectId'
     | '/tasks/importfromcalendar/$projectId'
     | '/tasks/initparalleltasks/$projectId'
+    | '/tasks/invoicefixedfee/$projectId'
+    | '/tasks/invoicemilestone/$projectId'
+    | '/tasks/invoicerecurring/$projectId'
+    | '/tasks/invoicetimematerials/$projectId'
     | '/tasks/logmaterialsexpense/$projectId'
     | '/tasks/logotherexpense/$projectId'
     | '/tasks/logsoftwareexpense/$projectId'
@@ -1035,11 +1286,24 @@ export interface FileRouteTypes {
     | '/tasks/markbillable/$projectId'
     | '/tasks/monitorbudgetburn/$projectId'
     | '/tasks/pausework/$projectId'
+    | '/tasks/recordpayment/$projectId'
     | '/tasks/recordtimeoff/$projectId'
+    | '/tasks/rejectexpense/$projectId'
+    | '/tasks/rejecttimesheet/$projectId'
     | '/tasks/requestchangeorder/$projectId'
     | '/tasks/reviewbookings/$projectId'
+    | '/tasks/reviewdraft/$projectId'
+    | '/tasks/reviewexpense/$projectId'
+    | '/tasks/reviewtimesheet/$projectId'
+    | '/tasks/reviseexpense/$projectId'
+    | '/tasks/revisetimesheet/$projectId'
     | '/tasks/selectentrymethod/$projectId'
     | '/tasks/selectexpensetype/$projectId'
+    | '/tasks/selectinvoicingmethod/$projectId'
+    | '/tasks/sendinvoice/$projectId'
+    | '/tasks/sendviaemail/$projectId'
+    | '/tasks/sendviapdf/$projectId'
+    | '/tasks/sendviaportal/$projectId'
     | '/tasks/setbillablerate/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/submitexpense/$projectId'
@@ -1100,9 +1364,12 @@ export interface FileRouteTypes {
     | '/_app/deals/$dealId/revise-proposal'
     | '/_app/deals/$dealId/send-proposal'
     | '/_app/deals/$dealId/sign'
+    | '/_app/tasks/approveexpense/$projectId'
+    | '/_app/tasks/approvetimesheet/$projectId'
     | '/_app/tasks/attachreceipt/$projectId'
     | '/_app/tasks/autofrombookings/$projectId'
     | '/_app/tasks/checkconfirmationneeded/$projectId'
+    | '/_app/tasks/checkmorebilling/$projectId'
     | '/_app/tasks/closeproject/$projectId'
     | '/_app/tasks/completetask/$projectId'
     | '/_app/tasks/conductretro/$projectId'
@@ -1110,16 +1377,22 @@ export interface FileRouteTypes {
     | '/_app/tasks/createandassigntasks/$projectId'
     | '/_app/tasks/createbookings/$projectId'
     | '/_app/tasks/createproject/$dealId'
+    | '/_app/tasks/editdraft/$projectId'
     | '/_app/tasks/evaluatecondition/$projectId'
     | '/_app/tasks/executealternatebranch/$projectId'
     | '/_app/tasks/executeparalleltask/$projectId'
     | '/_app/tasks/executeprimarybranch/$projectId'
     | '/_app/tasks/executetask/$projectId'
     | '/_app/tasks/filterbyskillsrole/$projectId'
+    | '/_app/tasks/finalizeinvoice/$projectId'
     | '/_app/tasks/getchangeorderapproval/$projectId'
     | '/_app/tasks/getnexttask/$projectId'
     | '/_app/tasks/importfromcalendar/$projectId'
     | '/_app/tasks/initparalleltasks/$projectId'
+    | '/_app/tasks/invoicefixedfee/$projectId'
+    | '/_app/tasks/invoicemilestone/$projectId'
+    | '/_app/tasks/invoicerecurring/$projectId'
+    | '/_app/tasks/invoicetimematerials/$projectId'
     | '/_app/tasks/logmaterialsexpense/$projectId'
     | '/_app/tasks/logotherexpense/$projectId'
     | '/_app/tasks/logsoftwareexpense/$projectId'
@@ -1129,11 +1402,24 @@ export interface FileRouteTypes {
     | '/_app/tasks/markbillable/$projectId'
     | '/_app/tasks/monitorbudgetburn/$projectId'
     | '/_app/tasks/pausework/$projectId'
+    | '/_app/tasks/recordpayment/$projectId'
     | '/_app/tasks/recordtimeoff/$projectId'
+    | '/_app/tasks/rejectexpense/$projectId'
+    | '/_app/tasks/rejecttimesheet/$projectId'
     | '/_app/tasks/requestchangeorder/$projectId'
     | '/_app/tasks/reviewbookings/$projectId'
+    | '/_app/tasks/reviewdraft/$projectId'
+    | '/_app/tasks/reviewexpense/$projectId'
+    | '/_app/tasks/reviewtimesheet/$projectId'
+    | '/_app/tasks/reviseexpense/$projectId'
+    | '/_app/tasks/revisetimesheet/$projectId'
     | '/_app/tasks/selectentrymethod/$projectId'
     | '/_app/tasks/selectexpensetype/$projectId'
+    | '/_app/tasks/selectinvoicingmethod/$projectId'
+    | '/_app/tasks/sendinvoice/$projectId'
+    | '/_app/tasks/sendviaemail/$projectId'
+    | '/_app/tasks/sendviapdf/$projectId'
+    | '/_app/tasks/sendviaportal/$projectId'
     | '/_app/tasks/setbillablerate/$projectId'
     | '/_app/tasks/setbudget/$projectId'
     | '/_app/tasks/submitexpense/$projectId'
@@ -1467,6 +1753,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksSetbillablerateProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/sendviaportal/$projectId': {
+      id: '/_app/tasks/sendviaportal/$projectId'
+      path: '/sendviaportal/$projectId'
+      fullPath: '/tasks/sendviaportal/$projectId'
+      preLoaderRoute: typeof AppTasksSendviaportalProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/sendviapdf/$projectId': {
+      id: '/_app/tasks/sendviapdf/$projectId'
+      path: '/sendviapdf/$projectId'
+      fullPath: '/tasks/sendviapdf/$projectId'
+      preLoaderRoute: typeof AppTasksSendviapdfProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/sendviaemail/$projectId': {
+      id: '/_app/tasks/sendviaemail/$projectId'
+      path: '/sendviaemail/$projectId'
+      fullPath: '/tasks/sendviaemail/$projectId'
+      preLoaderRoute: typeof AppTasksSendviaemailProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/sendinvoice/$projectId': {
+      id: '/_app/tasks/sendinvoice/$projectId'
+      path: '/sendinvoice/$projectId'
+      fullPath: '/tasks/sendinvoice/$projectId'
+      preLoaderRoute: typeof AppTasksSendinvoiceProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/selectinvoicingmethod/$projectId': {
+      id: '/_app/tasks/selectinvoicingmethod/$projectId'
+      path: '/selectinvoicingmethod/$projectId'
+      fullPath: '/tasks/selectinvoicingmethod/$projectId'
+      preLoaderRoute: typeof AppTasksSelectinvoicingmethodProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/selectexpensetype/$projectId': {
       id: '/_app/tasks/selectexpensetype/$projectId'
       path: '/selectexpensetype/$projectId'
@@ -1479,6 +1800,41 @@ declare module '@tanstack/react-router' {
       path: '/selectentrymethod/$projectId'
       fullPath: '/tasks/selectentrymethod/$projectId'
       preLoaderRoute: typeof AppTasksSelectentrymethodProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/revisetimesheet/$projectId': {
+      id: '/_app/tasks/revisetimesheet/$projectId'
+      path: '/revisetimesheet/$projectId'
+      fullPath: '/tasks/revisetimesheet/$projectId'
+      preLoaderRoute: typeof AppTasksRevisetimesheetProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/reviseexpense/$projectId': {
+      id: '/_app/tasks/reviseexpense/$projectId'
+      path: '/reviseexpense/$projectId'
+      fullPath: '/tasks/reviseexpense/$projectId'
+      preLoaderRoute: typeof AppTasksReviseexpenseProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/reviewtimesheet/$projectId': {
+      id: '/_app/tasks/reviewtimesheet/$projectId'
+      path: '/reviewtimesheet/$projectId'
+      fullPath: '/tasks/reviewtimesheet/$projectId'
+      preLoaderRoute: typeof AppTasksReviewtimesheetProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/reviewexpense/$projectId': {
+      id: '/_app/tasks/reviewexpense/$projectId'
+      path: '/reviewexpense/$projectId'
+      fullPath: '/tasks/reviewexpense/$projectId'
+      preLoaderRoute: typeof AppTasksReviewexpenseProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/reviewdraft/$projectId': {
+      id: '/_app/tasks/reviewdraft/$projectId'
+      path: '/reviewdraft/$projectId'
+      fullPath: '/tasks/reviewdraft/$projectId'
+      preLoaderRoute: typeof AppTasksReviewdraftProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/reviewbookings/$projectId': {
@@ -1495,11 +1851,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksRequestchangeorderProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/rejecttimesheet/$projectId': {
+      id: '/_app/tasks/rejecttimesheet/$projectId'
+      path: '/rejecttimesheet/$projectId'
+      fullPath: '/tasks/rejecttimesheet/$projectId'
+      preLoaderRoute: typeof AppTasksRejecttimesheetProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/rejectexpense/$projectId': {
+      id: '/_app/tasks/rejectexpense/$projectId'
+      path: '/rejectexpense/$projectId'
+      fullPath: '/tasks/rejectexpense/$projectId'
+      preLoaderRoute: typeof AppTasksRejectexpenseProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/recordtimeoff/$projectId': {
       id: '/_app/tasks/recordtimeoff/$projectId'
       path: '/recordtimeoff/$projectId'
       fullPath: '/tasks/recordtimeoff/$projectId'
       preLoaderRoute: typeof AppTasksRecordtimeoffProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/recordpayment/$projectId': {
+      id: '/_app/tasks/recordpayment/$projectId'
+      path: '/recordpayment/$projectId'
+      fullPath: '/tasks/recordpayment/$projectId'
+      preLoaderRoute: typeof AppTasksRecordpaymentProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/pausework/$projectId': {
@@ -1565,6 +1942,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksLogmaterialsexpenseProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/invoicetimematerials/$projectId': {
+      id: '/_app/tasks/invoicetimematerials/$projectId'
+      path: '/invoicetimematerials/$projectId'
+      fullPath: '/tasks/invoicetimematerials/$projectId'
+      preLoaderRoute: typeof AppTasksInvoicetimematerialsProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/invoicerecurring/$projectId': {
+      id: '/_app/tasks/invoicerecurring/$projectId'
+      path: '/invoicerecurring/$projectId'
+      fullPath: '/tasks/invoicerecurring/$projectId'
+      preLoaderRoute: typeof AppTasksInvoicerecurringProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/invoicemilestone/$projectId': {
+      id: '/_app/tasks/invoicemilestone/$projectId'
+      path: '/invoicemilestone/$projectId'
+      fullPath: '/tasks/invoicemilestone/$projectId'
+      preLoaderRoute: typeof AppTasksInvoicemilestoneProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/invoicefixedfee/$projectId': {
+      id: '/_app/tasks/invoicefixedfee/$projectId'
+      path: '/invoicefixedfee/$projectId'
+      fullPath: '/tasks/invoicefixedfee/$projectId'
+      preLoaderRoute: typeof AppTasksInvoicefixedfeeProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/initparalleltasks/$projectId': {
       id: '/_app/tasks/initparalleltasks/$projectId'
       path: '/initparalleltasks/$projectId'
@@ -1591,6 +1996,13 @@ declare module '@tanstack/react-router' {
       path: '/getchangeorderapproval/$projectId'
       fullPath: '/tasks/getchangeorderapproval/$projectId'
       preLoaderRoute: typeof AppTasksGetchangeorderapprovalProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/finalizeinvoice/$projectId': {
+      id: '/_app/tasks/finalizeinvoice/$projectId'
+      path: '/finalizeinvoice/$projectId'
+      fullPath: '/tasks/finalizeinvoice/$projectId'
+      preLoaderRoute: typeof AppTasksFinalizeinvoiceProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/filterbyskillsrole/$projectId': {
@@ -1633,6 +2045,13 @@ declare module '@tanstack/react-router' {
       path: '/evaluatecondition/$projectId'
       fullPath: '/tasks/evaluatecondition/$projectId'
       preLoaderRoute: typeof AppTasksEvaluateconditionProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/editdraft/$projectId': {
+      id: '/_app/tasks/editdraft/$projectId'
+      path: '/editdraft/$projectId'
+      fullPath: '/tasks/editdraft/$projectId'
+      preLoaderRoute: typeof AppTasksEditdraftProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/createproject/$dealId': {
@@ -1684,6 +2103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksCloseprojectProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/checkmorebilling/$projectId': {
+      id: '/_app/tasks/checkmorebilling/$projectId'
+      path: '/checkmorebilling/$projectId'
+      fullPath: '/tasks/checkmorebilling/$projectId'
+      preLoaderRoute: typeof AppTasksCheckmorebillingProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/checkconfirmationneeded/$projectId': {
       id: '/_app/tasks/checkconfirmationneeded/$projectId'
       path: '/checkconfirmationneeded/$projectId'
@@ -1703,6 +2129,20 @@ declare module '@tanstack/react-router' {
       path: '/attachreceipt/$projectId'
       fullPath: '/tasks/attachreceipt/$projectId'
       preLoaderRoute: typeof AppTasksAttachreceiptProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/approvetimesheet/$projectId': {
+      id: '/_app/tasks/approvetimesheet/$projectId'
+      path: '/approvetimesheet/$projectId'
+      fullPath: '/tasks/approvetimesheet/$projectId'
+      preLoaderRoute: typeof AppTasksApprovetimesheetProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/approveexpense/$projectId': {
+      id: '/_app/tasks/approveexpense/$projectId'
+      path: '/approveexpense/$projectId'
+      fullPath: '/tasks/approveexpense/$projectId'
+      preLoaderRoute: typeof AppTasksApproveexpenseProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/deals/$dealId/sign': {
@@ -1997,9 +2437,12 @@ const AppResourcesRouteWithChildren = AppResourcesRoute._addFileChildren(
 
 interface AppTasksRouteChildren {
   AppTasksIndexRoute: typeof AppTasksIndexRoute
+  AppTasksApproveexpenseProjectIdRoute: typeof AppTasksApproveexpenseProjectIdRoute
+  AppTasksApprovetimesheetProjectIdRoute: typeof AppTasksApprovetimesheetProjectIdRoute
   AppTasksAttachreceiptProjectIdRoute: typeof AppTasksAttachreceiptProjectIdRoute
   AppTasksAutofrombookingsProjectIdRoute: typeof AppTasksAutofrombookingsProjectIdRoute
   AppTasksCheckconfirmationneededProjectIdRoute: typeof AppTasksCheckconfirmationneededProjectIdRoute
+  AppTasksCheckmorebillingProjectIdRoute: typeof AppTasksCheckmorebillingProjectIdRoute
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
   AppTasksCompletetaskProjectIdRoute: typeof AppTasksCompletetaskProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
@@ -2007,16 +2450,22 @@ interface AppTasksRouteChildren {
   AppTasksCreateandassigntasksProjectIdRoute: typeof AppTasksCreateandassigntasksProjectIdRoute
   AppTasksCreatebookingsProjectIdRoute: typeof AppTasksCreatebookingsProjectIdRoute
   AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
+  AppTasksEditdraftProjectIdRoute: typeof AppTasksEditdraftProjectIdRoute
   AppTasksEvaluateconditionProjectIdRoute: typeof AppTasksEvaluateconditionProjectIdRoute
   AppTasksExecutealternatebranchProjectIdRoute: typeof AppTasksExecutealternatebranchProjectIdRoute
   AppTasksExecuteparalleltaskProjectIdRoute: typeof AppTasksExecuteparalleltaskProjectIdRoute
   AppTasksExecuteprimarybranchProjectIdRoute: typeof AppTasksExecuteprimarybranchProjectIdRoute
   AppTasksExecutetaskProjectIdRoute: typeof AppTasksExecutetaskProjectIdRoute
   AppTasksFilterbyskillsroleProjectIdRoute: typeof AppTasksFilterbyskillsroleProjectIdRoute
+  AppTasksFinalizeinvoiceProjectIdRoute: typeof AppTasksFinalizeinvoiceProjectIdRoute
   AppTasksGetchangeorderapprovalProjectIdRoute: typeof AppTasksGetchangeorderapprovalProjectIdRoute
   AppTasksGetnexttaskProjectIdRoute: typeof AppTasksGetnexttaskProjectIdRoute
   AppTasksImportfromcalendarProjectIdRoute: typeof AppTasksImportfromcalendarProjectIdRoute
   AppTasksInitparalleltasksProjectIdRoute: typeof AppTasksInitparalleltasksProjectIdRoute
+  AppTasksInvoicefixedfeeProjectIdRoute: typeof AppTasksInvoicefixedfeeProjectIdRoute
+  AppTasksInvoicemilestoneProjectIdRoute: typeof AppTasksInvoicemilestoneProjectIdRoute
+  AppTasksInvoicerecurringProjectIdRoute: typeof AppTasksInvoicerecurringProjectIdRoute
+  AppTasksInvoicetimematerialsProjectIdRoute: typeof AppTasksInvoicetimematerialsProjectIdRoute
   AppTasksLogmaterialsexpenseProjectIdRoute: typeof AppTasksLogmaterialsexpenseProjectIdRoute
   AppTasksLogotherexpenseProjectIdRoute: typeof AppTasksLogotherexpenseProjectIdRoute
   AppTasksLogsoftwareexpenseProjectIdRoute: typeof AppTasksLogsoftwareexpenseProjectIdRoute
@@ -2026,11 +2475,24 @@ interface AppTasksRouteChildren {
   AppTasksMarkbillableProjectIdRoute: typeof AppTasksMarkbillableProjectIdRoute
   AppTasksMonitorbudgetburnProjectIdRoute: typeof AppTasksMonitorbudgetburnProjectIdRoute
   AppTasksPauseworkProjectIdRoute: typeof AppTasksPauseworkProjectIdRoute
+  AppTasksRecordpaymentProjectIdRoute: typeof AppTasksRecordpaymentProjectIdRoute
   AppTasksRecordtimeoffProjectIdRoute: typeof AppTasksRecordtimeoffProjectIdRoute
+  AppTasksRejectexpenseProjectIdRoute: typeof AppTasksRejectexpenseProjectIdRoute
+  AppTasksRejecttimesheetProjectIdRoute: typeof AppTasksRejecttimesheetProjectIdRoute
   AppTasksRequestchangeorderProjectIdRoute: typeof AppTasksRequestchangeorderProjectIdRoute
   AppTasksReviewbookingsProjectIdRoute: typeof AppTasksReviewbookingsProjectIdRoute
+  AppTasksReviewdraftProjectIdRoute: typeof AppTasksReviewdraftProjectIdRoute
+  AppTasksReviewexpenseProjectIdRoute: typeof AppTasksReviewexpenseProjectIdRoute
+  AppTasksReviewtimesheetProjectIdRoute: typeof AppTasksReviewtimesheetProjectIdRoute
+  AppTasksReviseexpenseProjectIdRoute: typeof AppTasksReviseexpenseProjectIdRoute
+  AppTasksRevisetimesheetProjectIdRoute: typeof AppTasksRevisetimesheetProjectIdRoute
   AppTasksSelectentrymethodProjectIdRoute: typeof AppTasksSelectentrymethodProjectIdRoute
   AppTasksSelectexpensetypeProjectIdRoute: typeof AppTasksSelectexpensetypeProjectIdRoute
+  AppTasksSelectinvoicingmethodProjectIdRoute: typeof AppTasksSelectinvoicingmethodProjectIdRoute
+  AppTasksSendinvoiceProjectIdRoute: typeof AppTasksSendinvoiceProjectIdRoute
+  AppTasksSendviaemailProjectIdRoute: typeof AppTasksSendviaemailProjectIdRoute
+  AppTasksSendviapdfProjectIdRoute: typeof AppTasksSendviapdfProjectIdRoute
+  AppTasksSendviaportalProjectIdRoute: typeof AppTasksSendviaportalProjectIdRoute
   AppTasksSetbillablerateProjectIdRoute: typeof AppTasksSetbillablerateProjectIdRoute
   AppTasksSetbudgetProjectIdRoute: typeof AppTasksSetbudgetProjectIdRoute
   AppTasksSubmitexpenseProjectIdRoute: typeof AppTasksSubmitexpenseProjectIdRoute
@@ -2042,11 +2504,16 @@ interface AppTasksRouteChildren {
 
 const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksIndexRoute: AppTasksIndexRoute,
+  AppTasksApproveexpenseProjectIdRoute: AppTasksApproveexpenseProjectIdRoute,
+  AppTasksApprovetimesheetProjectIdRoute:
+    AppTasksApprovetimesheetProjectIdRoute,
   AppTasksAttachreceiptProjectIdRoute: AppTasksAttachreceiptProjectIdRoute,
   AppTasksAutofrombookingsProjectIdRoute:
     AppTasksAutofrombookingsProjectIdRoute,
   AppTasksCheckconfirmationneededProjectIdRoute:
     AppTasksCheckconfirmationneededProjectIdRoute,
+  AppTasksCheckmorebillingProjectIdRoute:
+    AppTasksCheckmorebillingProjectIdRoute,
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
   AppTasksCompletetaskProjectIdRoute: AppTasksCompletetaskProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
@@ -2055,6 +2522,7 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
     AppTasksCreateandassigntasksProjectIdRoute,
   AppTasksCreatebookingsProjectIdRoute: AppTasksCreatebookingsProjectIdRoute,
   AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
+  AppTasksEditdraftProjectIdRoute: AppTasksEditdraftProjectIdRoute,
   AppTasksEvaluateconditionProjectIdRoute:
     AppTasksEvaluateconditionProjectIdRoute,
   AppTasksExecutealternatebranchProjectIdRoute:
@@ -2066,6 +2534,7 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksExecutetaskProjectIdRoute: AppTasksExecutetaskProjectIdRoute,
   AppTasksFilterbyskillsroleProjectIdRoute:
     AppTasksFilterbyskillsroleProjectIdRoute,
+  AppTasksFinalizeinvoiceProjectIdRoute: AppTasksFinalizeinvoiceProjectIdRoute,
   AppTasksGetchangeorderapprovalProjectIdRoute:
     AppTasksGetchangeorderapprovalProjectIdRoute,
   AppTasksGetnexttaskProjectIdRoute: AppTasksGetnexttaskProjectIdRoute,
@@ -2073,6 +2542,13 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
     AppTasksImportfromcalendarProjectIdRoute,
   AppTasksInitparalleltasksProjectIdRoute:
     AppTasksInitparalleltasksProjectIdRoute,
+  AppTasksInvoicefixedfeeProjectIdRoute: AppTasksInvoicefixedfeeProjectIdRoute,
+  AppTasksInvoicemilestoneProjectIdRoute:
+    AppTasksInvoicemilestoneProjectIdRoute,
+  AppTasksInvoicerecurringProjectIdRoute:
+    AppTasksInvoicerecurringProjectIdRoute,
+  AppTasksInvoicetimematerialsProjectIdRoute:
+    AppTasksInvoicetimematerialsProjectIdRoute,
   AppTasksLogmaterialsexpenseProjectIdRoute:
     AppTasksLogmaterialsexpenseProjectIdRoute,
   AppTasksLogotherexpenseProjectIdRoute: AppTasksLogotherexpenseProjectIdRoute,
@@ -2087,14 +2563,28 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksMonitorbudgetburnProjectIdRoute:
     AppTasksMonitorbudgetburnProjectIdRoute,
   AppTasksPauseworkProjectIdRoute: AppTasksPauseworkProjectIdRoute,
+  AppTasksRecordpaymentProjectIdRoute: AppTasksRecordpaymentProjectIdRoute,
   AppTasksRecordtimeoffProjectIdRoute: AppTasksRecordtimeoffProjectIdRoute,
+  AppTasksRejectexpenseProjectIdRoute: AppTasksRejectexpenseProjectIdRoute,
+  AppTasksRejecttimesheetProjectIdRoute: AppTasksRejecttimesheetProjectIdRoute,
   AppTasksRequestchangeorderProjectIdRoute:
     AppTasksRequestchangeorderProjectIdRoute,
   AppTasksReviewbookingsProjectIdRoute: AppTasksReviewbookingsProjectIdRoute,
+  AppTasksReviewdraftProjectIdRoute: AppTasksReviewdraftProjectIdRoute,
+  AppTasksReviewexpenseProjectIdRoute: AppTasksReviewexpenseProjectIdRoute,
+  AppTasksReviewtimesheetProjectIdRoute: AppTasksReviewtimesheetProjectIdRoute,
+  AppTasksReviseexpenseProjectIdRoute: AppTasksReviseexpenseProjectIdRoute,
+  AppTasksRevisetimesheetProjectIdRoute: AppTasksRevisetimesheetProjectIdRoute,
   AppTasksSelectentrymethodProjectIdRoute:
     AppTasksSelectentrymethodProjectIdRoute,
   AppTasksSelectexpensetypeProjectIdRoute:
     AppTasksSelectexpensetypeProjectIdRoute,
+  AppTasksSelectinvoicingmethodProjectIdRoute:
+    AppTasksSelectinvoicingmethodProjectIdRoute,
+  AppTasksSendinvoiceProjectIdRoute: AppTasksSendinvoiceProjectIdRoute,
+  AppTasksSendviaemailProjectIdRoute: AppTasksSendviaemailProjectIdRoute,
+  AppTasksSendviapdfProjectIdRoute: AppTasksSendviapdfProjectIdRoute,
+  AppTasksSendviaportalProjectIdRoute: AppTasksSendviaportalProjectIdRoute,
   AppTasksSetbillablerateProjectIdRoute: AppTasksSetbillablerateProjectIdRoute,
   AppTasksSetbudgetProjectIdRoute: AppTasksSetbudgetProjectIdRoute,
   AppTasksSubmitexpenseProjectIdRoute: AppTasksSubmitexpenseProjectIdRoute,
