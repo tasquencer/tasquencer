@@ -63,6 +63,7 @@ const EXPENSE_TRACKING_SCOPES = [
   'dealToDelivery:expenses:create',
   'dealToDelivery:expenses:edit:own',
   'dealToDelivery:expenses:submit',
+  'dealToDelivery:expenses:approve', // Needed for manager override on high markup rates
 ]
 
 beforeEach(async () => {
@@ -1856,5 +1857,236 @@ describe('SetBillableRate Markup Validation', () => {
         } as any,
       })
     ).rejects.toThrow('Markup rate cannot exceed 50%')
+  })
+
+  /**
+   * Per spec 08-workflow-expense-tracking.md line 426:
+   * "Maximum markup with override is 100% (2.0 rate)"
+   * With manager override, markup up to 2.0 (100%) is allowed
+   */
+  it('allows markup up to 100% with manager override', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectExpenseType
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      { expenseType: 'Other', projectId },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const yesterday = Date.now() - 24 * 60 * 60 * 1000
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'logOtherExpense',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'logOtherExpense', 'logOtherExpense'],
+      {
+        projectId,
+        description: 'Expense for manager override test',
+        amount: 2000, // 2000 cents = $20, under $25 threshold so no receipt required
+        currency: 'USD',
+        date: yesterday,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const expenses = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('expenses')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const expenseId = expenses[0]._id
+
+    // Amount is under $25 threshold, can complete without receipt
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'attachReceipt',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'attachReceipt', 'attachReceipt'],
+      { expenseId },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Mark as billable to route to setBillableRate
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'markBillable',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'markBillable', 'markBillable'],
+      { expenseId, billable: true },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Set markup rate at 1.8 (80% markup) WITH manager override - should succeed
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'setBillableRate',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'setBillableRate', 'setBillableRate'],
+      { expenseId, markupRate: 1.8, hasManagerOverride: true },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify setBillableRate completed
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'setBillableRate', 'completed')
+
+    // Verify markup rate was set
+    const updatedExpense = await testContext.run(async (ctx) => {
+      return await ctx.db.get(expenseId)
+    })
+    expect(updatedExpense?.markupRate).toBe(1.8)
+  })
+
+  /**
+   * Per spec 08-workflow-expense-tracking.md:
+   * "Maximum markup with override is 100% (2.0 rate)"
+   * Markup cannot exceed 2.0 even with manager override
+   */
+  it('rejects markup over 100% even with manager override', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectExpenseType
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      { expenseType: 'Other', projectId },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const yesterday = Date.now() - 24 * 60 * 60 * 1000
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'logOtherExpense',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'logOtherExpense', 'logOtherExpense'],
+      {
+        projectId,
+        description: 'Expense for max markup test',
+        amount: 2400, // 2400 cents = $24, under $25 threshold so no receipt required
+        currency: 'USD',
+        date: yesterday,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const expenses = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('expenses')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const expenseId = expenses[0]._id
+
+    // Amount is under $25 threshold, can complete without receipt
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'attachReceipt',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'attachReceipt', 'attachReceipt'],
+      { expenseId },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Mark as billable to route to setBillableRate
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'markBillable',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'markBillable', 'markBillable'],
+      { expenseId, billable: true },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Initialize and start setBillableRate work item
+    const workItems = await getTaskWorkItems(testContext, expenseTrackingWorkflowId, 'setBillableRate')
+    let workItemId: Id<'tasquencerWorkItems'>
+
+    if (workItems.length === 0) {
+      workItemId = await testContext.mutation(
+        internal.testing.tasquencer.initializeWorkItem,
+        {
+          target: {
+            path: ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'setBillableRate', 'setBillableRate'],
+            parentWorkflowId: expenseTrackingWorkflowId,
+            parentTaskName: 'setBillableRate',
+          },
+          args: { name: 'setBillableRate' as any, payload: { expenseId } },
+        }
+      )
+      await flushWorkflow(testContext, 5)
+    } else {
+      workItemId = workItems[0]._id
+    }
+
+    await testContext.mutation(internal.testing.tasquencer.startWorkItem, {
+      workItemId,
+      args: { name: 'setBillableRate' as any },
+    })
+    await flushWorkflow(testContext, 5)
+
+    // Attempt to set markup at 2.5 (150% markup) even with override - should fail
+    // Zod schema enforces max 2.0 (100% markup)
+    await expect(
+      testContext.mutation(internal.testing.tasquencer.completeWorkItem, {
+        workItemId,
+        args: {
+          name: 'setBillableRate',
+          payload: { expenseId, markupRate: 2.5, hasManagerOverride: true },
+        } as any,
+      })
+    ).rejects.toThrow('Too big')
   })
 })
