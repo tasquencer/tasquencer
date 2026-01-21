@@ -383,6 +383,21 @@ export async function calculateInvoicePayments(
 }
 
 /**
+ * Calculate total invoiced amount for a project (non-voided invoices only).
+ * Per spec task-invoicefixedfee.md line 30: "Amount must be > 0 and within remaining budget"
+ */
+export async function calculateProjectInvoicedAmount(
+  db: DatabaseReader,
+  projectId: Id<"projects">
+): Promise<number> {
+  const invoices = await listInvoicesByProject(db, projectId);
+  // Sum totals of all non-voided invoices
+  return invoices
+    .filter((inv) => inv.status !== "Void")
+    .reduce((sum, inv) => sum + inv.total, 0);
+}
+
+/**
  * Record a payment and mark invoice paid if fully paid.
  * Returns overpayment amount for UI display (per spec task-recordpayment.md).
  */

@@ -16,7 +16,7 @@ import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./hel
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
-import { getMilestone, completeMilestone, markMilestoneInvoiced } from "../db/milestones";
+import { getMilestone, markMilestoneInvoiced, updateMilestone } from "../db/milestones";
 import { listBillableUninvoicedExpenses } from "../db/expenses";
 import { insertInvoice, insertInvoiceLineItem, recalculateInvoiceTotals } from "../db/invoices";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
@@ -98,9 +98,11 @@ const invoiceMilestoneWorkItemActions = authService.builders.workItemActions
         throw new Error("This milestone has already been invoiced");
       }
 
-      // Mark milestone as completed if not already
+      // Mark milestone as completed if not already (per spec task-invoicemilestone.md: use completionDate if provided)
       if (!milestone.completedAt) {
-        await completeMilestone(mutationCtx.db, payload.milestoneId);
+        // Use provided completionDate if specified, otherwise use current time
+        const completionDate = payload.completionDate ?? Date.now();
+        await updateMilestone(mutationCtx.db, payload.milestoneId, { completedAt: completionDate });
       }
 
       // Create the draft invoice

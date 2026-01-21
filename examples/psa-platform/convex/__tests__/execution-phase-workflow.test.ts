@@ -1111,6 +1111,7 @@ describe('Change Order Domain Logic', () => {
         organizationId: orgId,
         projectId,
         description: 'Additional development work needed',
+        justification: 'Test justification',
         budgetImpact: 50000, // $500 additional budget
         status: 'Pending',
         requestedBy: userId,
@@ -1147,6 +1148,7 @@ describe('Change Order Domain Logic', () => {
         organizationId: orgId,
         projectId,
         description: 'Additional development work needed',
+        justification: 'Test justification',
         budgetImpact: 50000, // $500 additional
         status: 'Pending',
         requestedBy: userId,
@@ -1212,6 +1214,7 @@ describe('Change Order Domain Logic', () => {
         organizationId: orgId,
         projectId,
         description: 'Additional work request',
+        justification: 'Test justification',
         budgetImpact: 50000,
         status: 'Pending',
         requestedBy: userId,

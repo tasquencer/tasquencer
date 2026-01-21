@@ -18,7 +18,7 @@ import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
 import { getBudgetByProjectId } from "../db/budgets";
 import { listBillableUninvoicedExpenses } from "../db/expenses";
-import { insertInvoice, insertInvoiceLineItem, recalculateInvoiceTotals } from "../db/invoices";
+import { insertInvoice, insertInvoiceLineItem, recalculateInvoiceTotals, calculateProjectInvoicedAmount } from "../db/invoices";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
 
@@ -67,8 +67,9 @@ const invoiceFixedFeeWorkItemActions = authService.builders.workItemActions
     z.object({
       projectId: zid("projects"),
       // Either amount in cents OR percentage of budget
-      invoiceAmount: z.number().min(0).optional(),
-      percentageOfBudget: z.number().min(0).max(100).optional(),
+      // Per spec task-invoicefixedfee.md line 30: "Amount must be > 0"
+      invoiceAmount: z.number().min(1, "Invoice amount must be greater than 0").optional(),
+      percentageOfBudget: z.number().min(1, "Percentage must be greater than 0").max(100).optional(),
       description: z.string().min(1).max(500),
       includeExpenses: z.boolean().default(false),
     }),
@@ -101,6 +102,21 @@ const invoiceFixedFeeWorkItemActions = authService.builders.workItemActions
       } else {
         // Calculate from percentage of budget
         amount = Math.round((budget.totalAmount * (payload.percentageOfBudget! / 100)));
+      }
+
+      // Per spec task-invoicefixedfee.md line 30: "Amount must be > 0 and within remaining budget"
+      if (amount <= 0) {
+        throw new Error("Invoice amount must be greater than 0");
+      }
+
+      // Check remaining budget (per spec task-invoicefixedfee.md)
+      const invoicedAmount = await calculateProjectInvoicedAmount(mutationCtx.db, payload.projectId);
+      const remainingBudget = budget.totalAmount - invoicedAmount;
+      if (amount > remainingBudget) {
+        throw new Error(
+          `Invoice amount ($${(amount / 100).toFixed(2)}) exceeds remaining budget ($${(remainingBudget / 100).toFixed(2)}). ` +
+          `Budget: $${(budget.totalAmount / 100).toFixed(2)}, Already invoiced: $${(invoicedAmount / 100).toFixed(2)}.`
+        );
       }
 
       // Create the draft invoice

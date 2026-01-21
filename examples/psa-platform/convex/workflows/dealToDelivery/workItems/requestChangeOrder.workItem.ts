@@ -110,13 +110,16 @@ const requestChangeOrderWorkItemActions = authService.builders.workItemActions
 
       const now = Date.now();
 
-      // Create change order record
+      // Create change order record (per spec task-requestchangeorder.md: persist all fields)
       const changeOrderId = await insertChangeOrder(mutationCtx.db, {
         organizationId: project.organizationId,
         projectId: project._id,
         description: payload.description,
+        justification: payload.justification, // Required per spec
         budgetImpact: payload.budgetImpact,
         status: "Pending",
+        additionalServices: payload.additionalServices, // Optional per spec
+        scopeChanges: payload.scopeChanges, // Optional per spec
         requestedBy,
         createdAt: now,
       });

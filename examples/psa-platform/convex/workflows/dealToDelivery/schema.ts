@@ -472,8 +472,17 @@ const changeOrders = defineTable({
   projectId: v.id("projects"),
   requestedBy: v.id("users"),
   description: v.string(),
+  justification: v.string(), // Required justification for the change (per spec task-requestchangeorder.md)
   budgetImpact: v.number(), // Budget impact in cents
   status: changeOrderStatus,
+  // Optional additional services (per spec task-requestchangeorder.md)
+  additionalServices: v.optional(v.array(v.object({
+    name: v.string(),
+    rate: v.number(), // Rate in cents
+    hours: v.number(),
+  }))),
+  // Optional scope changes notes (per spec task-requestchangeorder.md)
+  scopeChanges: v.optional(v.string()),
   approvedBy: v.optional(v.id("users")),
   approvedAt: v.optional(v.number()),
   createdAt: v.number(),
@@ -936,6 +945,7 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       taskName: v.string(),
       priority: workItemPriority,
       decision: v.optional(v.union(v.literal("approve"), v.literal("reject"))),
+      comments: v.optional(v.string()), // Review comments for audit trail (per spec task-reviewtimesheet.md)
     }),
     v.object({
       type: v.literal("approveTimesheet"),
@@ -963,6 +973,7 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       expenseId: v.optional(v.id("expenses")),
       // Decision captured during review (set on complete)
       decision: v.optional(v.union(v.literal("approve"), v.literal("reject"))),
+      comments: v.optional(v.string()), // Review comments for audit trail (per spec task-reviewexpense.md)
     }),
     v.object({
       type: v.literal("approveExpense"),

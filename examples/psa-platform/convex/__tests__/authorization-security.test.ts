@@ -578,6 +578,7 @@ describe('Self-Approval Prevention', () => {
         organizationId: organizationId as Id<'organizations'>,
         projectId,
         description: 'Self-requested Change Order',
+        justification: 'Test justification',
         budgetImpact: 50000,
         status: 'Pending',
         requestedBy: userId as Id<'users'>,

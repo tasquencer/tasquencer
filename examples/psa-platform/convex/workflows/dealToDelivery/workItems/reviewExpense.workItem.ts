@@ -16,7 +16,8 @@ import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
-import { getExpense } from "../db/expenses";
+import { getExpense, updateExpense } from "../db/expenses";
+import type { ExpenseType } from "../db/expenses";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { checkExpensePolicyLimit } from "../db/expensePolicyLimits";
 import { assertExpenseExists, assertAuthenticatedUser } from "../exceptions";
@@ -142,7 +143,33 @@ const reviewExpenseWorkItemActions = authService.builders.workItemActions
         );
       }
 
-      // Store the decision in work item metadata for routing
+      // Apply adjustments to the expense if provided (per spec task-reviewexpense.md)
+      // Adjustments can include: billable, category (type), markupRate
+      if (payload.adjustments) {
+        const updates: Parameters<typeof updateExpense>[2] = {};
+
+        if (payload.adjustments.billable !== undefined) {
+          updates.billable = payload.adjustments.billable;
+        }
+        if (payload.adjustments.category !== undefined) {
+          // Category maps to expense type (Software, Travel, etc.)
+          updates.type = payload.adjustments.category as ExpenseType;
+        }
+        if (payload.adjustments.markupRate !== undefined) {
+          updates.markupRate = payload.adjustments.markupRate;
+        }
+
+        // Only update if there are changes
+        if (Object.keys(updates).length > 0) {
+          await updateExpense(mutationCtx.db, payload.expenseId, updates);
+          console.log(
+            `[reviewExpense] Applied adjustments to expense ${payload.expenseId}:`,
+            updates
+          );
+        }
+      }
+
+      // Store the decision and comments in work item metadata for routing and audit trail
       // The workflow router will read this to determine the next task (approve vs reject)
       await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
         type: "reviewExpense",
@@ -150,6 +177,7 @@ const reviewExpenseWorkItemActions = authService.builders.workItemActions
         priority: "normal",
         expenseId: payload.expenseId,
         decision: payload.decision,
+        comments: payload.comments, // Persist for audit trail (per spec task-reviewexpense.md)
       });
 
       await workItem.complete();

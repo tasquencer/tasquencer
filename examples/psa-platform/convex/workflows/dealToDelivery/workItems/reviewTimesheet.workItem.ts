@@ -110,13 +110,14 @@ const reviewTimesheetWorkItemActions = authService.builders.workItemActions
         }
       }
 
-      // Store the decision in work item metadata for routing
+      // Store the decision and comments in work item metadata for routing and audit trail
       // The workflow router will read this to determine the next task (approve vs reject)
       await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
         type: "reviewTimesheet",
         taskName: "Review Timesheet",
         priority: "normal",
         decision: payload.decision,
+        comments: payload.comments, // Persist for audit trail (per spec task-reviewtimesheet.md)
       });
 
       await workItem.complete();

@@ -728,6 +728,7 @@ describe('Change Order Rejection Terminal State', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         projectId,
         description: 'Request for additional budget',
+        justification: 'Test justification',
         budgetImpact: 200000, // $2,000
         status: 'Pending',
         requestedBy: authResult.userId as Id<'users'>,
@@ -770,6 +771,7 @@ describe('Change Order Rejection Terminal State', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         projectId,
         description: 'Major scope expansion',
+        justification: 'Test justification',
         budgetImpact: 500000, // $5,000 increase requested
         status: 'Pending',
         requestedBy: authResult.userId as Id<'users'>,
@@ -817,6 +819,7 @@ describe('Change Order Rejection Terminal State', () => {
           organizationId: authResult.organizationId as Id<'organizations'>,
           projectId,
           description: `Budget request attempt ${i}`,
+          justification: 'Test justification',
           budgetImpact: 100000 * i,
           status: 'Pending',
           requestedBy: authResult.userId as Id<'users'>,
@@ -869,6 +872,7 @@ describe('Change Order Rejection Terminal State', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         projectId,
         description: 'Approved scope expansion',
+        justification: 'Test justification',
         budgetImpact: budgetIncrease,
         status: 'Pending',
         requestedBy: authResult.userId as Id<'users'>,

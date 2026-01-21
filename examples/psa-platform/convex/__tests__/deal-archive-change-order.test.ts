@@ -751,6 +751,7 @@ describe('GetChangeOrderApproval Work Item', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Additional scope for feature development - Client requested new feature set',
+        justification: 'Test justification',
         budgetImpact: 50000, // $500 additional budget
         status: 'Pending',
         createdAt: Date.now(),
@@ -817,6 +818,7 @@ describe('GetChangeOrderApproval Work Item', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Additional development work - Extended scope',
+        justification: 'Test justification',
         budgetImpact: 100000, // $1000 requested
         status: 'Pending',
         createdAt: Date.now(),
@@ -886,6 +888,7 @@ describe('GetChangeOrderApproval Work Item', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Additional budget for overrun - Budget exceeded due to scope creep',
+        justification: 'Test justification',
         budgetImpact: 75000,
         status: 'Pending',
         createdAt: Date.now(),
@@ -976,6 +979,7 @@ describe('GetChangeOrderApproval Work Item', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Additional budget to cover overrun',
+        justification: 'Test justification',
         budgetImpact: 50000,
         status: 'Pending',
         createdAt: Date.now(),
@@ -1049,6 +1053,7 @@ describe('GetChangeOrderApproval Work Item', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Already approved change - Test',
+        justification: 'Test justification',
         budgetImpact: 25000,
         status: 'Approved', // Already approved
         approvedAt: Date.now(),
@@ -1105,6 +1110,7 @@ describe('Change Order Edge Cases', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Scope adjustment - Clarification of requirements',
+        justification: 'Test justification',
         budgetImpact: 0, // Zero impact
         status: 'Pending',
         createdAt: Date.now(),
@@ -1165,6 +1171,7 @@ describe('Change Order Edge Cases', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'First change order - Additional feature',
+        justification: 'Test justification',
         budgetImpact: 25000,
         status: 'Pending',
         createdAt: Date.now(),
@@ -1177,6 +1184,7 @@ describe('Change Order Edge Cases', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Second change order - Extended scope',
+        justification: 'Test justification',
         budgetImpact: 35000,
         status: 'Pending',
         createdAt: Date.now() + 1000,
@@ -1343,6 +1351,7 @@ describe('RequestChangeOrder Spec Compliance', () => {
         organizationId: authResult.organizationId as Id<'organizations'>,
         requestedBy: authResult.userId as Id<'users'>,
         description: 'Additional development work required',
+        justification: 'Test justification',
         budgetImpact: 75000, // $750 additional budget
         status: 'Pending',
         createdAt: Date.now(),
