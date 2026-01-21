@@ -8,7 +8,7 @@
 
 import { describe, it, beforeEach, expect } from 'vitest'
 import { setup, type TestContext } from './helpers.test'
-import type { Doc } from '../_generated/dataModel'
+import type { Doc, Id } from '../_generated/dataModel'
 import {
   insertNotification,
   insertNotifications,

@@ -352,3 +352,10 @@ export type {
   NotificationDeliveryStatus,
   CreateNotificationInput,
 } from "./db/notifications";
+
+// Parallel task mappings
+export {
+  insertParallelTaskMapping,
+  getParallelTaskMapping,
+  deleteParallelTaskMapping,
+} from "./db/parallelTaskMappings";

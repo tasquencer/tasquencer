@@ -1135,6 +1135,21 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
 );
 
 // =============================================================================
+// PARALLEL TASK MAPPINGS (for dynamic composite task pattern)
+// =============================================================================
+
+/**
+ * Maps child workflow IDs to the task IDs they should execute.
+ * Used by the parallel execution pattern to pass taskId from
+ * the dynamic composite task to the child workflow's work item.
+ */
+const parallelTaskMappings = defineTable({
+  workflowId: v.id("tasquencerWorkflows"),
+  taskId: v.id("tasks"),
+  createdAt: v.number(),
+}).index("by_workflowId", ["workflowId"]);
+
+// =============================================================================
 // EXPORT
 // =============================================================================
 
@@ -1166,6 +1181,8 @@ export default {
   projectScorecards,
   projectMetrics,
   notifications,
+  // Parallel execution support
+  parallelTaskMappings,
   // Work item metadata table
   dealToDeliveryWorkItems,
 };
