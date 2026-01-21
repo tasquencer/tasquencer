@@ -383,18 +383,24 @@ export async function calculateInvoicePayments(
 }
 
 /**
- * Record a payment and mark invoice paid if fully paid
+ * Record a payment and mark invoice paid if fully paid.
+ * Returns overpayment amount for UI display (per spec task-recordpayment.md).
  */
 export async function recordPaymentAndCheckPaid(
   db: DatabaseWriter,
   payment: Omit<Doc<"payments">, "_id" | "_creationTime">
-): Promise<{ paymentId: Id<"payments">; isPaid: boolean }> {
-  const paymentId = await insertPayment(db, payment);
-
+): Promise<{ paymentId: Id<"payments">; isPaid: boolean; overpaymentAmount: number }> {
   const invoice = await getInvoice(db, payment.invoiceId);
   if (!invoice) {
     throw new EntityNotFoundError("Invoice", { invoiceId: payment.invoiceId });
   }
+
+  // Calculate overpayment before inserting new payment
+  const existingPayments = await calculateInvoicePayments(db, payment.invoiceId);
+  const remaining = invoice.total - existingPayments;
+  const overpaymentAmount = Math.max(0, payment.amount - remaining);
+
+  const paymentId = await insertPayment(db, payment);
 
   const totalPayments = await calculateInvoicePayments(db, payment.invoiceId);
   const isPaid = totalPayments >= invoice.total;
@@ -403,5 +409,5 @@ export async function recordPaymentAndCheckPaid(
     await markInvoicePaid(db, payment.invoiceId);
   }
 
-  return { paymentId, isPaid };
+  return { paymentId, isPaid, overpaymentAmount };
 }

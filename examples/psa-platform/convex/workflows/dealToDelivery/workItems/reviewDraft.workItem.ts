@@ -98,14 +98,16 @@ const reviewDraftWorkItemActions = authService.builders.workItemActions
         throw new Error("Invoice total must be greater than zero");
       }
 
-      // Store the approval decision in work item metadata for routing
+      // Store the approval decision and comments in work item metadata for routing and audit trail
       // The workflow router will read this to determine next task (editDraft vs finalizeInvoice)
+      // Per spec task-reviewdraft.md: comments are optional but should be persisted
       await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
         type: "reviewDraft",
         taskName: "Review Draft Invoice",
         priority: "normal",
         invoiceId: payload.invoiceId,
         approved: payload.approved, // Store decision for workflow routing
+        comments: payload.comments, // Store comments for audit trail (per spec)
       });
 
       await workItem.complete();

@@ -15,7 +15,7 @@ import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
-import { getInvoice, recordPaymentAndCheckPaid, calculateInvoicePayments } from "../db/invoices";
+import { getInvoice, recordPaymentAndCheckPaid } from "../db/invoices";
 import { getProject } from "../db/projects";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
@@ -87,45 +87,48 @@ const recordPaymentWorkItemActions = authService.builders.workItemActions
         throw new Error("Invoice not found");
       }
 
+      // Validate invoice status per spec task-recordpayment.md:
+      // "Select invoice (Sent or Viewed)" - only allow payments on invoices that have been sent
+      if (invoice.status !== "Sent" && invoice.status !== "Viewed") {
+        throw new Error(
+          `Cannot record payment for invoice in ${invoice.status} status. ` +
+          `Invoice must be in Sent or Viewed status.`
+        );
+      }
+
       // Get project for organizationId
       const project = await getProject(mutationCtx.db, invoice.projectId);
       assertProjectExists(project, { projectId: invoice.projectId });
 
-      // Check for overpayment warning per spec 12-workflow-billing-phase.md line 399
-      // "Overpayment: Warn if payment > remaining balance"
-      const existingPayments = await calculateInvoicePayments(mutationCtx.db, payload.invoiceId);
-      const remaining = invoice.total - existingPayments;
-      const overpaymentAmount = payload.amount - remaining;
-
-      if (overpaymentAmount > 0) {
-        // Log overpayment warning - this will be visible in audit trail
-        console.warn(
-          `[recordPayment] OVERPAYMENT WARNING: Payment of ${payload.amount} cents ` +
-          `exceeds remaining balance of ${remaining} cents by ${overpaymentAmount} cents. ` +
-          `Invoice ID: ${payload.invoiceId}`
-        );
-        // Note: Per spec, we warn but still allow the payment to proceed
-        // The overpayment will be recorded and can be handled as a credit
-      }
-
-      // Record the payment
-      await recordPaymentAndCheckPaid(mutationCtx.db, {
+      // Record the payment (includes overpayment calculation)
+      const { overpaymentAmount } = await recordPaymentAndCheckPaid(mutationCtx.db, {
         organizationId: project!.organizationId,
         invoiceId: payload.invoiceId,
         amount: payload.amount,
         date: payload.date,
         method: payload.method,
         reference: payload.reference,
+        notes: payload.notes, // Per spec task-recordpayment.md: persist notes
         syncedToAccounting: false,
         createdAt: Date.now(),
       });
 
-      // Update metadata
+      // Log overpayment warning if applicable per spec 12-workflow-billing-phase.md line 399
+      if (overpaymentAmount > 0) {
+        console.warn(
+          `[recordPayment] OVERPAYMENT WARNING: Payment of ${payload.amount} cents ` +
+          `exceeds remaining balance by ${overpaymentAmount} cents. ` +
+          `Invoice ID: ${payload.invoiceId}`
+        );
+      }
+
+      // Update metadata with overpayment info for UI display (per spec task-recordpayment.md)
       await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
         type: "recordPayment",
         taskName: "Record Payment",
         priority: "normal",
         invoiceId: payload.invoiceId,
+        overpaymentAmount: overpaymentAmount > 0 ? overpaymentAmount : undefined,
       });
 
       await workItem.complete();

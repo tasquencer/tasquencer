@@ -104,18 +104,22 @@ const checkMoreBillingWorkItemActions = authService.builders.workItemActions
       const nextBillingDue = isRetainer;
 
       // Determine if more billing is needed (used for workflow routing)
-      const _moreBillingCycles =
+      const moreBillingCycles =
         uninvoicedTime.length > 0 ||
         uninvoicedExpenses.length > 0 ||
         uninvoicedMilestones.length > 0 ||
         nextBillingDue;
-      void _moreBillingCycles;
 
-      // Update metadata
+      // Update metadata with counts for UI display and routing decision (per spec task-checkmorebilling.md)
       await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
         type: "checkMoreBilling",
         taskName: "Check More Billing",
         priority: "normal",
+        uninvoicedTimeCount: uninvoicedTime.length,
+        uninvoicedExpensesCount: uninvoicedExpenses.length,
+        uninvoicedMilestonesCount: uninvoicedMilestones.length,
+        isRetainer,
+        moreBillingCycles, // Store decision for workflow routing
       });
 
       await workItem.complete();

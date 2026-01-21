@@ -439,6 +439,7 @@ const payments = defineTable({
   date: v.number(),
   method: v.string(), // Payment method
   reference: v.optional(v.string()), // Payment reference/check number
+  notes: v.optional(v.string()), // Optional payment notes (per spec task-recordpayment.md)
   syncedToAccounting: v.boolean(),
   createdAt: v.number(),
 })
@@ -1013,6 +1014,7 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       priority: workItemPriority,
       invoiceId: v.optional(v.id("invoices")),
       approved: v.optional(v.boolean()), // Approval decision for workflow routing
+      comments: v.optional(v.string()), // Review comments for audit trail (per spec task-reviewdraft.md)
     }),
     v.object({
       type: v.literal("editDraft"),
@@ -1061,6 +1063,7 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       taskName: v.string(),
       priority: workItemPriority,
       invoiceId: v.optional(v.id("invoices")),
+      overpaymentAmount: v.optional(v.number()), // Amount exceeding invoice balance (per spec task-recordpayment.md)
     }),
     // TENET-WF-EXEC: Invoice voiding is now work item-driven for audit trail
     v.object({
@@ -1074,6 +1077,12 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("checkMoreBilling"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Billing status counts for UI display (per spec task-checkmorebilling.md)
+      uninvoicedTimeCount: v.optional(v.number()),
+      uninvoicedExpensesCount: v.optional(v.number()),
+      uninvoicedMilestonesCount: v.optional(v.number()),
+      isRetainer: v.optional(v.boolean()),
+      moreBillingCycles: v.optional(v.boolean()), // Decision for workflow routing
     }),
 
     // =========================================================================
