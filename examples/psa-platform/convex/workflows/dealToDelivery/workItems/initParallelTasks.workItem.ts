@@ -100,10 +100,10 @@ const initParallelTasksWorkItemActions = authService.builders.workItemActions
           payload: {
             type: "initParallelTasks" as const,
             taskName: "Initialize Parallel Tasks",
-            priority: "medium" as const,
+            priority: "normal" as const,
             parallelTaskIds: parallelTasks.map(t => t._id),
             taskCount: parallelTasks.length,
-          } as any,
+          },
         });
       }
 

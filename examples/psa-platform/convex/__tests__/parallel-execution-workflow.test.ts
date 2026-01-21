@@ -1327,11 +1327,7 @@ describe('Complete Parallel Execution Workflow', () => {
     await assertTaskState(testContext, parallelWorkflowId, 'initParallelTasks', 'enabled')
   })
 
-  // TODO: This test is skipped because completing initParallelTasks triggers a metadata
-  // update with extra fields (parallelTaskIds, taskCount) that require schema migration.
-  // The schema has been updated but convex-test validation doesn't pick up the changes.
-  // Core functionality is validated by the test above.
-  it.skip('executes tasks in parallel and transitions them to InProgress', async () => {
+  it('executes tasks in parallel and transitions them to InProgress', async () => {
     const rootWorkflowId = await initializeRootWorkflow(testContext)
     const { companyId, contactId } = await createTestEntities(
       testContext,
