@@ -18,7 +18,7 @@ import {
   initializeWorkItemWithProjectAuth,
 } from "./helpersAuth";
 import { authService } from "../../../authorization";
-import { getProject } from "../db/projects";
+import { getProject, updateProjectStatus } from "../db/projects";
 import { insertTask, getNextTaskSortOrder } from "../db/tasks";
 import { getUser } from "../db/users";
 import { getRootWorkflowAndProjectForWorkItem } from "../db/workItemContext";
@@ -193,6 +193,14 @@ export const createAndAssignTasksWorkItem = Builder.workItem("createAndAssignTas
 export const createAndAssignTasksTask = Builder.task(createAndAssignTasksWorkItem)
   .withActivities({
     onEnabled: async ({ workItem, mutationCtx, parent }) => {
-      await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+      const { project } = await initializeWorkItemWithProjectAuth(
+        mutationCtx,
+        parent.workflow,
+        workItem
+      );
+
+      if (project.status === "Planning") {
+        await updateProjectStatus(mutationCtx.db, project._id, "Active");
+      }
     },
   });

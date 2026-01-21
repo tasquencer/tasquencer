@@ -1477,7 +1477,7 @@ describe('Selective Booking Confirmation', () => {
     await assertTaskState(testContext, resourceWorkflowId, 'completeAllocation', 'completed')
   })
 
-  it('keeps project in Planning status when no bookings are confirmed', async () => {
+  it('moves project to Active once execution phase begins even when no bookings are confirmed', async () => {
     const rootWorkflowId = await initializeRootWorkflow(testContext)
     const { companyId, contactId } = await createTestEntities(
       testContext,
@@ -1603,9 +1603,9 @@ describe('Selective Booking Confirmation', () => {
     })
     expect(updatedBookings[0].type).toBe('Tentative')
 
-    // Project should remain in Planning status (no confirmations)
+    // Execution phase entry should move the project to Active
     const project = await getProjectByWorkflowId(testContext, rootWorkflowId)
-    expect(project?.status).toBe('Planning')
+    expect(project?.status).toBe('Active')
 
     // Workflow still completes
     await assertTaskState(testContext, resourceWorkflowId, 'completeAllocation', 'completed')
