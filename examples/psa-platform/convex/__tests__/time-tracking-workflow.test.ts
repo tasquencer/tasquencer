@@ -1536,3 +1536,202 @@ describe('Duplicate Detection (Warn but Allow)', () => {
     expect(entriesAfterSecond.map(e => e.notes).sort()).toEqual(['First entry', 'Second entry (potential duplicate)'])
   })
 })
+
+describe('90-Day Age Limit for Time Entry Submission', () => {
+  /**
+   * Per spec 07-workflow-time-tracking.md:
+   * "Entries older than 90 days require admin approval exception"
+   */
+  it('rejects submission of time entries older than 90 days', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, timeTrackingWorkflowId } = await progressToTimeTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectEntryMethod
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'selectEntryMethod',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'selectEntryMethod', 'selectEntryMethod'],
+      { method: 'manual', projectId },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Create a time entry that is older than 90 days
+    const oldDate = Date.now() - (91 * 24 * 60 * 60 * 1000) // 91 days ago
+
+    // Complete manualEntry to create the old time entry
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'manualEntry',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'manualEntry', 'manualEntry'],
+      {
+        projectId,
+        date: oldDate,
+        hours: 4,
+        notes: 'Old time entry',
+        billable: true,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Get the time entry and update its date to be old (bypassing validation during creation)
+    const timeEntries = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('timeEntries')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const timeEntryId = timeEntries[0]._id
+
+    // Update entry date to be > 90 days old
+    await testContext.run(async (ctx) => {
+      const entry = await ctx.db.get(timeEntryId)
+      if (entry) {
+        await ctx.db.replace(timeEntryId, { ...entry, date: oldDate })
+      }
+    })
+
+    // Initialize and start submitTimeEntry work item
+    const workItems = await getTaskWorkItems(testContext, timeTrackingWorkflowId, 'submitTimeEntry')
+    let workItemId: Id<'tasquencerWorkItems'>
+
+    if (workItems.length === 0) {
+      workItemId = await testContext.mutation(
+        internal.testing.tasquencer.initializeWorkItem,
+        {
+          target: {
+            path: ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'submitTimeEntry', 'submitTimeEntry'],
+            parentWorkflowId: timeTrackingWorkflowId,
+            parentTaskName: 'submitTimeEntry',
+          },
+          args: { name: 'submitTimeEntry' as any, payload: { timeEntryId } },
+        }
+      )
+      await flushWorkflow(testContext, 5)
+    } else {
+      workItemId = workItems[0]._id
+    }
+
+    await testContext.mutation(internal.testing.tasquencer.startWorkItem, {
+      workItemId,
+      args: { name: 'submitTimeEntry' as any },
+    })
+    await flushWorkflow(testContext, 5)
+
+    // Attempt to complete - should fail because entry is > 90 days old
+    await expect(
+      testContext.mutation(internal.testing.tasquencer.completeWorkItem, {
+        workItemId,
+        args: {
+          name: 'submitTimeEntry',
+          payload: { timeEntryId },
+        } as any,
+      })
+    ).rejects.toThrow('requires admin approval')
+  })
+
+  it('allows submission of time entries within 90-day limit', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, timeTrackingWorkflowId } = await progressToTimeTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectEntryMethod
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'selectEntryMethod',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'selectEntryMethod', 'selectEntryMethod'],
+      { method: 'manual', projectId },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Create entry that is within 90-day limit (60 days ago)
+    const recentDate = Date.now() - (60 * 24 * 60 * 60 * 1000) // 60 days ago
+
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'manualEntry',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'manualEntry', 'manualEntry'],
+      {
+        projectId,
+        date: recentDate,
+        hours: 4,
+        notes: 'Recent time entry',
+        billable: true,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const timeEntries = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('timeEntries')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const timeEntryId = timeEntries[0]._id
+
+    // Update date to be 60 days old
+    await testContext.run(async (ctx) => {
+      const entry = await ctx.db.get(timeEntryId)
+      if (entry) {
+        await ctx.db.replace(timeEntryId, { ...entry, date: recentDate })
+      }
+    })
+
+    // Complete submitTimeEntry - should succeed
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'submitTimeEntry',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'submitTimeEntry', 'submitTimeEntry'],
+      { timeEntryId },
+      { timeEntryId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify submission succeeded
+    const updatedEntry = await testContext.run(async (ctx) => {
+      return await ctx.db.get(timeEntryId)
+    })
+    expect(updatedEntry?.status).toBe('Submitted')
+  })
+})
