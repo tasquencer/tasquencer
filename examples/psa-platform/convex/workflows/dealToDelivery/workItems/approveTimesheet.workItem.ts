@@ -17,6 +17,10 @@ import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getTimeEntry, approveTimeEntry } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import {
+  insertNotification,
+  generateTimesheetApprovedContent,
+} from "../db/notifications";
 import { assertTimeEntryExists, assertAuthenticatedUser } from "../exceptions";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import type { Id } from "../../../_generated/dataModel";
@@ -123,8 +127,40 @@ const approveTimesheetWorkItemActions = authService.builders.workItemActions
         });
       }
 
-      // TODO: Notify team member that their timesheet was approved
-      // (deferred:timesheet-approval-notifications)
+      // Notify team member(s) that their timesheet was approved
+      // Group entries by user to avoid duplicate notifications
+      const userTimeEntries = new Map<Id<"users">, number>();
+      for (const timeEntryId of payload.timeEntryIds) {
+        const entry = await getTimeEntry(mutationCtx.db, timeEntryId);
+        if (entry) {
+          const count = userTimeEntries.get(entry.userId) || 0;
+          userTimeEntries.set(entry.userId, count + 1);
+        }
+      }
+
+      const { deal } = await getRootWorkflowAndDealForWorkItem(
+        mutationCtx.db,
+        workItem.id
+      );
+
+      for (const [userId, entryCount] of userTimeEntries) {
+        const content = generateTimesheetApprovedContent(entryCount);
+        await insertNotification(mutationCtx.db, {
+          organizationId: deal.organizationId,
+          userId: userId,
+          type: "timesheet_approved",
+          resourceType: "timeEntry",
+          resourceId: payload.timeEntryIds.join(","),
+          title: content.title,
+          message: content.message,
+          data: {
+            timeEntryIds: payload.timeEntryIds,
+            approvedBy: approverId,
+            approvalNotes: payload.approvalNotes,
+            entryCount,
+          },
+        });
+      }
 
       await workItem.complete();
     }

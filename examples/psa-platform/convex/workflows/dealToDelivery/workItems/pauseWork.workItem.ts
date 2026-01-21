@@ -19,6 +19,10 @@ import { getProject, getProjectByDealId, updateProjectStatus } from "../db/proje
 import { getDeal } from "../db/deals";
 import { listTasksByProject, updateTaskStatus } from "../db/tasks";
 import { getRootWorkflowAndProjectForWorkItem } from "../db/workItemContext";
+import {
+  insertNotification,
+  generateWorkPausedContent,
+} from "../db/notifications";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import { assertProjectExists, assertDealExists } from "../exceptions";
 import type { Id, Doc } from "../../../_generated/dataModel";
@@ -106,15 +110,40 @@ const pauseWorkWorkItemActions = authService.builders.workItemActions
         pausedTaskCount++;
       }
 
-      // TODO: Send notifications to team if notifyTeam is true
-      // This would be done via a scheduled action
-      // (deferred:execution-phase-notifications)
+      // Send notifications to team if notifyTeam is true
       if (payload.notifyTeam) {
-        console.log(
-          `Pause notification: Project ${project._id} paused. ` +
-            `Reason: ${payload.reason}. ` +
-            `${pausedTaskCount} task(s) affected.`
-        );
+        // Collect unique assignees from the paused tasks
+        const allTasks = await listTasksByProject(mutationCtx.db, project._id);
+        const pausedTasks = allTasks.filter((t) => tasksToUpdate.includes(t._id));
+
+        const uniqueAssignees = new Set<Id<"users">>();
+        for (const task of pausedTasks) {
+          if (task.assigneeIds) {
+            for (const assigneeId of task.assigneeIds) {
+              uniqueAssignees.add(assigneeId);
+            }
+          }
+        }
+
+        const content = generateWorkPausedContent(project.name, payload.reason);
+
+        for (const userId of uniqueAssignees) {
+          await insertNotification(mutationCtx.db, {
+            organizationId: project.organizationId,
+            userId: userId,
+            type: "work_paused",
+            resourceType: "project",
+            resourceId: project._id,
+            title: content.title,
+            message: content.message,
+            data: {
+              projectId: project._id,
+              projectName: project.name,
+              reason: payload.reason,
+              pausedTaskCount,
+            },
+          });
+        }
       }
 
       // Log the pause event

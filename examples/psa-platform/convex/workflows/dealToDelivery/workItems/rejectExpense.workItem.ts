@@ -17,6 +17,12 @@ import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getExpense, rejectExpenseWithRevisionTracking } from "../db/expenses";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { getUser, listUsersByOrganization } from "../db/users";
+import {
+  insertNotification,
+  generateExpenseRejectedContent,
+  generateExpenseEscalatedContent,
+} from "../db/notifications";
 import { assertExpenseExists, assertAuthenticatedUser } from "../exceptions";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import { MAX_REVISION_CYCLES } from "../db/revisionCycle";
@@ -131,8 +137,66 @@ const rejectExpenseWorkItemActions = authService.builders.workItemActions
         });
       }
 
-      // TODO: If escalated, also notify admin (per spec 10-workflow-expense-approval.md line 288)
-      // (deferred:expense-approval-notifications)
+      // Notify team member that their expense was rejected
+      const { deal } = await getRootWorkflowAndDealForWorkItem(
+        mutationCtx.db,
+        workItem.id
+      );
+
+      const rejectedContent = generateExpenseRejectedContent(
+        expense.amount,
+        payload.rejectionReason
+      );
+
+      await insertNotification(mutationCtx.db, {
+        organizationId: deal.organizationId,
+        userId: expense.userId,
+        type: "expense_rejected",
+        resourceType: "expense",
+        resourceId: payload.expenseId,
+        title: rejectedContent.title,
+        message: rejectedContent.message,
+        data: {
+          expenseId: payload.expenseId,
+          rejectionReason: payload.rejectionReason,
+          issues: payload.issues,
+          escalated: result.escalated,
+        },
+      });
+
+      // If escalated, also notify admin (per spec 10-workflow-expense-approval.md line 288)
+      if (result.escalated) {
+        // Find admin users in the organization
+        const allUsers = await listUsersByOrganization(mutationCtx.db, deal.organizationId);
+        const adminUsers = allUsers.filter((u) => u.role === "psa_admin");
+
+        // Get submitting user's name for the escalation notification
+        const submittingUser = await getUser(mutationCtx.db, expense.userId);
+        const userName = submittingUser?.name ?? "Team member";
+
+        const escalationContent = generateExpenseEscalatedContent(
+          userName,
+          result.newRevisionCount
+        );
+
+        for (const admin of adminUsers) {
+          await insertNotification(mutationCtx.db, {
+            organizationId: deal.organizationId,
+            userId: admin._id,
+            type: "expense_escalated",
+            resourceType: "expense",
+            resourceId: payload.expenseId,
+            title: escalationContent.title,
+            message: escalationContent.message,
+            data: {
+              expenseId: payload.expenseId,
+              submittedBy: expense.userId,
+              submittedByName: userName,
+              revisionCount: result.newRevisionCount,
+            },
+          });
+        }
+      }
 
       await workItem.complete();
     }

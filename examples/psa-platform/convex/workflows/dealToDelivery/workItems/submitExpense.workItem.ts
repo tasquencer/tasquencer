@@ -18,8 +18,12 @@ import { authComponent } from "../../../auth";
 import { getExpense, updateExpenseStatus } from "../db/expenses";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { checkExpenseDateLimits } from "../db/dateLimits";
+import { getUser } from "../db/users";
+import {
+  insertNotification,
+  generateExpenseSubmittedContent,
+} from "../db/notifications";
 import { assertExpenseExists, assertAuthenticatedUser } from "../exceptions";
-
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import type { Id } from "../../../_generated/dataModel";
 
@@ -154,8 +158,32 @@ const submitExpenseWorkItemActions = authService.builders.workItemActions
         });
       }
 
-      // TODO: Notify project manager about submitted expense
-      // (deferred:expense-tracking-notifications)
+      // Notify project manager about submitted expense
+      const { deal } = await getRootWorkflowAndDealForWorkItem(
+        mutationCtx.db,
+        workItem.id
+      );
+      const submittingUser = await getUser(mutationCtx.db, userId);
+      const userName = submittingUser?.name ?? "Team member";
+      const content = generateExpenseSubmittedContent(userName, expense.amount);
+
+      await insertNotification(mutationCtx.db, {
+        organizationId: deal.organizationId,
+        userId: deal.ownerId, // Project manager / deal owner
+        type: "expense_submitted",
+        resourceType: "expense",
+        resourceId: payload.expenseId,
+        title: content.title,
+        message: content.message,
+        data: {
+          submittedBy: userId,
+          submittedByName: userName,
+          amount: expense.amount,
+          type: expense.type,
+          date: expense.date,
+          dealId: deal._id,
+        },
+      });
 
       await workItem.complete();
     }

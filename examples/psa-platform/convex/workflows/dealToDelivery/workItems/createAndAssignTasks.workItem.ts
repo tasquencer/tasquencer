@@ -22,6 +22,10 @@ import { getProject } from "../db/projects";
 import { insertTask, getNextTaskSortOrder } from "../db/tasks";
 import { getUser } from "../db/users";
 import { getRootWorkflowAndProjectForWorkItem } from "../db/workItemContext";
+import {
+  insertNotification,
+  generateTaskAssignmentContent,
+} from "../db/notifications";
 import { assertProjectExists, assertUserExists } from "../exceptions";
 import type { Id } from "../../../_generated/dataModel";
 
@@ -128,9 +132,30 @@ const createAndAssignTasksWorkItemActions = authService.builders.workItemActions
         sortOrder++;
       }
 
-      // TODO: Send notifications to assignees about new tasks
-      // This would typically be done via a scheduled action
-      // (deferred:execution-phase-notifications)
+      // Send notifications to assignees about new tasks
+      for (let i = 0; i < payload.tasks.length; i++) {
+        const taskInput = payload.tasks[i];
+        const taskId = createdTaskIds[i];
+        const content = generateTaskAssignmentContent(taskInput.name);
+
+        for (const assigneeId of taskInput.assigneeIds) {
+          await insertNotification(mutationCtx.db, {
+            organizationId: project.organizationId,
+            userId: assigneeId,
+            type: "task_assigned",
+            resourceType: "task",
+            resourceId: taskId,
+            title: content.title,
+            message: content.message,
+            data: {
+              taskName: taskInput.name,
+              projectId: project._id,
+              dueDate: taskInput.dueDate,
+              priority: taskInput.priority,
+            },
+          });
+        }
+      }
 
       // Store the execution strategy in work item metadata for the dynamic composite task
       // The executeProjectWork task's onEnabled will read this to select the appropriate workflow

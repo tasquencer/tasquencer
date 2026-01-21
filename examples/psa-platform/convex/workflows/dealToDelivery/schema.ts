@@ -565,6 +565,64 @@ const projectMetrics = defineTable({
   .index("by_organization", ["organizationId"]);
 
 // =============================================================================
+// NOTIFICATION SYSTEM
+// =============================================================================
+
+// Notification type - categorizes the notification purpose
+const notificationType = v.union(
+  // Task notifications
+  v.literal("task_assigned"),
+  // Time tracking notifications
+  v.literal("time_entry_submitted"),
+  v.literal("timesheet_approved"),
+  v.literal("timesheet_rejected"),
+  // Expense notifications
+  v.literal("expense_submitted"),
+  v.literal("expense_approved"),
+  v.literal("expense_rejected"),
+  // Project notifications
+  v.literal("work_paused"),
+  // Escalation notifications
+  v.literal("timesheet_escalated"),
+  v.literal("expense_escalated")
+);
+
+// Resource type - what entity the notification is about
+const notificationResourceType = v.union(
+  v.literal("task"),
+  v.literal("timeEntry"),
+  v.literal("expense"),
+  v.literal("project"),
+  v.literal("changeOrder")
+);
+
+// Notification delivery status
+const notificationDeliveryStatus = v.union(
+  v.literal("pending"),
+  v.literal("delivered"),
+  v.literal("failed")
+);
+
+// Notifications - In-app notification system
+const notifications = defineTable({
+  organizationId: v.id("organizations"),
+  userId: v.id("users"), // Recipient
+  type: notificationType,
+  resourceType: notificationResourceType,
+  resourceId: v.string(), // The ID of the related resource (task, timeEntry, etc.)
+  title: v.string(),
+  message: v.string(),
+  data: v.optional(v.any()), // Additional context (e.g., rejection reason, comments)
+  isRead: v.boolean(),
+  deliveryStatus: notificationDeliveryStatus,
+  createdAt: v.number(),
+  readAt: v.optional(v.number()),
+})
+  .index("by_user", ["userId", "isRead"])
+  .index("by_organization", ["organizationId"])
+  .index("by_user_unread", ["userId", "isRead", "createdAt"]);
+
+// =============================================================================
 // WORK ITEM METADATA TABLE
 // =============================================================================
 
@@ -1107,6 +1165,7 @@ export default {
   lessonsLearned,
   projectScorecards,
   projectMetrics,
+  notifications,
   // Work item metadata table
   dealToDeliveryWorkItems,
 };

@@ -322,3 +322,33 @@ export {
   getDateWarningMessage,
 } from "./db/dateLimits";
 export type { DateLimitCheckResult, TimerDurationCheckResult } from "./db/dateLimits";
+
+// Notifications
+export {
+  insertNotification,
+  insertNotifications,
+  getNotification,
+  markNotificationRead,
+  markAllNotificationsRead,
+  updateNotificationDeliveryStatus,
+  listUnreadNotifications,
+  listNotificationsByUser,
+  countUnreadNotifications,
+  deleteOldNotifications,
+  generateTaskAssignmentContent,
+  generateTimeEntrySubmittedContent,
+  generateTimesheetApprovedContent,
+  generateTimesheetRejectedContent,
+  generateTimesheetEscalatedContent,
+  generateExpenseSubmittedContent,
+  generateExpenseApprovedContent,
+  generateExpenseRejectedContent,
+  generateExpenseEscalatedContent,
+  generateWorkPausedContent,
+} from "./db/notifications";
+export type {
+  NotificationType,
+  NotificationResourceType,
+  NotificationDeliveryStatus,
+  CreateNotificationInput,
+} from "./db/notifications";

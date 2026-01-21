@@ -18,6 +18,11 @@ import { authComponent } from "../../../auth";
 import { getTimeEntry, updateTimeEntryStatus } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { checkTimeEntryDateLimits } from "../db/dateLimits";
+import { getUser } from "../db/users";
+import {
+  insertNotification,
+  generateTimeEntrySubmittedContent,
+} from "../db/notifications";
 import { assertTimeEntryExists, assertAuthenticatedUser } from "../exceptions";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import type { Id } from "../../../_generated/dataModel";
@@ -138,8 +143,31 @@ const submitTimeEntryWorkItemActions = authService.builders.workItemActions
         });
       }
 
-      // TODO: Notify project manager about submitted time entry
-      // (deferred:time-tracking-notifications)
+      // Notify project manager about submitted time entry
+      const { deal } = await getRootWorkflowAndDealForWorkItem(
+        mutationCtx.db,
+        workItem.id
+      );
+      const submittingUser = await getUser(mutationCtx.db, userId);
+      const userName = submittingUser?.name ?? "Team member";
+      const content = generateTimeEntrySubmittedContent(userName, timeEntry.hours);
+
+      await insertNotification(mutationCtx.db, {
+        organizationId: deal.organizationId,
+        userId: deal.ownerId, // Project manager / deal owner
+        type: "time_entry_submitted",
+        resourceType: "timeEntry",
+        resourceId: payload.timeEntryId,
+        title: content.title,
+        message: content.message,
+        data: {
+          submittedBy: userId,
+          submittedByName: userName,
+          hours: timeEntry.hours,
+          date: timeEntry.date,
+          dealId: deal._id,
+        },
+      });
 
       await workItem.complete();
     }

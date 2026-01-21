@@ -17,9 +17,16 @@ import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getTimeEntry, rejectTimeEntryWithRevisionTracking } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { getUser, listUsersByOrganization } from "../db/users";
+import {
+  insertNotification,
+  generateTimesheetRejectedContent,
+  generateTimesheetEscalatedContent,
+} from "../db/notifications";
 import { assertTimeEntryExists, assertAuthenticatedUser } from "../exceptions";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import { MAX_REVISION_CYCLES } from "../db/revisionCycle";
+import type { Id } from "../../../_generated/dataModel";
 
 // Policy: Requires 'dealToDelivery:time:approve' scope (approvers can also reject)
 const timeApprovePolicy = authService.policies.requireScope(
@@ -131,9 +138,79 @@ const rejectTimesheetWorkItemActions = authService.builders.workItemActions
         });
       }
 
-      // TODO: Notify team member that their timesheet was rejected with comments
+      // Notify team member(s) that their timesheet was rejected with comments
+      const { deal } = await getRootWorkflowAndDealForWorkItem(
+        mutationCtx.db,
+        workItem.id
+      );
+
+      // Group entries by user to avoid duplicate notifications
+      const userRejections = new Map<Id<"users">, { count: number; escalated: boolean }>();
+      for (const result of rejectionResults) {
+        const entry = await getTimeEntry(mutationCtx.db, result.entryId as Id<"timeEntries">);
+        if (entry) {
+          const existing = userRejections.get(entry.userId);
+          if (existing) {
+            existing.count++;
+            existing.escalated = existing.escalated || result.escalated;
+          } else {
+            userRejections.set(entry.userId, { count: 1, escalated: result.escalated });
+          }
+        }
+      }
+
+      for (const [userId, { count, escalated }] of userRejections) {
+        const content = generateTimesheetRejectedContent(count, payload.comments);
+        await insertNotification(mutationCtx.db, {
+          organizationId: deal.organizationId,
+          userId: userId,
+          type: "timesheet_rejected",
+          resourceType: "timeEntry",
+          resourceId: payload.timeEntryIds.join(","),
+          title: content.title,
+          message: content.message,
+          data: {
+            timeEntryIds: payload.timeEntryIds,
+            comments: payload.comments,
+            escalated,
+          },
+        });
+      }
+
       // If escalated, also notify admin (per spec 09-workflow-timesheet-approval.md line 281)
-      // (deferred:timesheet-approval-notifications)
+      if (anyEscalated) {
+        // Find admin users in the organization
+        const allUsers = await listUsersByOrganization(mutationCtx.db, deal.organizationId);
+        const adminUsers = allUsers.filter((u) => u.role === "psa_admin");
+
+        // Get submitting user's name for the escalation notification
+        const firstEntry = await getTimeEntry(mutationCtx.db, payload.timeEntryIds[0]);
+        const submittingUser = firstEntry
+          ? await getUser(mutationCtx.db, firstEntry.userId)
+          : null;
+        const userName = submittingUser?.name ?? "Team member";
+
+        const maxRevision = Math.max(...rejectionResults.map((r) => r.revisionCount));
+        const escalationContent = generateTimesheetEscalatedContent(userName, maxRevision);
+
+        for (const admin of adminUsers) {
+          await insertNotification(mutationCtx.db, {
+            organizationId: deal.organizationId,
+            userId: admin._id,
+            type: "timesheet_escalated",
+            resourceType: "timeEntry",
+            resourceId: payload.timeEntryIds.join(","),
+            title: escalationContent.title,
+            message: escalationContent.message,
+            data: {
+              timeEntryIds: payload.timeEntryIds,
+              submittedBy: firstEntry?.userId,
+              submittedByName: userName,
+              revisionCount: maxRevision,
+            },
+          });
+        }
+      }
 
       await workItem.complete();
     }
