@@ -4,13 +4,14 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
 import { Checkbox } from "@repo/ui/components/checkbox";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, Loader2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { createPsaTaskComponent } from "@/features/psa/task/createPsaTaskComponent";
 import { useQuery } from "convex/react";
@@ -36,7 +37,8 @@ const formatDate = (timestamp: number) =>
 
 function ConfirmBookingsTaskComponentFactory(
   bookingIds: Id<"bookings">[],
-  bookings: BookingSummary[]
+  bookings: BookingSummary[],
+  onRedirectStart?: () => void
 ) {
   return createPsaTaskComponent({
     workflowTaskName: "confirmBookings",
@@ -115,6 +117,7 @@ function ConfirmBookingsTaskComponentFactory(
       "Review and confirm the tentative bookings to activate the project team.",
     submitButtonText: "Confirm Bookings",
     onSuccess: ({ navigate }) => {
+      onRedirectStart?.();
       navigate({ to: "/projects" });
     },
   });
@@ -133,6 +136,7 @@ export const Route = createFileRoute(
  */
 function ConfirmBookingsTask() {
   const { projectId } = Route.useParams() as { projectId: Id<"projects"> };
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Look up the work item from the project ID and task type
   const workItem = useQuery(
@@ -143,42 +147,53 @@ function ConfirmBookingsTask() {
     api.workflows.dealToDelivery.api.resources.listProjectBookings,
     { projectId }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Bookings confirmed</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to projects...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Loading state
   if (workItem === undefined || bookings === undefined) {
     return <SpinningLoader />;
   }
 
-  // No active work item for this task - redirect to projects page
+  // No active work item for this task
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (bookings.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          No project bookings were found to confirm.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">No bookings</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            No project bookings were found to confirm.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -194,7 +209,8 @@ function ConfirmBookingsTask() {
 
   const Component = ConfirmBookingsTaskComponentFactory(
     bookingIds,
-    bookingSummaries
+    bookingSummaries,
+    () => setIsRedirecting(true)
   );
 
   return (

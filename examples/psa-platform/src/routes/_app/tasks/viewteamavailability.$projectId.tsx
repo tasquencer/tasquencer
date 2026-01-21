@@ -4,13 +4,14 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
 import { Input } from "@repo/ui/components/input";
-import { Users } from "lucide-react";
+import { Users, Loader2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { createPsaTaskComponent } from "@/features/psa/task/createPsaTaskComponent";
 import { useQuery } from "convex/react";
@@ -39,7 +40,10 @@ const getDefaultDate = (offsetDays: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-function ViewTeamAvailabilityTaskComponentFactory(projectId: Id<"projects">) {
+function ViewTeamAvailabilityTaskComponentFactory(
+  projectId: Id<"projects">,
+  onRedirectStart?: () => void
+) {
   return createPsaTaskComponent({
     workflowTaskName: "viewTeamAvailability",
     schema: dateRangeSchema,
@@ -100,6 +104,7 @@ function ViewTeamAvailabilityTaskComponentFactory(projectId: Id<"projects">) {
       "Select the time window for availability calculations.",
     submitButtonText: "View Availability",
     onSuccess: ({ navigate }) => {
+      onRedirectStart?.();
       navigate({ to: "/resources" });
     },
   });
@@ -116,40 +121,52 @@ export const Route = createFileRoute("/_app/tasks/viewteamavailability/$projectI
  */
 function ViewTeamAvailabilityTask() {
   const { projectId } = Route.useParams() as { projectId: Id<"projects"> };
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Look up the work item from the project ID and task type
   const workItem = useQuery(
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
     { projectId, taskType: "viewTeamAvailability" }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Task completed</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to resources...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (workItem === undefined) {
     return <SpinningLoader />;
   }
 
-  // No active work item for this task - redirect to projects page
+  // No active work item for this task
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const Component = ViewTeamAvailabilityTaskComponentFactory(projectId);
+  const Component = ViewTeamAvailabilityTaskComponentFactory(
+    projectId,
+    () => setIsRedirecting(true)
+  );
 
   return (
     <Suspense fallback={<SpinningLoader />}>

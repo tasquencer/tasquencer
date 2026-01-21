@@ -4,7 +4,7 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -29,7 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/ui/components/table";
-import { DollarSign, Plus, Trash2 } from "lucide-react";
+import { DollarSign, Plus, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { TaskFormLayout } from "@/features/psa/components/task-form-layout";
 import { usePsaTask } from "@/features/psa/hooks/usePsaTask";
@@ -83,6 +84,8 @@ export const Route = createFileRoute("/_app/tasks/setbudget/$projectId")({
 
 function SetBudgetTask() {
   const { projectId } = Route.useParams() as { projectId: Id<"projects"> };
+  const navigate = useNavigate();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const project = useQuery(api.workflows.dealToDelivery.api.projects.getProject, {
     projectId,
@@ -93,13 +96,21 @@ function SetBudgetTask() {
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
     { projectId, taskType: "setBudget" }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Budget saved</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to projects...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (project === undefined || workItem === undefined) {
     return <SpinningLoader />;
@@ -107,30 +118,43 @@ function SetBudgetTask() {
 
   if (project === null) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Project not found.
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Project not found</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            The project you're looking for doesn't exist.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  // No active work item for this task - redirect to projects page
+  // No active work item for this task
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <Suspense fallback={<SpinningLoader />}>
-      <SetBudgetTaskForm workItemId={workItem.workItemId} project={project} />
+      <SetBudgetTaskForm
+        workItemId={workItem.workItemId}
+        project={project}
+        onRedirect={() => {
+          setIsRedirecting(true);
+          navigate({ to: "/projects" });
+        }}
+      />
     </Suspense>
   );
 }
@@ -138,11 +162,12 @@ function SetBudgetTask() {
 function SetBudgetTaskForm({
   workItemId,
   project,
+  onRedirect,
 }: {
   workItemId: Id<"tasquencerWorkItems">;
   project: ProjectWithBudget;
+  onRedirect: () => void;
 }) {
-  const navigate = useNavigate();
   const { task, deal, canClaimWorkItem, startWorkItem, completeWorkItem } =
     usePsaTask(workItemId);
 
@@ -237,7 +262,7 @@ function SetBudgetTaskForm({
         },
       });
 
-      navigate({ to: "/projects" });
+      onRedirect();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to submit task."

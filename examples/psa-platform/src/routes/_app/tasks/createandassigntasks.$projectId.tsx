@@ -4,8 +4,8 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { z } from "zod";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
-import { ClipboardList, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { createPsaTaskComponent } from "@/features/psa/task/createPsaTaskComponent";
 import { useQuery } from "convex/react";
@@ -224,7 +225,8 @@ function TaskFields({
 
 function CreateAndAssignTasksComponentFactory(
   projectId: Id<"projects">,
-  users: Doc<"users">[]
+  users: Doc<"users">[],
+  onRedirectStart?: () => void
 ) {
   return createPsaTaskComponent({
     workflowTaskName: "createAndAssignTasks",
@@ -299,6 +301,7 @@ function CreateAndAssignTasksComponentFactory(
       "Add tasks, owners, and delivery priorities for this project.",
     submitButtonText: "Create Tasks",
     onSuccess: ({ navigate }) => {
+      onRedirectStart?.();
       navigate({ to: "/projects" });
     },
   });
@@ -317,6 +320,7 @@ export const Route = createFileRoute(
  */
 function CreateAndAssignTasksTask() {
   const { projectId } = Route.useParams() as { projectId: Id<"projects"> };
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const workItem = useQuery(
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
@@ -326,44 +330,59 @@ function CreateAndAssignTasksTask() {
     api.workflows.dealToDelivery.api.organizations.listUsers,
     { activeOnly: true }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Tasks created</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to projects...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (workItem === undefined || users === undefined) {
     return <SpinningLoader />;
   }
 
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (users.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          No active team members are available to assign tasks.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">No team members</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            No active team members are available to assign tasks.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  const Component = CreateAndAssignTasksComponentFactory(projectId, users);
+  const Component = CreateAndAssignTasksComponentFactory(
+    projectId,
+    users,
+    () => setIsRedirecting(true)
+  );
 
   return (
     <Suspense fallback={<SpinningLoader />}>

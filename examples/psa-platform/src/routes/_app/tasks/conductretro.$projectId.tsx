@@ -4,8 +4,8 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
@@ -29,6 +29,7 @@ import {
   AlertTriangle,
   Lightbulb,
   Star,
+  Loader2,
 } from "lucide-react";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { createPsaTaskComponent } from "@/features/psa/task/createPsaTaskComponent";
@@ -328,8 +329,9 @@ function StringArraySection({
   );
 }
 
-const ConductRetroTaskComponent = createPsaTaskComponent({
-  workflowTaskName: "conductRetro",
+function ConductRetroTaskComponentFactory(onRedirectStart?: () => void) {
+  return createPsaTaskComponent({
+    workflowTaskName: "conductRetro",
   schema,
   getDefaultValues: () => ({
     successes: [
@@ -567,11 +569,13 @@ const ConductRetroTaskComponent = createPsaTaskComponent({
   formTitle: "Project Retrospective Form",
   formDescription:
     "Record what went well, areas for improvement, and key learnings from the project.",
-  submitButtonText: "Complete Retrospective",
-  onSuccess: ({ navigate }) => {
-    navigate({ to: "/projects" });
-  },
-});
+    submitButtonText: "Complete Retrospective",
+    onSuccess: ({ navigate }) => {
+      onRedirectStart?.();
+      navigate({ to: "/projects" });
+    },
+  });
+}
 
 export const Route = createFileRoute("/_app/tasks/conductretro/$projectId")({
   component: ConductRetroTask,
@@ -586,43 +590,56 @@ function ConductRetroTask() {
   const { projectId } = Route.useParams() as {
     projectId: Id<"projects">;
   };
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Look up the work item from the project ID and task type
   const workItem = useQuery(
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
     { projectId, taskType: "conductRetro" }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Retrospective completed</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to projects...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Loading state
   if (workItem === undefined) {
     return <SpinningLoader />;
   }
 
-  // No active work item for this task - redirect to projects page
+  // No active work item for this task
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
+  const Component = ConductRetroTaskComponentFactory(
+    () => setIsRedirecting(true)
+  );
+
   return (
     <Suspense fallback={<SpinningLoader />}>
-      <ConductRetroTaskComponent workItemId={workItem.workItemId} />
+      <Component workItemId={workItem.workItemId} />
     </Suspense>
   );
 }

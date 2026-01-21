@@ -4,13 +4,14 @@
  * TENET-UI-DOMAIN: Route uses projectId (domain ID) for navigation.
  * The workItemId is looked up from the project for workflow execution.
  */
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Suspense, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
 import { z } from "zod";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@repo/ui/components/label";
 import { Checkbox } from "@repo/ui/components/checkbox";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SpinningLoader } from "@/components/spinning-loader";
 import { createPsaTaskComponent } from "@/features/psa/task/createPsaTaskComponent";
 import { useQuery } from "convex/react";
@@ -32,7 +33,10 @@ type BookingSummary = {
 const formatDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString();
 
-function CheckConfirmationNeededTaskComponentFactory(bookings: BookingSummary[]) {
+function CheckConfirmationNeededTaskComponentFactory(
+  bookings: BookingSummary[],
+  onRedirectStart?: () => void
+) {
   return createPsaTaskComponent({
     workflowTaskName: "checkConfirmationNeeded",
     schema: confirmationSchema,
@@ -147,6 +151,7 @@ function CheckConfirmationNeededTaskComponentFactory(bookings: BookingSummary[])
       "Select the bookings to evaluate for confirmation needs.",
     submitButtonText: "Run Confirmation Check",
     onSuccess: ({ navigate }) => {
+      onRedirectStart?.();
       navigate({ to: "/resources" });
     },
   });
@@ -165,6 +170,7 @@ export const Route = createFileRoute(
  */
 function CheckConfirmationNeededTask() {
   const { projectId } = Route.useParams() as { projectId: Id<"projects"> };
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const workItem = useQuery(
     api.workflows.dealToDelivery.api.workItems.getWorkItemByProjectAndType,
@@ -174,29 +180,37 @@ function CheckConfirmationNeededTask() {
     api.workflows.dealToDelivery.api.resources.listProjectBookings,
     { projectId }
   );
-  const [hadWorkItem, setHadWorkItem] = useState(false);
 
-  useEffect(() => {
-    if (workItem) {
-      setHadWorkItem(true);
-    }
-  }, [workItem]);
+  // Show redirecting screen when submission completes
+  if (isRedirecting) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Check completed</h3>
+          <p className="text-muted-foreground mt-1">
+            Redirecting to resources...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (workItem === undefined || bookings === undefined) {
     return <SpinningLoader />;
   }
 
   if (workItem === null) {
-    if (hadWorkItem) {
-      return <Navigate to="/projects" replace />;
-    }
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground mb-4">
-          This task is not currently available for this project.
-        </p>
-        <Navigate to="/projects" />
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+          <h3 className="text-lg font-medium">Task not available</h3>
+          <p className="text-muted-foreground mt-1 mb-4">
+            This task is not currently available for this project.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -210,7 +224,8 @@ function CheckConfirmationNeededTask() {
   }));
 
   const Component = CheckConfirmationNeededTaskComponentFactory(
-    bookingSummaries
+    bookingSummaries,
+    () => setIsRedirecting(true)
   );
 
   return (
