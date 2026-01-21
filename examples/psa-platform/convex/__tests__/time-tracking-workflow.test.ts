@@ -740,6 +740,132 @@ describe('SelectEntryMethod Work Item', () => {
     // Verify manualEntry is enabled (default routing)
     await assertTaskState(testContext, timeTrackingWorkflowId, 'manualEntry', 'enabled')
   })
+
+  it('routes to useTimer when timer method is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, timeTrackingWorkflowId } = await progressToTimeTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectEntryMethod with timer method
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'selectEntryMethod',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'selectEntryMethod', 'selectEntryMethod'],
+      {
+        method: 'timer',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify selectEntryMethod is completed
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'selectEntryMethod', 'completed')
+
+    // Verify useTimer is enabled (timer routing)
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'useTimer', 'enabled')
+  })
+
+  it('routes to importFromCalendar when calendar method is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, timeTrackingWorkflowId } = await progressToTimeTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectEntryMethod with calendar method
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'selectEntryMethod',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'selectEntryMethod', 'selectEntryMethod'],
+      {
+        method: 'calendar',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify selectEntryMethod is completed
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'selectEntryMethod', 'completed')
+
+    // Verify importFromCalendar is enabled (calendar routing)
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'importFromCalendar', 'enabled')
+  })
+
+  it('routes to autoFromBookings when autoBooking method is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, timeTrackingWorkflowId } = await progressToTimeTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectEntryMethod with autoBooking method
+    await completeWorkItem(
+      testContext,
+      timeTrackingWorkflowId,
+      'selectEntryMethod',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackTime', 'timeTracking', 'selectEntryMethod', 'selectEntryMethod'],
+      {
+        method: 'autoBooking',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify selectEntryMethod is completed
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'selectEntryMethod', 'completed')
+
+    // Verify autoFromBookings is enabled (autoBooking routing)
+    await assertTaskState(testContext, timeTrackingWorkflowId, 'autoFromBookings', 'enabled')
+  })
 })
 
 describe('ManualEntry Work Item Lifecycle', () => {

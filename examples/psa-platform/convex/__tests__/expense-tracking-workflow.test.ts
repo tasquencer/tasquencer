@@ -682,6 +682,158 @@ describe('SelectExpenseType Work Item', () => {
     await assertTaskState(testContext, expenseTrackingWorkflowId, 'selectExpenseType', 'completed')
     await assertTaskState(testContext, expenseTrackingWorkflowId, 'logOtherExpense', 'enabled')
   })
+
+  it('routes to logSoftwareExpense when Software type is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      {
+        expenseType: 'Software',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'selectExpenseType', 'completed')
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'logSoftwareExpense', 'enabled')
+  })
+
+  it('routes to logTravelExpense when Travel type is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      {
+        expenseType: 'Travel',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'selectExpenseType', 'completed')
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'logTravelExpense', 'enabled')
+  })
+
+  it('routes to logMaterialsExpense when Materials type is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      {
+        expenseType: 'Materials',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'selectExpenseType', 'completed')
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'logMaterialsExpense', 'enabled')
+  })
+
+  it('routes to logSubcontractorExpense when Subcontractor type is selected', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      {
+        expenseType: 'Subcontractor',
+        projectId,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'selectExpenseType', 'completed')
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'logSubcontractorExpense', 'enabled')
+  })
 })
 
 describe('LogOtherExpense Work Item Lifecycle', () => {
