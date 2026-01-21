@@ -168,7 +168,19 @@ const monitorBudgetBurnWorkItemActions = authService.builders.workItemActions
       // Store the budget burn result in work item metadata for routing
       // The workflow router will read this to determine the next task (continue vs pause)
       // warningLevel is stored for UI display and increased monitoring triggers
-      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+      // Build the payload with optional cost rate warning fields
+      const metadataPayload: {
+        type: "monitorBudgetBurn";
+        taskName: string;
+        priority: "low" | "normal" | "high" | "urgent";
+        budgetOk: boolean;
+        burnRate: number;
+        totalCost: number;
+        budgetRemaining: number;
+        warningLevel: "green" | "yellow" | "red";
+        costRateWarning?: string;
+        usersWithMissingRatesCount?: number;
+      } = {
         type: "monitorBudgetBurn",
         taskName: "Monitor Budget Burn",
         priority: "normal",
@@ -177,12 +189,15 @@ const monitorBudgetBurnWorkItemActions = authService.builders.workItemActions
         totalCost,
         budgetRemaining,
         warningLevel,
-        // Include cost rate validation warning for audit trail
-        ...(timeCostResult.hasUsersWithMissingRates && {
-          costRateWarning: timeCostResult.warningMessage,
-          usersWithMissingRatesCount: timeCostResult.usersWithMissingRates.length,
-        }),
-      });
+      };
+
+      // Include cost rate validation warning for audit trail if there are users with missing rates
+      if (timeCostResult.hasUsersWithMissingRates && timeCostResult.warningMessage) {
+        metadataPayload.costRateWarning = timeCostResult.warningMessage;
+        metadataPayload.usersWithMissingRatesCount = timeCostResult.usersWithMissingRates.length;
+      }
+
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, metadataPayload);
 
       await workItem.complete();
     }

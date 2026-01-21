@@ -373,6 +373,7 @@ const expenses = defineTable({
   vendorInfo: v.optional(
     v.object({
       name: v.string(),
+      company: v.optional(v.string()), // Vendor company name (for reviseExpense)
       taxId: v.optional(v.string()),
     })
   ),
@@ -400,6 +401,7 @@ const invoices = defineTable({
   tax: v.number(), // Tax amount in cents
   total: v.number(), // Total in cents
   dueDate: v.number(),
+  notes: v.optional(v.string()), // Optional notes added during finalization
   sentAt: v.optional(v.number()),
   viewedAt: v.optional(v.number()),
   paidAt: v.optional(v.number()),
@@ -788,6 +790,9 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       totalCost: v.optional(v.number()), // In cents
       budgetRemaining: v.optional(v.number()), // In cents
       warningLevel: v.optional(v.union(v.literal("green"), v.literal("yellow"), v.literal("red"))),
+      // Cost rate validation warnings (for audit trail)
+      costRateWarning: v.optional(v.string()), // Warning message if users have missing cost rates
+      usersWithMissingRatesCount: v.optional(v.number()), // Count of users missing cost rates
     }),
     v.object({
       type: v.literal("pauseWork"),
