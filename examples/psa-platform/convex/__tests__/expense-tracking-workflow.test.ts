@@ -24,6 +24,7 @@ import {
   assertTaskState,
   getDealByWorkflowId,
   getProjectByWorkflowId,
+  getWorkflowTasks,
   type TestContext,
 } from './helpers.test'
 import { internal } from '../_generated/api'
@@ -1530,6 +1531,106 @@ describe('Billable Expense Routing to SetBillableRate', () => {
 
     // Verify setBillableRate is enabled (billable routing)
     await assertTaskState(testContext, expenseTrackingWorkflowId, 'setBillableRate', 'enabled')
+  })
+
+  /**
+   * Per spec 08-workflow-expense-tracking.md:
+   * When markBillable is completed with billable=false, route directly to submitExpense
+   */
+  it('routes to submitExpense when expense is marked non-billable', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { projectId, expenseTrackingWorkflowId } = await progressToExpenseTrackingPhase(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId,
+      developerId
+    )
+
+    // Complete selectExpenseType
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'selectExpenseType',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'selectExpenseType', 'selectExpenseType'],
+      { expenseType: 'Other', projectId },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const yesterday = Date.now() - 24 * 60 * 60 * 1000
+
+    // Create expense
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'logOtherExpense',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'logOtherExpense', 'logOtherExpense'],
+      {
+        projectId,
+        description: 'Non-billable expense test',
+        amount: 500,
+        currency: 'USD',
+        date: yesterday,
+      },
+      { projectId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    const expenses = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('expenses')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const expenseId = expenses[0]._id
+
+    // Complete attachReceipt (amount < $25, can skip receipt)
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'attachReceipt',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'attachReceipt', 'attachReceipt'],
+      { expenseId },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Complete markBillable with billable=false (non-billable)
+    await completeWorkItem(
+      testContext,
+      expenseTrackingWorkflowId,
+      'markBillable',
+      ['dealToDelivery', 'execution', 'executionPhase', 'trackExpenses', 'expenseTracking', 'markBillable', 'markBillable'],
+      { expenseId, billable: false },
+      { expenseId }
+    )
+    await flushWorkflow(testContext, 20)
+
+    // Verify markBillable is completed
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'markBillable', 'completed')
+
+    // Verify submitExpense is enabled (non-billable routing bypasses setBillableRate)
+    await assertTaskState(testContext, expenseTrackingWorkflowId, 'submitExpense', 'enabled')
+
+    // Verify setBillableRate is NOT enabled (should be skipped for non-billable)
+    const tasks = await getWorkflowTasks(testContext, expenseTrackingWorkflowId)
+    const setBillableRateTask = tasks.find((t) => t.name === 'setBillableRate')
+    // setBillableRate should either not exist or not be enabled
+    if (setBillableRateTask) {
+      expect(setBillableRateTask.state).not.toBe('enabled')
+    }
   })
 })
 
