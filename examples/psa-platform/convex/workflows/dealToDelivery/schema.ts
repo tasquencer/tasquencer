@@ -1100,11 +1100,17 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("executeAlternateBranch"),
       taskName: v.string(),
       priority: workItemPriority,
+      branchExecuted: v.optional(v.literal("alternate")),
+      branchResult: v.optional(v.string()),
+      completedAt: v.optional(v.number()),
     }),
     v.object({
       type: v.literal("executePrimaryBranch"),
       taskName: v.string(),
       priority: workItemPriority,
+      branchExecuted: v.optional(v.literal("primary")),
+      branchResult: v.optional(v.string()),
+      completedAt: v.optional(v.number()),
     }),
     v.object({
       type: v.literal("executeTask"),

@@ -82,11 +82,11 @@ const executePrimaryBranchWorkItemActions = authService.builders.workItemActions
           payload: {
             type: "executePrimaryBranch" as const,
             taskName: "Execute Primary Branch",
-            priority: "medium" as const,
-            branchExecuted: "primary",
+            priority: "normal" as const,
+            branchExecuted: "primary" as const,
             branchResult: payload.branchResult,
             completedAt: Date.now(),
-          } as any,
+          },
         });
       }
 

@@ -82,11 +82,11 @@ const executeAlternateBranchWorkItemActions = authService.builders.workItemActio
           payload: {
             type: "executeAlternateBranch" as const,
             taskName: "Execute Alternate Branch",
-            priority: "medium" as const,
-            branchExecuted: "alternate",
+            priority: "normal" as const,
+            branchExecuted: "alternate" as const,
             branchResult: payload.branchResult,
             completedAt: Date.now(),
-          } as any,
+          },
         });
       }
 
