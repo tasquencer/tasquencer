@@ -15,7 +15,7 @@
  * Reference: Internal scaffolder pattern - conditional execution
  */
 
-import { it, expect, describe, vi, beforeEach, afterEach } from 'vitest'
+import { it, describe, vi, beforeEach, afterEach } from 'vitest'
 import {
   setup,
   setupUserWithRole,
