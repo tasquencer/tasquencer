@@ -126,8 +126,40 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         createdAt: Date.now(),
       });
 
+      // Helper to create detailed line items (one per time entry)
+      const createDetailedLineItems = async (
+        entries: Doc<"timeEntries">[],
+        sortOrderStart: number,
+        contextDescription: (entry: Doc<"timeEntries">) => string
+      ): Promise<number> => {
+        let sortOrder = sortOrderStart;
+        for (const entry of entries) {
+          const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+          const rate = service?.rate ?? 0;
+          const amount = Math.round(entry.hours * rate);
+          const dateStr = new Date(entry.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+
+          await insertInvoiceLineItem(mutationCtx.db, {
+            invoiceId,
+            description: `${contextDescription(entry)} (${dateStr})`,
+            quantity: entry.hours,
+            rate,
+            amount,
+            sortOrder: sortOrder++,
+            timeEntryIds: [entry._id],
+          });
+        }
+        return sortOrder;
+      };
+
       // Group time entries and create line items based on groupBy option
       // Per spec 11-workflow-invoice-generation.md line 119: groupBy = "service | task | date | person"
+      // Per spec task-invoicetimematerials.md: detailLevel = "summary | detailed"
+      // - summary: One line item per group with totals
+      // - detailed: Individual line items per time entry within groups
       if (payload.groupBy === "service") {
         // Group by service
         const byService = new Map<string, Doc<"timeEntries">[]>();
@@ -141,21 +173,33 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
 
         let sortOrder = 0;
         for (const [serviceKey, entries] of byService) {
-          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
           const serviceId = serviceKey !== "unassigned" ? (serviceKey as Id<"services">) : undefined;
           const service = serviceId ? serviceMap.get(serviceId) : undefined;
+          const serviceName = service?.name ?? "Professional Services";
           const rate = service?.rate ?? 0;
-          const amount = Math.round(totalHours * rate);
 
-          await insertInvoiceLineItem(mutationCtx.db, {
-            invoiceId,
-            description: service?.name ?? "Professional Services",
-            quantity: totalHours,
-            rate,
-            amount,
-            sortOrder: sortOrder++,
-            timeEntryIds: entries.map((e) => e._id),
-          });
+          if (payload.detailLevel === "detailed") {
+            // Create individual line items for each entry
+            sortOrder = await createDetailedLineItems(
+              entries,
+              sortOrder,
+              () => serviceName
+            );
+          } else {
+            // Summary: one line per service
+            const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+            const amount = Math.round(totalHours * rate);
+
+            await insertInvoiceLineItem(mutationCtx.db, {
+              invoiceId,
+              description: serviceName,
+              quantity: totalHours,
+              rate,
+              amount,
+              sortOrder: sortOrder++,
+              timeEntryIds: entries.map((e) => e._id),
+            });
+          }
         }
       } else if (payload.groupBy === "task") {
         // Group by task
@@ -179,26 +223,41 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
 
         let sortOrder = 0;
         for (const [taskKey, entries] of byTask) {
-          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
           const task = taskKey !== "no_task" ? taskMap.get(taskKey) : undefined;
+          const taskName = task?.name ?? "General Work";
 
-          // Calculate weighted average rate from services used
-          let totalAmount = 0;
-          for (const entry of entries) {
-            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
-            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+          if (payload.detailLevel === "detailed") {
+            // Create individual line items for each entry
+            sortOrder = await createDetailedLineItems(
+              entries,
+              sortOrder,
+              (entry) => {
+                const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+                return `${taskName}: ${service?.name ?? "Work"}`;
+              }
+            );
+          } else {
+            // Summary: one line per task
+            const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+
+            // Calculate weighted average rate from services used
+            let totalAmount = 0;
+            for (const entry of entries) {
+              const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+              totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+            }
+            const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
+
+            await insertInvoiceLineItem(mutationCtx.db, {
+              invoiceId,
+              description: taskName,
+              quantity: totalHours,
+              rate: averageRate,
+              amount: totalAmount,
+              sortOrder: sortOrder++,
+              timeEntryIds: entries.map((e) => e._id),
+            });
           }
-          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
-
-          await insertInvoiceLineItem(mutationCtx.db, {
-            invoiceId,
-            description: task?.name ?? "General Work",
-            quantity: totalHours,
-            rate: averageRate,
-            amount: totalAmount,
-            sortOrder: sortOrder++,
-            timeEntryIds: entries.map((e) => e._id),
-          });
         }
       } else if (payload.groupBy === "date") {
         // Group by date
@@ -218,32 +277,51 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         let sortOrder = 0;
         for (const dateKey of sortedDates) {
           const entries = byDate.get(dateKey)!;
-          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
-
-          // Calculate total amount from services used
-          let totalAmount = 0;
-          for (const entry of entries) {
-            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
-            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
-          }
-          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
-
-          // Format date for description
           const dateStr = new Date(dateKey).toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
             day: "numeric",
           });
 
-          await insertInvoiceLineItem(mutationCtx.db, {
-            invoiceId,
-            description: `Work on ${dateStr}`,
-            quantity: totalHours,
-            rate: averageRate,
-            amount: totalAmount,
-            sortOrder: sortOrder++,
-            timeEntryIds: entries.map((e) => e._id),
-          });
+          if (payload.detailLevel === "detailed") {
+            // Create individual line items for each entry on this date
+            for (const entry of entries) {
+              const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+              const rate = service?.rate ?? 0;
+              const amount = Math.round(entry.hours * rate);
+
+              await insertInvoiceLineItem(mutationCtx.db, {
+                invoiceId,
+                description: `${dateStr}: ${service?.name ?? "Work"}`,
+                quantity: entry.hours,
+                rate,
+                amount,
+                sortOrder: sortOrder++,
+                timeEntryIds: [entry._id],
+              });
+            }
+          } else {
+            // Summary: one line per date
+            const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+
+            // Calculate total amount from services used
+            let totalAmount = 0;
+            for (const entry of entries) {
+              const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+              totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+            }
+            const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
+
+            await insertInvoiceLineItem(mutationCtx.db, {
+              invoiceId,
+              description: `Work on ${dateStr}`,
+              quantity: totalHours,
+              rate: averageRate,
+              amount: totalAmount,
+              sortOrder: sortOrder++,
+              timeEntryIds: entries.map((e) => e._id),
+            });
+          }
         }
       } else if (payload.groupBy === "person") {
         // Group by person/user
@@ -265,26 +343,41 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
 
         let sortOrder = 0;
         for (const [userKey, entries] of byPerson) {
-          const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
           const user = userMap.get(userKey);
+          const personName = user?.name ?? "Team Member";
 
-          // Calculate total amount from services used
-          let totalAmount = 0;
-          for (const entry of entries) {
-            const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
-            totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+          if (payload.detailLevel === "detailed") {
+            // Create individual line items for each entry by this person
+            sortOrder = await createDetailedLineItems(
+              entries,
+              sortOrder,
+              (entry) => {
+                const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+                return `${personName}: ${service?.name ?? "Work"}`;
+              }
+            );
+          } else {
+            // Summary: one line per person
+            const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
+
+            // Calculate total amount from services used
+            let totalAmount = 0;
+            for (const entry of entries) {
+              const service = entry.serviceId ? serviceMap.get(entry.serviceId) : undefined;
+              totalAmount += Math.round(entry.hours * (service?.rate ?? 0));
+            }
+            const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
+
+            await insertInvoiceLineItem(mutationCtx.db, {
+              invoiceId,
+              description: personName,
+              quantity: totalHours,
+              rate: averageRate,
+              amount: totalAmount,
+              sortOrder: sortOrder++,
+              timeEntryIds: entries.map((e) => e._id),
+            });
           }
-          const averageRate = totalHours > 0 ? Math.round(totalAmount / totalHours) : 0;
-
-          await insertInvoiceLineItem(mutationCtx.db, {
-            invoiceId,
-            description: user?.name ?? "Team Member",
-            quantity: totalHours,
-            rate: averageRate,
-            amount: totalAmount,
-            sortOrder: sortOrder++,
-            timeEntryIds: entries.map((e) => e._id),
-          });
         }
       }
 
