@@ -151,6 +151,7 @@ const logSubcontractorExpenseWorkItemActions = authService.builders.workItemActi
           name: payload.vendorName,
           taxId: payload.vendorTaxId,
         },
+        ...(payload.notes && { notes: payload.notes }),
       });
 
       // Update work item metadata with the expense ID

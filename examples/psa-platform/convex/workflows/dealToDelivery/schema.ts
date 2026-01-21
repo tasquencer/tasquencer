@@ -359,6 +359,7 @@ const expenses = defineTable({
   status: expenseStatus,
   date: v.number(),
   description: v.string(),
+  notes: v.optional(v.string()), // Additional notes for the expense (per spec task-reviseexpense.md)
   approvedBy: v.optional(v.id("users")),
   approvedAt: v.optional(v.number()),
   rejectionComments: v.optional(v.string()),

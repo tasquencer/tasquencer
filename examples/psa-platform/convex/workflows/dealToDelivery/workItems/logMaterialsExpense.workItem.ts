@@ -140,6 +140,7 @@ const logMaterialsExpenseWorkItemActions = authService.builders.workItemActions
         // Policy limit tracking
         policyLimitExceeded: policyCheck.exceeded,
         policyLimitDetails: policyCheck.summary ?? undefined,
+        ...(payload.notes && { notes: payload.notes }),
       });
 
       // Update work item metadata with the expense ID

@@ -19,6 +19,7 @@ import { getProject } from "../db/projects";
 import { getBooking } from "../db/bookings";
 import { insertTimeEntry, listTimeEntriesByUserAndDate } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { roundHours } from "../db/dateLimits";
 import {
   assertProjectExists,
   assertBookingExists,
@@ -148,10 +149,11 @@ const autoFromBookingsWorkItemActions = authService.builders.workItemActions
             continue; // Skip to avoid duplicates
           }
 
-          // Use override hours or booking's hours per day
-          const hours = payload.overrideHours ?? booking.hoursPerDay;
+          // Use override hours or booking's hours per day, rounded to nearest 0.25
+          const rawHours = payload.overrideHours ?? booking.hoursPerDay;
+          const hours = roundHours(rawHours);
 
-          // Validate hours
+          // Validate hours after rounding
           if (hours < 0.25 || hours > 24) {
             continue;
           }

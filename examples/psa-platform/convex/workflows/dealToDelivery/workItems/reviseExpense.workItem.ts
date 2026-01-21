@@ -147,6 +147,9 @@ const reviseExpenseWorkItemActions = authService.builders.workItemActions
       if (payload.revisions.markupRate !== undefined) {
         updates.markupRate = payload.revisions.markupRate;
       }
+      if (payload.revisions.notes !== undefined) {
+        updates.notes = payload.revisions.notes;
+      }
 
       // Clear rejection comments on revision
       updates.rejectionComments = undefined;

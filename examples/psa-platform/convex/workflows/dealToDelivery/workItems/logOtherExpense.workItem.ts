@@ -138,6 +138,8 @@ const logOtherExpenseWorkItemActions = authService.builders.workItemActions
             name: payload.vendor,
           },
         }),
+        // Optional notes field (per spec task-logotherexpense.md)
+        ...(payload.notes && { notes: payload.notes }),
         // Policy limit tracking
         policyLimitExceeded: policyCheck.exceeded,
         policyLimitDetails: policyCheck.summary ?? undefined,
