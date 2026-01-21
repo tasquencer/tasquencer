@@ -105,6 +105,8 @@ const markBillableWorkItemActions = authService.builders.workItemActions
         billable: payload.billable,
         // Default markup to 1.0 (no markup) if billable, otherwise undefined
         markupRate: payload.billable ? 1.0 : undefined,
+        // Store reason for billable/non-billable decision (audit trail)
+        ...(payload.billableReason && { billableReason: payload.billableReason }),
       });
 
       // Update work item metadata with routing decision

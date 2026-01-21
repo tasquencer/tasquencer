@@ -91,6 +91,14 @@ const useTimerWorkItemActions = authService.builders.workItemActions
       const userId = authUser.userId as Id<"users">;
       const now = Date.now();
 
+      // Validate startTime is not in the future (per spec task-usetimer.md: "No future dates")
+      if (payload.startTime > now) {
+        throw new Error(
+          `Timer start time cannot be in the future. ` +
+          `Start time: ${new Date(payload.startTime).toISOString()}, now: ${new Date(now).toISOString()}`
+        );
+      }
+
       // Validate project exists
       const project = await getProject(mutationCtx.db, payload.projectId);
       assertProjectExists(project, { projectId: payload.projectId });

@@ -352,8 +352,10 @@ const expenses = defineTable({
   amount: v.number(), // Amount in cents
   currency: v.string(), // Currency code (e.g., "USD")
   billable: v.boolean(),
+  billableReason: v.optional(v.string()), // Reason for billable/non-billable decision
   markupRate: v.optional(v.number()), // Markup multiplier (e.g., 1.1)
   receiptUrl: v.optional(v.string()),
+  noReceiptReason: v.optional(v.string()), // Reason when no receipt is attached
   status: expenseStatus,
   date: v.number(),
   description: v.string(),

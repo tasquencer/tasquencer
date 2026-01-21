@@ -18,6 +18,7 @@ import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
 import { insertTimeEntry } from "../db/timeEntries";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
+import { roundHours } from "../db/dateLimits";
 import { assertProjectExists, assertAuthenticatedUser } from "../exceptions";
 import type { Id } from "../../../_generated/dataModel";
 
@@ -97,17 +98,30 @@ const importFromCalendarWorkItemActions = authService.builders.workItemActions
 
       const createdEntryIds: Id<"timeEntries">[] = [];
 
+      // Pre-compile exclude patterns for efficient matching
+      const excludeRegexes = (payload.excludePatterns ?? []).map(
+        (pattern) => new RegExp(pattern, "i")
+      );
+
       // Create time entries from selected events
       for (const event of payload.selectedEvents) {
+        // Filter out events matching exclude patterns (per spec task-importfromcalendar.md)
+        if (excludeRegexes.some((regex) => regex.test(event.title))) {
+          continue;
+        }
+
         // Validate project exists
         const project = await getProject(mutationCtx.db, event.projectId);
         assertProjectExists(project, { projectId: event.projectId });
 
         // Calculate hours from start/end time
         const durationMs = event.endTime - event.startTime;
-        const hours = Math.round((durationMs / 3600000) * 100) / 100; // Round to 2 decimals
+        const rawHours = durationMs / 3600000; // Convert ms to hours
 
-        // Skip if duration is too short
+        // Round to nearest 0.25 increment (per spec: hours rounded to nearest 0.25)
+        const hours = roundHours(rawHours);
+
+        // Skip if duration is too short (< 0.25h per spec)
         if (hours < 0.25) {
           continue;
         }

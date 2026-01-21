@@ -105,7 +105,8 @@ const attachReceiptWorkItemActions = authService.builders.workItemActions
       }
 
       // Check if receipt is required but not provided
-      const receiptRequired = expense.amount >= RECEIPT_REQUIRED_THRESHOLD ||
+      // Spec: Receipt required for expenses >$25 (not >=) or subcontractor expenses
+      const receiptRequired = expense.amount > RECEIPT_REQUIRED_THRESHOLD ||
         expense.type === "Subcontractor";
 
       if (receiptRequired && !payload.receiptUrl && !payload.noReceiptReason) {
@@ -116,9 +117,10 @@ const attachReceiptWorkItemActions = authService.builders.workItemActions
       }
 
       // Update expense with receipt info
-      if (payload.receiptUrl) {
+      if (payload.receiptUrl || payload.noReceiptReason) {
         await updateExpense(mutationCtx.db, payload.expenseId, {
-          receiptUrl: payload.receiptUrl,
+          ...(payload.receiptUrl && { receiptUrl: payload.receiptUrl }),
+          ...(payload.noReceiptReason && { noReceiptReason: payload.noReceiptReason }),
         });
       }
 
