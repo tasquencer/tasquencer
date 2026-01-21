@@ -92,7 +92,7 @@ const syncParallelTasksWorkItemActions = authService.builders.workItemActions
           payload: {
             type: "syncParallelTasks" as const,
             taskName: "Sync Parallel Tasks",
-            priority: "medium" as const,
+            priority: "normal" as const,
             allComplete,
             hasMoreWork,
             completedCount: doneTasks.length,

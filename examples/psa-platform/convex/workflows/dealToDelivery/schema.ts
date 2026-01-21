@@ -791,6 +791,7 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       taskName: v.string(),
       priority: workItemPriority,
       taskId: v.optional(v.id("tasks")),
+      completed: v.optional(v.boolean()),
     }),
     v.object({
       type: v.literal("monitorBudgetBurn"),
@@ -1170,6 +1171,11 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("syncParallelTasks"),
       taskName: v.string(),
       priority: workItemPriority,
+      allComplete: v.optional(v.boolean()),
+      hasMoreWork: v.optional(v.boolean()),
+      completedCount: v.optional(v.number()),
+      pendingCount: v.optional(v.number()),
+      inProgressCount: v.optional(v.number()),
     })
   )
 );

@@ -96,7 +96,7 @@ const completeTaskWorkItemActions = authService.builders.workItemActions
           payload: {
             type: "completeTask" as const,
             taskName: `Complete: ${task.name}`,
-            priority: "medium" as const,
+            priority: "normal" as const,
             taskId: task._id,
             completed: true,
           } as any,
