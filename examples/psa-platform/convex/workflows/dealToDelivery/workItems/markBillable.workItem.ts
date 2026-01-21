@@ -19,7 +19,6 @@ import { authComponent } from "../../../auth";
 import { getExpense, updateExpense } from "../db/expenses";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
 import { assertExpenseExists, assertAuthenticatedUser } from "../exceptions";
-import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import type { Id } from "../../../_generated/dataModel";
 
 // Policy: Requires 'dealToDelivery:expenses:edit:own' scope
@@ -108,19 +107,14 @@ const markBillableWorkItemActions = authService.builders.workItemActions
         markupRate: payload.billable ? 1.0 : undefined,
       });
 
-      // Update work item metadata
-      const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
-        mutationCtx.db,
-        workItem.id
-      );
-      if (metadata) {
-        await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
-          type: "markBillable",
-          taskName: "Mark Billable Status",
-          priority: "normal",
-          expenseId: payload.expenseId,
-        });
-      }
+      // Update work item metadata with routing decision
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+        type: "markBillable",
+        taskName: "Mark Billable Status",
+        priority: "normal",
+        expenseId: payload.expenseId,
+        isBillable: payload.billable,
+      });
 
       // The billable status is stored in the work item result for routing
       // The workflow router will read this to determine if setBillableRate is needed

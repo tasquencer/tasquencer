@@ -682,6 +682,8 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("reviewBookings"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Routing decision: whether more filtering is needed
+      needsMoreFiltering: v.optional(v.boolean()),
     }),
     v.object({
       type: v.literal("checkConfirmationNeeded"),
@@ -753,6 +755,15 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("selectEntryMethod"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Routing decision: the selected time entry method
+      selectedMethod: v.optional(
+        v.union(
+          v.literal("timer"),
+          v.literal("manual"),
+          v.literal("calendar"),
+          v.literal("autoBooking")
+        )
+      ),
     }),
     v.object({
       type: v.literal("useTimer"),
@@ -788,6 +799,8 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("selectExpenseType"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Routing decision: the selected expense type
+      selectedExpenseType: v.optional(expenseType),
     }),
     v.object({
       type: v.literal("logSoftwareExpense"),
@@ -830,6 +843,8 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       taskName: v.string(),
       priority: workItemPriority,
       expenseId: v.optional(v.id("expenses")),
+      // Routing decision: whether the expense is billable
+      isBillable: v.optional(v.boolean()),
     }),
     v.object({
       type: v.literal("setBillableRate"),
@@ -1018,6 +1033,10 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("evaluateCondition"),
       taskName: v.string(),
       priority: workItemPriority,
+      // Routing decision: the result of condition evaluation
+      conditionResult: v.optional(v.boolean()),
+      conditionNotes: v.optional(v.string()),
+      evaluatedAt: v.optional(v.number()),
     }),
     v.object({
       type: v.literal("executeAlternateBranch"),

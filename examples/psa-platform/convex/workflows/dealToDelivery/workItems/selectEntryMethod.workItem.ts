@@ -13,7 +13,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
+import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
@@ -75,7 +79,21 @@ const selectEntryMethodWorkItemActions = authService.builders.workItemActions
       date: z.number().optional(),
     }),
     timeCreatePolicy,
-    async ({ workItem }) => {
+    async ({ mutationCtx, workItem }, payload) => {
+      // Store the selected method in metadata for routing
+      const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
+        mutationCtx.db,
+        workItem.id
+      );
+      if (metadata) {
+        await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+          type: "selectEntryMethod",
+          taskName: "Select Time Entry Method",
+          priority: "normal",
+          selectedMethod: payload.method,
+        });
+      }
+
       // The method selection is stored in the work item result for routing
       // The workflow router will read this to determine the next task
       await workItem.complete();

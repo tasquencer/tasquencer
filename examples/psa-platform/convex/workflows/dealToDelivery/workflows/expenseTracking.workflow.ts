@@ -1,4 +1,6 @@
 import { Builder } from '../../../tasquencer'
+import { getCompletedWorkItemByTask } from '../db/workflows'
+import { DealToDeliveryWorkItemHelpers } from '../helpers'
 import { selectExpenseTypeTask } from '../workItems/selectExpenseType.workItem'
 import { logSoftwareExpenseTask } from '../workItems/logSoftwareExpense.workItem'
 import { logTravelExpenseTask } from '../workItems/logTravelExpense.workItem'
@@ -30,12 +32,30 @@ export const expenseTrackingWorkflow = Builder.workflow('expenseTracking')
       .task('logMaterialsExpense')
       .task('logSubcontractorExpense')
       .task('logOtherExpense')
-      .route(async ({ route }) => {
-      // TODO: Track selected expense type in work item metadata to enable proper routing
-      // For now, default to logOtherExpense.
-      // Reference: .review/recipes/psa-platform/specs/08-workflow-expense-tracking.md
-      return route.toTask('logOtherExpense')
-    })
+      .route(async ({ mutationCtx, route, parent }) => {
+        const workItem = await getCompletedWorkItemByTask(mutationCtx.db, parent.workflow.id, 'selectExpenseType')
+        if (workItem) {
+          const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(mutationCtx.db, workItem._id)
+          if (metadata?.payload.type === 'selectExpenseType' && metadata.payload.selectedExpenseType) {
+            const selectedExpenseType = metadata.payload.selectedExpenseType
+            switch (selectedExpenseType) {
+              case 'Software':
+                return route.toTask('logSoftwareExpense')
+              case 'Travel':
+                return route.toTask('logTravelExpense')
+              case 'Materials':
+                return route.toTask('logMaterialsExpense')
+              case 'Subcontractor':
+                return route.toTask('logSubcontractorExpense')
+              case 'Other':
+              default:
+                return route.toTask('logOtherExpense')
+            }
+          }
+        }
+        // Default to logOtherExpense if no metadata or selectedExpenseType found
+        return route.toTask('logOtherExpense')
+      })
   )
   .connectTask('logSoftwareExpense', (to) => to.task('attachReceipt'))
   .connectTask('logTravelExpense', (to) => to.task('attachReceipt'))
@@ -47,12 +67,17 @@ export const expenseTrackingWorkflow = Builder.workflow('expenseTracking')
     to
       .task('setBillableRate')
       .task('submitExpense')
-      .route(async ({ route }) => {
-      // TODO: Track billable decision in work item metadata to enable proper routing
-      // For now, default to submitExpense (non-billable path).
-      // Reference: .review/recipes/psa-platform/specs/08-workflow-expense-tracking.md
-      return route.toTask('submitExpense')
-    })
+      .route(async ({ mutationCtx, route, parent }) => {
+        const workItem = await getCompletedWorkItemByTask(mutationCtx.db, parent.workflow.id, 'markBillable')
+        if (workItem) {
+          const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(mutationCtx.db, workItem._id)
+          if (metadata?.payload.type === 'markBillable' && metadata.payload.isBillable) {
+            return route.toTask('setBillableRate')
+          }
+        }
+        // Default to submitExpense (non-billable path)
+        return route.toTask('submitExpense')
+      })
   )
   .connectTask('setBillableRate', (to) => to.task('submitExpense'))
   .connectTask('submitExpense', (to) => to.condition('end'))

@@ -1,4 +1,6 @@
 import { Builder } from '../../../tasquencer'
+import { getCompletedWorkItemByTask } from '../db/workflows'
+import { DealToDeliveryWorkItemHelpers } from '../helpers'
 import { evaluateConditionTask } from '../workItems/evaluateCondition.workItem'
 import { executePrimaryBranchTask } from '../workItems/executePrimaryBranch.workItem'
 import { executeAlternateBranchTask } from '../workItems/executeAlternateBranch.workItem'
@@ -18,11 +20,19 @@ export const conditionalExecutionWorkflow = Builder.workflow('conditionalExecuti
     to
       .task('executePrimaryBranch')
       .task('executeAlternateBranch')
-      .route(async ({ route }) => {
-        // TODO: Track condition evaluation result in work item metadata
-        // For now, default to primary branch (happy path).
-        // The evaluateCondition work item should store its result for proper routing.
-        // Reference: Internal scaffolder pattern - conditional execution
+      .route(async ({ mutationCtx, route, parent }) => {
+        const workItem = await getCompletedWorkItemByTask(mutationCtx.db, parent.workflow.id, 'evaluateCondition')
+        if (workItem) {
+          const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(mutationCtx.db, workItem._id)
+          // Type narrowing: check payload type before accessing type-specific properties
+          if (metadata?.payload.type === 'evaluateCondition') {
+            if (metadata.payload.conditionResult) {
+              return route.toTask('executePrimaryBranch')
+            }
+            return route.toTask('executeAlternateBranch')
+          }
+        }
+        // Default to executePrimaryBranch if no metadata found
         return route.toTask('executePrimaryBranch')
       })
   )

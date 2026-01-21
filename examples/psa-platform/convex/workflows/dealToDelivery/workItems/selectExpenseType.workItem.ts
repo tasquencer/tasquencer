@@ -14,7 +14,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
@@ -74,7 +74,15 @@ const selectExpenseTypeWorkItemActions = authService.builders.workItemActions
       projectId: zid("projects"),
     }),
     expensesCreatePolicy,
-    async ({ workItem }) => {
+    async ({ mutationCtx, workItem }, payload) => {
+      // Store the selected expense type in metadata for routing
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+        type: "selectExpenseType",
+        taskName: "Select Expense Type",
+        priority: "normal",
+        selectedExpenseType: payload.expenseType,
+      });
+
       // The expense type selection is stored in the work item result for routing
       // The workflow router will read this to determine the next task
       await workItem.complete();

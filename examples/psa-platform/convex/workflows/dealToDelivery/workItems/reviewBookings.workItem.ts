@@ -10,7 +10,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getUser } from "../db/users";
@@ -60,6 +60,7 @@ const reviewBookingsWorkItemActions = authService.builders.workItemActions
     z.object({
       projectId: zid("projects"),
       bookingIds: z.array(zid("bookings")),
+      needsMoreFiltering: z.boolean().optional(),
     }),
     resourcesViewPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -143,6 +144,14 @@ const reviewBookingsWorkItemActions = authService.builders.workItemActions
       // In a real implementation, bookingReviews and summary would be returned to the UI
       void bookingReviews;
       void summary;
+
+      // Store the needsMoreFiltering routing decision in metadata
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+        type: "reviewBookings",
+        taskName: "Review Bookings",
+        priority: "normal",
+        needsMoreFiltering: payload.needsMoreFiltering,
+      });
 
       await workItem.complete();
     }

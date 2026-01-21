@@ -8,7 +8,9 @@ import { checkConfirmationNeededTask } from '../workItems/checkConfirmationNeede
 import { confirmBookingsTask } from '../workItems/confirmBookings.workItem'
 import { getProjectByWorkflowId } from '../db/projects'
 import { listBookingsByProject } from '../db/bookings'
+import { getCompletedWorkItemByTask } from '../db/workflows'
 import { assertProjectExists } from '../exceptions'
+import { DealToDeliveryWorkItemHelpers } from '../helpers'
 const completeAllocationTask = Builder.dummyTask()
   .withJoinType('xor')
 export const resourcePlanningWorkflow = Builder.workflow('resourcePlanning')
@@ -31,12 +33,18 @@ export const resourcePlanningWorkflow = Builder.workflow('resourcePlanning')
     to
       .task('filterBySkillsRole')
       .task('checkConfirmationNeeded')
-      .route(async ({ route }) => {
-      // TODO: Track decision in work item metadata to enable proper routing
-      // For now, default to proceeding. User would need to explicitly request more filtering.
-      // Reference: .review/recipes/psa-platform/specs/05-workflow-resource-planning.md
-      return route.toTask('checkConfirmationNeeded')
-    })
+      .route(async ({ mutationCtx, route, parent }) => {
+        const workItem = await getCompletedWorkItemByTask(mutationCtx.db, parent.workflow.id, 'reviewBookings')
+        if (workItem) {
+          const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(mutationCtx.db, workItem._id)
+          // Type narrowing: check payload type before accessing type-specific properties
+          if (metadata?.payload.type === 'reviewBookings' && metadata.payload.needsMoreFiltering) {
+            return route.toTask('filterBySkillsRole')
+          }
+        }
+        // Default to checkConfirmationNeeded if no more filtering needed
+        return route.toTask('checkConfirmationNeeded')
+      })
   )
   .connectTask('checkConfirmationNeeded', (to) =>
     to

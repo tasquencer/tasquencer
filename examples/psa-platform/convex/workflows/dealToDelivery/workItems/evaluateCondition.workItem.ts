@@ -15,12 +15,14 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getDeal } from "../db/deals";
 import { assertProjectExists, assertDealExists } from "../exceptions";
-import { DealToDeliveryWorkItemHelpers } from "../helpers";
 
 // Policy: Requires 'dealToDelivery:projects:view:own' scope
 const projectsViewPolicy = authService.policies.requireScope(
@@ -78,22 +80,14 @@ const evaluateConditionWorkItemActions = authService.builders.workItemActions
 
       // Update metadata with condition result for routing
       // The workflow's route function will read this to determine which branch to take
-      const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
-        mutationCtx.db,
-        workItem.id
-      );
-      if (metadata) {
-        await mutationCtx.db.patch(metadata._id, {
-          payload: {
-            type: "evaluateCondition" as const,
-            taskName: "Evaluate Condition",
-            priority: "medium" as const,
-            conditionResult: payload.conditionResult,
-            conditionNotes: payload.conditionNotes,
-            evaluatedAt: Date.now(),
-          } as any,
-        });
-      }
+      await updateWorkItemMetadataPayload(mutationCtx, workItem.id, {
+        type: "evaluateCondition",
+        taskName: "Evaluate Condition",
+        priority: "normal",
+        conditionResult: payload.conditionResult,
+        conditionNotes: payload.conditionNotes,
+        evaluatedAt: Date.now(),
+      });
 
       await workItem.complete();
     }

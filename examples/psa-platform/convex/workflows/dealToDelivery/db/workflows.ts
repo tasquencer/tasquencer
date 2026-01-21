@@ -149,3 +149,41 @@ export async function getChildWorkflow(
     )
     .first();
 }
+
+/**
+ * Gets the most recently completed work item for a specific task.
+ *
+ * This is used in route functions to read routing decisions stored
+ * in work item metadata after task completion.
+ *
+ * TENET-ROUTING-DETERMINISM: Returns the most recent completed work item
+ * sorted by _creationTime descending to ensure deterministic routing.
+ *
+ * @param db - Database reader
+ * @param parentWorkflowId - The parent workflow ID
+ * @param taskName - The task name to filter by
+ * @returns The most recent completed work item or null if none found
+ */
+export async function getCompletedWorkItemByTask(
+  db: DatabaseReader,
+  parentWorkflowId: Id<"tasquencerWorkflows">,
+  taskName: string
+): Promise<Doc<"tasquencerWorkItems"> | null> {
+  const workItems = await db
+    .query("tasquencerWorkItems")
+    .withIndex("by_parent_workflow_id_task_name_task_generation_and_state", (q) =>
+      q
+        .eq("parent.workflowId", parentWorkflowId)
+        .eq("parent.taskName", taskName)
+    )
+    .filter((q) => q.eq(q.field("state"), "completed"))
+    .collect();
+
+  if (workItems.length === 0) {
+    return null;
+  }
+
+  // Sort by _creationTime descending to get most recent
+  workItems.sort((a, b) => b._creationTime - a._creationTime);
+  return workItems[0];
+}

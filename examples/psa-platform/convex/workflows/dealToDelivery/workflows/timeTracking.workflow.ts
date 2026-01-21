@@ -1,4 +1,6 @@
 import { Builder } from '../../../tasquencer'
+import { getCompletedWorkItemByTask } from '../db/workflows'
+import { DealToDeliveryWorkItemHelpers } from '../helpers'
 import { selectEntryMethodTask } from '../workItems/selectEntryMethod.workItem'
 import { useTimerTask } from '../workItems/useTimer.workItem'
 import { manualEntryTask } from '../workItems/manualEntry.workItem'
@@ -21,10 +23,36 @@ export const timeTrackingWorkflow = Builder.workflow('timeTracking')
       .task('manualEntry')
       .task('importFromCalendar')
       .task('autoFromBookings')
-      .route(async ({ route }) => {
-        // TODO: Track selected method in work item metadata to enable proper routing
-        // For now, default to manual entry as the most common path.
-        // Reference: .review/recipes/psa-platform/specs/07-workflow-time-tracking.md
+      .route(async ({ mutationCtx, route, parent }) => {
+        const workItem = await getCompletedWorkItemByTask(
+          mutationCtx.db,
+          parent.workflow.id,
+          'selectEntryMethod'
+        )
+
+        if (workItem) {
+          const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
+            mutationCtx.db,
+            workItem._id
+          )
+
+          // Type narrowing: check payload type before accessing type-specific properties
+          if (metadata?.payload.type === 'selectEntryMethod' && metadata.payload.selectedMethod) {
+            const selectedMethod = metadata.payload.selectedMethod
+            switch (selectedMethod) {
+              case 'timer':
+                return route.toTask('useTimer')
+              case 'manual':
+                return route.toTask('manualEntry')
+              case 'calendar':
+                return route.toTask('importFromCalendar')
+              case 'autoBooking':
+                return route.toTask('autoFromBookings')
+            }
+          }
+        }
+
+        // Default to manualEntry if no metadata or selectedMethod found
         return route.toTask('manualEntry')
       })
   )
