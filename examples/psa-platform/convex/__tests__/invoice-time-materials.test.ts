@@ -938,6 +938,85 @@ describe('InvoiceTimeAndMaterials Work Item', () => {
       expect(expenseLine!.amount).toBe(115_00) // $100 * 1.15 markup
     })
 
+    it('assigns expenses sortOrder that continues from time entries', async () => {
+      const { projectId, services } = await setupProjectWithBudget(
+        testContext,
+        authResult.organizationId
+      )
+
+      const now = Date.now()
+      // Create 3 time entries for 3 different services (will create 2 line items in summary mode)
+      await createTimeEntries(testContext, {
+        orgId: authResult.organizationId,
+        projectId,
+        entries: [
+          { userId: authResult.userId, serviceId: services[0].serviceId, date: now - 1 * 24 * 60 * 60 * 1000, hours: 4 },
+          { userId: authResult.userId, serviceId: services[1].serviceId, date: now - 1 * 24 * 60 * 60 * 1000, hours: 2 },
+        ],
+      })
+
+      // Create 2 billable expenses
+      await testContext.run(async (ctx) => {
+        const project = await ctx.db.get(projectId)
+        await ctx.db.insert('expenses', {
+          organizationId: project!.organizationId,
+          projectId,
+          userId: authResult.userId,
+          date: now - 1 * 24 * 60 * 60 * 1000,
+          amount: 100_00,
+          currency: 'USD',
+          type: 'Software',
+          description: 'Software License',
+          status: 'Approved',
+          billable: true,
+          createdAt: Date.now(),
+        })
+        await ctx.db.insert('expenses', {
+          organizationId: project!.organizationId,
+          projectId,
+          userId: authResult.userId,
+          date: now - 2 * 24 * 60 * 60 * 1000,
+          amount: 50_00,
+          currency: 'USD',
+          type: 'Travel',
+          description: 'Travel Expense',
+          status: 'Approved',
+          billable: true,
+          createdAt: Date.now(),
+        })
+      })
+
+      const { lineItems } = await invoiceTimeAndMaterials(testContext, {
+        projectId,
+        groupBy: 'service',
+        detailLevel: 'summary',
+        includeExpenses: true,
+      })
+
+      // Should have 4 line items: 2 time entry groups + 2 expenses
+      expect(lineItems.length).toBe(4)
+
+      // Get time entry line items (descriptions don't start with "Expense:")
+      const timeLineItems = lineItems.filter((l) => !l.description.startsWith('Expense:'))
+      const expenseLineItems = lineItems.filter((l) => l.description.startsWith('Expense:'))
+
+      expect(timeLineItems.length).toBe(2)
+      expect(expenseLineItems.length).toBe(2)
+
+      // Time entry line items should have sortOrder 0 and 1
+      const timeSortOrders = timeLineItems.map((l) => l.sortOrder).sort((a, b) => a - b)
+      expect(timeSortOrders).toEqual([0, 1])
+
+      // Expense line items should have sortOrder 2 and 3 (continuing from time entries)
+      const expenseSortOrders = expenseLineItems.map((l) => l.sortOrder).sort((a, b) => a - b)
+      expect(expenseSortOrders).toEqual([2, 3])
+
+      // All sortOrders should be unique
+      const allSortOrders = lineItems.map((l) => l.sortOrder)
+      const uniqueSortOrders = [...new Set(allSortOrders)]
+      expect(uniqueSortOrders.length).toBe(lineItems.length)
+    })
+
     it('excludes expenses when includeExpenses is false', async () => {
       const { projectId, services } = await setupProjectWithBudget(
         testContext,

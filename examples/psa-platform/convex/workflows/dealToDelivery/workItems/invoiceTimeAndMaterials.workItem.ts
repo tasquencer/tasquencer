@@ -160,6 +160,10 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
       // Per spec task-invoicetimematerials.md: detailLevel = "summary | detailed"
       // - summary: One line item per group with totals
       // - detailed: Individual line items per time entry within groups
+
+      // Track sortOrder across all line items (time entries + expenses)
+      let nextSortOrder = 0;
+
       if (payload.groupBy === "service") {
         // Group by service
         const byService = new Map<string, Doc<"timeEntries">[]>();
@@ -171,7 +175,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
           byService.get(key)!.push(entry);
         }
 
-        let sortOrder = 0;
+        let sortOrder = nextSortOrder;
         for (const [serviceKey, entries] of byService) {
           const serviceId = serviceKey !== "unassigned" ? (serviceKey as Id<"services">) : undefined;
           const service = serviceId ? serviceMap.get(serviceId) : undefined;
@@ -201,6 +205,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             });
           }
         }
+        nextSortOrder = sortOrder;
       } else if (payload.groupBy === "task") {
         // Group by task
         const byTask = new Map<string, Doc<"timeEntries">[]>();
@@ -221,7 +226,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         );
         const taskMap = new Map(tasks.filter(Boolean).map((t) => [t!._id.toString(), t!]));
 
-        let sortOrder = 0;
+        let sortOrder = nextSortOrder;
         for (const [taskKey, entries] of byTask) {
           const task = taskKey !== "no_task" ? taskMap.get(taskKey) : undefined;
           const taskName = task?.name ?? "General Work";
@@ -259,6 +264,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             });
           }
         }
+        nextSortOrder = sortOrder;
       } else if (payload.groupBy === "date") {
         // Group by date
         const byDate = new Map<number, Doc<"timeEntries">[]>();
@@ -274,7 +280,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         // Sort by date
         const sortedDates = [...byDate.keys()].sort((a, b) => a - b);
 
-        let sortOrder = 0;
+        let sortOrder = nextSortOrder;
         for (const dateKey of sortedDates) {
           const entries = byDate.get(dateKey)!;
           const dateStr = new Date(dateKey).toLocaleDateString("en-US", {
@@ -323,6 +329,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             });
           }
         }
+        nextSortOrder = sortOrder;
       } else if (payload.groupBy === "person") {
         // Group by person/user
         const byPerson = new Map<string, Doc<"timeEntries">[]>();
@@ -341,7 +348,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
         );
         const userMap = new Map(users.filter(Boolean).map((u) => [u!._id.toString(), u!]));
 
-        let sortOrder = 0;
+        let sortOrder = nextSortOrder;
         for (const [userKey, entries] of byPerson) {
           const user = userMap.get(userKey);
           const personName = user?.name ?? "Team Member";
@@ -379,6 +386,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             });
           }
         }
+        nextSortOrder = sortOrder;
       }
 
       // Add expenses if requested
@@ -398,7 +406,7 @@ const invoiceTimeAndMaterialsWorkItemActions = authService.builders.workItemActi
             quantity: 1,
             rate: expense.amount,
             amount,
-            sortOrder: 0,
+            sortOrder: nextSortOrder++,
             expenseIds: [expense._id],
           });
         }
