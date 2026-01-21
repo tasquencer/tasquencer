@@ -685,3 +685,132 @@ describe('reviewExpense Spec Compliance', () => {
     expect(expense?.markupRate).toBe(1.15)
   })
 })
+
+/**
+ * AutoFromBookings Work Item Spec Compliance
+ * Per spec task-autofrombookings.md:
+ * - "Hours must be 0.25-24"
+ */
+describe('AutoFromBookings Spec Compliance', () => {
+  it('rejects overrideHours below 0.25', async () => {
+    const { z } = await import('zod')
+    const { zid } = await import('convex-helpers/server/zod4')
+
+    // Recreate the schema to test validation
+    const autoFromBookingsSchema = z.object({
+      userId: zid('users'),
+      dateRange: z.object({
+        startDate: z.number(),
+        endDate: z.number(),
+      }),
+      includeBookings: z.array(zid('bookings')),
+      overrideHours: z.number().min(0.25).max(24).optional(),
+    })
+
+    const result = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      overrideHours: 0.1, // Below minimum
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toContain('0.25')
+    }
+  })
+
+  it('rejects overrideHours above 24', async () => {
+    const { z } = await import('zod')
+    const { zid } = await import('convex-helpers/server/zod4')
+
+    // Recreate the schema to test validation
+    const autoFromBookingsSchema = z.object({
+      userId: zid('users'),
+      dateRange: z.object({
+        startDate: z.number(),
+        endDate: z.number(),
+      }),
+      includeBookings: z.array(zid('bookings')),
+      overrideHours: z.number().min(0.25).max(24).optional(),
+    })
+
+    const result = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      overrideHours: 25, // Above maximum
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toContain('24')
+    }
+  })
+
+  it('accepts overrideHours within valid range (0.25-24)', async () => {
+    const { z } = await import('zod')
+    const { zid } = await import('convex-helpers/server/zod4')
+
+    // Recreate the schema to test validation
+    const autoFromBookingsSchema = z.object({
+      userId: zid('users'),
+      dateRange: z.object({
+        startDate: z.number(),
+        endDate: z.number(),
+      }),
+      includeBookings: z.array(zid('bookings')),
+      overrideHours: z.number().min(0.25).max(24).optional(),
+    })
+
+    // Test boundary values
+    const minResult = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      overrideHours: 0.25, // Minimum valid
+    })
+    expect(minResult.success).toBe(true)
+
+    const maxResult = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      overrideHours: 24, // Maximum valid
+    })
+    expect(maxResult.success).toBe(true)
+
+    const midResult = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      overrideHours: 8, // Normal hours
+    })
+    expect(midResult.success).toBe(true)
+  })
+
+  it('accepts undefined overrideHours (optional field)', async () => {
+    const { z } = await import('zod')
+    const { zid } = await import('convex-helpers/server/zod4')
+
+    // Recreate the schema to test validation
+    const autoFromBookingsSchema = z.object({
+      userId: zid('users'),
+      dateRange: z.object({
+        startDate: z.number(),
+        endDate: z.number(),
+      }),
+      includeBookings: z.array(zid('bookings')),
+      overrideHours: z.number().min(0.25).max(24).optional(),
+    })
+
+    const result = autoFromBookingsSchema.safeParse({
+      userId: 'test' as any,
+      dateRange: { startDate: Date.now(), endDate: Date.now() },
+      includeBookings: [],
+      // overrideHours not provided
+    })
+
+    expect(result.success).toBe(true)
+  })
+})

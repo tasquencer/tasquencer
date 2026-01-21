@@ -95,7 +95,8 @@ const autoFromBookingsWorkItemActions = authService.builders.workItemActions
         endDate: z.number(),
       }),
       includeBookings: z.array(zid("bookings")), // Which bookings to use
-      overrideHours: z.number().optional(), // Override hours per day
+      // Override hours per day - per spec task-autofrombookings.md: "Hours must be 0.25-24"
+      overrideHours: z.number().min(0.25).max(24).optional(),
     }),
     timeCreatePolicy,
     async ({ mutationCtx, workItem }, payload) => {
