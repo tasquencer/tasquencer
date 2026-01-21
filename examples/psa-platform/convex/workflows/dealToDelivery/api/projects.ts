@@ -33,6 +33,7 @@ import {
   calculateProjectExpenses,
   listUninvoicedMilestones,
   listMilestonesByProject,
+  listChangeOrdersByProject,
 } from '../db'
 import { getUser } from '../db/users'
 import { getCompany } from '../db/companies'
@@ -680,5 +681,21 @@ export const closeProject = mutation({
     })
 
     return { closed: true, metrics }
+  },
+})
+
+/**
+ * Lists change orders for a project.
+ * Authorization: Requires dealToDelivery:staff scope.
+ *
+ * @param args.projectId - The project ID
+ * @returns Array of change orders (most recent first)
+ */
+export const listChangeOrders = query({
+  args: { projectId: v.id('projects') },
+  handler: async (ctx, args) => {
+    await requirePsaStaffMember(ctx)
+
+    return await listChangeOrdersByProject(ctx.db, args.projectId)
   },
 })

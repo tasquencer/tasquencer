@@ -46,6 +46,27 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   createAndAssignTasks: { path: "/tasks/createandassigntasks", hasForm: true, domainIdType: 'project' },
   closeProject: { path: "/tasks/closeproject", hasForm: true, domainIdType: 'project' },
   conductRetro: { path: "/tasks/conductretro", hasForm: true, domainIdType: 'project' },
+
+  // Execution phase - Budget monitoring routes
+  monitorBudgetBurn: { path: "/tasks/monitorbudgetburn", hasForm: true, domainIdType: 'project' },
+  pauseWork: { path: "/tasks/pausework", hasForm: true, domainIdType: 'project' },
+  requestChangeOrder: { path: "/tasks/requestchangeorder", hasForm: true, domainIdType: 'project' },
+  getChangeOrderApproval: { path: "/tasks/getchangeorderapproval", hasForm: true, domainIdType: 'project' },
+
+  // Execution phase - Sequential task execution routes
+  getNextTask: { path: "/tasks/getnexttask", hasForm: true, domainIdType: 'project' },
+  executeTask: { path: "/tasks/executetask", hasForm: true, domainIdType: 'project' },
+  completeTask: { path: "/tasks/completetask", hasForm: true, domainIdType: 'project' },
+
+  // Execution phase - Parallel task execution routes
+  initParallelTasks: { path: "/tasks/initparalleltasks", hasForm: true, domainIdType: 'project' },
+  executeParallelTask: { path: "/tasks/executeparalleltask", hasForm: true, domainIdType: 'project' },
+  syncParallelTasks: { path: "/tasks/syncparalleltasks", hasForm: true, domainIdType: 'project' },
+
+  // Execution phase - Conditional execution routes
+  evaluateCondition: { path: "/tasks/evaluatecondition", hasForm: true, domainIdType: 'project' },
+  executePrimaryBranch: { path: "/tasks/executeprimarybranch", hasForm: true, domainIdType: 'project' },
+  executeAlternateBranch: { path: "/tasks/executealternatebranch", hasForm: true, domainIdType: 'project' },
 };
 
 /**
@@ -167,6 +188,18 @@ export function getTaskCategory(taskType: string): string {
       "pauseWork",
       "requestChangeOrder",
       "getChangeOrderApproval",
+      // Sequential execution
+      "getNextTask",
+      "executeTask",
+      "completeTask",
+      // Parallel execution
+      "initParallelTasks",
+      "executeParallelTask",
+      "syncParallelTasks",
+      // Conditional execution
+      "evaluateCondition",
+      "executePrimaryBranch",
+      "executeAlternateBranch",
     ].includes(taskType)
   ) {
     return "Execution";
@@ -293,6 +326,18 @@ export const TASK_TYPE_LABELS: Record<string, string> = {
   pauseWork: "Pause Work",
   requestChangeOrder: "Request Change Order",
   getChangeOrderApproval: "Get Change Order Approval",
+  // Sequential execution
+  getNextTask: "Get Next Task",
+  executeTask: "Execute Task",
+  completeTask: "Complete Task",
+  // Parallel execution
+  initParallelTasks: "Initialize Parallel Tasks",
+  executeParallelTask: "Execute Parallel Task",
+  syncParallelTasks: "Sync Parallel Tasks",
+  // Conditional execution
+  evaluateCondition: "Evaluate Condition",
+  executePrimaryBranch: "Execute Primary Branch",
+  executeAlternateBranch: "Execute Alternate Branch",
   selectEntryMethod: "Select Entry Method",
   useTimer: "Use Timer",
   manualEntry: "Manual Time Entry",

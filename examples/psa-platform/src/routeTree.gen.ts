@@ -48,19 +48,32 @@ import { Route as AppAdminRolesIndexRouteImport } from './routes/_app/admin/role
 import { Route as AppAdminGroupsIndexRouteImport } from './routes/_app/admin/groups.index'
 import { Route as AppTasksViewteamavailabilityProjectIdRouteImport } from './routes/_app/tasks/viewteamavailability.$projectId'
 import { Route as AppTasksUsetimerProjectIdRouteImport } from './routes/_app/tasks/usetimer.$projectId'
+import { Route as AppTasksSyncparalleltasksProjectIdRouteImport } from './routes/_app/tasks/syncparalleltasks.$projectId'
 import { Route as AppTasksSubmittimeentryProjectIdRouteImport } from './routes/_app/tasks/submittimeentry.$projectId'
 import { Route as AppTasksSetbudgetProjectIdRouteImport } from './routes/_app/tasks/setbudget.$projectId'
 import { Route as AppTasksSelectentrymethodProjectIdRouteImport } from './routes/_app/tasks/selectentrymethod.$projectId'
 import { Route as AppTasksReviewbookingsProjectIdRouteImport } from './routes/_app/tasks/reviewbookings.$projectId'
+import { Route as AppTasksRequestchangeorderProjectIdRouteImport } from './routes/_app/tasks/requestchangeorder.$projectId'
 import { Route as AppTasksRecordtimeoffProjectIdRouteImport } from './routes/_app/tasks/recordtimeoff.$projectId'
+import { Route as AppTasksPauseworkProjectIdRouteImport } from './routes/_app/tasks/pausework.$projectId'
+import { Route as AppTasksMonitorbudgetburnProjectIdRouteImport } from './routes/_app/tasks/monitorbudgetburn.$projectId'
 import { Route as AppTasksManualentryProjectIdRouteImport } from './routes/_app/tasks/manualentry.$projectId'
+import { Route as AppTasksInitparalleltasksProjectIdRouteImport } from './routes/_app/tasks/initparalleltasks.$projectId'
 import { Route as AppTasksImportfromcalendarProjectIdRouteImport } from './routes/_app/tasks/importfromcalendar.$projectId'
+import { Route as AppTasksGetnexttaskProjectIdRouteImport } from './routes/_app/tasks/getnexttask.$projectId'
+import { Route as AppTasksGetchangeorderapprovalProjectIdRouteImport } from './routes/_app/tasks/getchangeorderapproval.$projectId'
 import { Route as AppTasksFilterbyskillsroleProjectIdRouteImport } from './routes/_app/tasks/filterbyskillsrole.$projectId'
+import { Route as AppTasksExecutetaskProjectIdRouteImport } from './routes/_app/tasks/executetask.$projectId'
+import { Route as AppTasksExecuteprimarybranchProjectIdRouteImport } from './routes/_app/tasks/executeprimarybranch.$projectId'
+import { Route as AppTasksExecuteparalleltaskProjectIdRouteImport } from './routes/_app/tasks/executeparalleltask.$projectId'
+import { Route as AppTasksExecutealternatebranchProjectIdRouteImport } from './routes/_app/tasks/executealternatebranch.$projectId'
+import { Route as AppTasksEvaluateconditionProjectIdRouteImport } from './routes/_app/tasks/evaluatecondition.$projectId'
 import { Route as AppTasksCreateprojectDealIdRouteImport } from './routes/_app/tasks/createproject.$dealId'
 import { Route as AppTasksCreatebookingsProjectIdRouteImport } from './routes/_app/tasks/createbookings.$projectId'
 import { Route as AppTasksCreateandassigntasksProjectIdRouteImport } from './routes/_app/tasks/createandassigntasks.$projectId'
 import { Route as AppTasksConfirmbookingsProjectIdRouteImport } from './routes/_app/tasks/confirmbookings.$projectId'
 import { Route as AppTasksConductretroProjectIdRouteImport } from './routes/_app/tasks/conductretro.$projectId'
+import { Route as AppTasksCompletetaskProjectIdRouteImport } from './routes/_app/tasks/completetask.$projectId'
 import { Route as AppTasksCloseprojectProjectIdRouteImport } from './routes/_app/tasks/closeproject.$projectId'
 import { Route as AppTasksCheckconfirmationneededProjectIdRouteImport } from './routes/_app/tasks/checkconfirmationneeded.$projectId'
 import { Route as AppTasksAutofrombookingsProjectIdRouteImport } from './routes/_app/tasks/autofrombookings.$projectId'
@@ -275,6 +288,12 @@ const AppTasksUsetimerProjectIdRoute =
     path: '/usetimer/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksSyncparalleltasksProjectIdRoute =
+  AppTasksSyncparalleltasksProjectIdRouteImport.update({
+    id: '/syncparalleltasks/$projectId',
+    path: '/syncparalleltasks/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksSubmittimeentryProjectIdRoute =
   AppTasksSubmittimeentryProjectIdRouteImport.update({
     id: '/submittimeentry/$projectId',
@@ -299,10 +318,28 @@ const AppTasksReviewbookingsProjectIdRoute =
     path: '/reviewbookings/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksRequestchangeorderProjectIdRoute =
+  AppTasksRequestchangeorderProjectIdRouteImport.update({
+    id: '/requestchangeorder/$projectId',
+    path: '/requestchangeorder/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksRecordtimeoffProjectIdRoute =
   AppTasksRecordtimeoffProjectIdRouteImport.update({
     id: '/recordtimeoff/$projectId',
     path: '/recordtimeoff/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksPauseworkProjectIdRoute =
+  AppTasksPauseworkProjectIdRouteImport.update({
+    id: '/pausework/$projectId',
+    path: '/pausework/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksMonitorbudgetburnProjectIdRoute =
+  AppTasksMonitorbudgetburnProjectIdRouteImport.update({
+    id: '/monitorbudgetburn/$projectId',
+    path: '/monitorbudgetburn/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksManualentryProjectIdRoute =
@@ -311,16 +348,64 @@ const AppTasksManualentryProjectIdRoute =
     path: '/manualentry/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksInitparalleltasksProjectIdRoute =
+  AppTasksInitparalleltasksProjectIdRouteImport.update({
+    id: '/initparalleltasks/$projectId',
+    path: '/initparalleltasks/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksImportfromcalendarProjectIdRoute =
   AppTasksImportfromcalendarProjectIdRouteImport.update({
     id: '/importfromcalendar/$projectId',
     path: '/importfromcalendar/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
+const AppTasksGetnexttaskProjectIdRoute =
+  AppTasksGetnexttaskProjectIdRouteImport.update({
+    id: '/getnexttask/$projectId',
+    path: '/getnexttask/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksGetchangeorderapprovalProjectIdRoute =
+  AppTasksGetchangeorderapprovalProjectIdRouteImport.update({
+    id: '/getchangeorderapproval/$projectId',
+    path: '/getchangeorderapproval/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
 const AppTasksFilterbyskillsroleProjectIdRoute =
   AppTasksFilterbyskillsroleProjectIdRouteImport.update({
     id: '/filterbyskillsrole/$projectId',
     path: '/filterbyskillsrole/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksExecutetaskProjectIdRoute =
+  AppTasksExecutetaskProjectIdRouteImport.update({
+    id: '/executetask/$projectId',
+    path: '/executetask/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksExecuteprimarybranchProjectIdRoute =
+  AppTasksExecuteprimarybranchProjectIdRouteImport.update({
+    id: '/executeprimarybranch/$projectId',
+    path: '/executeprimarybranch/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksExecuteparalleltaskProjectIdRoute =
+  AppTasksExecuteparalleltaskProjectIdRouteImport.update({
+    id: '/executeparalleltask/$projectId',
+    path: '/executeparalleltask/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksExecutealternatebranchProjectIdRoute =
+  AppTasksExecutealternatebranchProjectIdRouteImport.update({
+    id: '/executealternatebranch/$projectId',
+    path: '/executealternatebranch/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksEvaluateconditionProjectIdRoute =
+  AppTasksEvaluateconditionProjectIdRouteImport.update({
+    id: '/evaluatecondition/$projectId',
+    path: '/evaluatecondition/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksCreateprojectDealIdRoute =
@@ -351,6 +436,12 @@ const AppTasksConductretroProjectIdRoute =
   AppTasksConductretroProjectIdRouteImport.update({
     id: '/conductretro/$projectId',
     path: '/conductretro/$projectId',
+    getParentRoute: () => AppTasksRoute,
+  } as any)
+const AppTasksCompletetaskProjectIdRoute =
+  AppTasksCompletetaskProjectIdRouteImport.update({
+    id: '/completetask/$projectId',
+    path: '/completetask/$projectId',
     getParentRoute: () => AppTasksRoute,
   } as any)
 const AppTasksCloseprojectProjectIdRoute =
@@ -496,19 +587,32 @@ export interface FileRoutesByFullPath {
   '/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
+  '/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
   '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
+  '/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
+  '/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
+  '/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
+  '/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
+  '/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
+  '/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
   '/tasks/manualentry/$projectId': typeof AppTasksManualentryProjectIdRoute
+  '/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
+  '/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
   '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
   '/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/submittimeentry/$projectId': typeof AppTasksSubmittimeentryProjectIdRoute
+  '/tasks/syncparalleltasks/$projectId': typeof AppTasksSyncparalleltasksProjectIdRoute
   '/tasks/usetimer/$projectId': typeof AppTasksUsetimerProjectIdRoute
   '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -554,19 +658,32 @@ export interface FileRoutesByTo {
   '/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
+  '/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
   '/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
+  '/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
+  '/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
+  '/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
+  '/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
+  '/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
+  '/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
   '/tasks/manualentry/$projectId': typeof AppTasksManualentryProjectIdRoute
+  '/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
+  '/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
   '/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
   '/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/tasks/submittimeentry/$projectId': typeof AppTasksSubmittimeentryProjectIdRoute
+  '/tasks/syncparalleltasks/$projectId': typeof AppTasksSyncparalleltasksProjectIdRoute
   '/tasks/usetimer/$projectId': typeof AppTasksUsetimerProjectIdRoute
   '/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/admin/groups': typeof AppAdminGroupsIndexRoute
@@ -626,19 +743,32 @@ export interface FileRoutesById {
   '/_app/tasks/autofrombookings/$projectId': typeof AppTasksAutofrombookingsProjectIdRoute
   '/_app/tasks/checkconfirmationneeded/$projectId': typeof AppTasksCheckconfirmationneededProjectIdRoute
   '/_app/tasks/closeproject/$projectId': typeof AppTasksCloseprojectProjectIdRoute
+  '/_app/tasks/completetask/$projectId': typeof AppTasksCompletetaskProjectIdRoute
   '/_app/tasks/conductretro/$projectId': typeof AppTasksConductretroProjectIdRoute
   '/_app/tasks/confirmbookings/$projectId': typeof AppTasksConfirmbookingsProjectIdRoute
   '/_app/tasks/createandassigntasks/$projectId': typeof AppTasksCreateandassigntasksProjectIdRoute
   '/_app/tasks/createbookings/$projectId': typeof AppTasksCreatebookingsProjectIdRoute
   '/_app/tasks/createproject/$dealId': typeof AppTasksCreateprojectDealIdRoute
+  '/_app/tasks/evaluatecondition/$projectId': typeof AppTasksEvaluateconditionProjectIdRoute
+  '/_app/tasks/executealternatebranch/$projectId': typeof AppTasksExecutealternatebranchProjectIdRoute
+  '/_app/tasks/executeparalleltask/$projectId': typeof AppTasksExecuteparalleltaskProjectIdRoute
+  '/_app/tasks/executeprimarybranch/$projectId': typeof AppTasksExecuteprimarybranchProjectIdRoute
+  '/_app/tasks/executetask/$projectId': typeof AppTasksExecutetaskProjectIdRoute
   '/_app/tasks/filterbyskillsrole/$projectId': typeof AppTasksFilterbyskillsroleProjectIdRoute
+  '/_app/tasks/getchangeorderapproval/$projectId': typeof AppTasksGetchangeorderapprovalProjectIdRoute
+  '/_app/tasks/getnexttask/$projectId': typeof AppTasksGetnexttaskProjectIdRoute
   '/_app/tasks/importfromcalendar/$projectId': typeof AppTasksImportfromcalendarProjectIdRoute
+  '/_app/tasks/initparalleltasks/$projectId': typeof AppTasksInitparalleltasksProjectIdRoute
   '/_app/tasks/manualentry/$projectId': typeof AppTasksManualentryProjectIdRoute
+  '/_app/tasks/monitorbudgetburn/$projectId': typeof AppTasksMonitorbudgetburnProjectIdRoute
+  '/_app/tasks/pausework/$projectId': typeof AppTasksPauseworkProjectIdRoute
   '/_app/tasks/recordtimeoff/$projectId': typeof AppTasksRecordtimeoffProjectIdRoute
+  '/_app/tasks/requestchangeorder/$projectId': typeof AppTasksRequestchangeorderProjectIdRoute
   '/_app/tasks/reviewbookings/$projectId': typeof AppTasksReviewbookingsProjectIdRoute
   '/_app/tasks/selectentrymethod/$projectId': typeof AppTasksSelectentrymethodProjectIdRoute
   '/_app/tasks/setbudget/$projectId': typeof AppTasksSetbudgetProjectIdRoute
   '/_app/tasks/submittimeentry/$projectId': typeof AppTasksSubmittimeentryProjectIdRoute
+  '/_app/tasks/syncparalleltasks/$projectId': typeof AppTasksSyncparalleltasksProjectIdRoute
   '/_app/tasks/usetimer/$projectId': typeof AppTasksUsetimerProjectIdRoute
   '/_app/tasks/viewteamavailability/$projectId': typeof AppTasksViewteamavailabilityProjectIdRoute
   '/_app/admin/groups/': typeof AppAdminGroupsIndexRoute
@@ -698,19 +828,32 @@ export interface FileRouteTypes {
     | '/tasks/autofrombookings/$projectId'
     | '/tasks/checkconfirmationneeded/$projectId'
     | '/tasks/closeproject/$projectId'
+    | '/tasks/completetask/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
     | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
+    | '/tasks/evaluatecondition/$projectId'
+    | '/tasks/executealternatebranch/$projectId'
+    | '/tasks/executeparalleltask/$projectId'
+    | '/tasks/executeprimarybranch/$projectId'
+    | '/tasks/executetask/$projectId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/getchangeorderapproval/$projectId'
+    | '/tasks/getnexttask/$projectId'
     | '/tasks/importfromcalendar/$projectId'
+    | '/tasks/initparalleltasks/$projectId'
     | '/tasks/manualentry/$projectId'
+    | '/tasks/monitorbudgetburn/$projectId'
+    | '/tasks/pausework/$projectId'
     | '/tasks/recordtimeoff/$projectId'
+    | '/tasks/requestchangeorder/$projectId'
     | '/tasks/reviewbookings/$projectId'
     | '/tasks/selectentrymethod/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/submittimeentry/$projectId'
+    | '/tasks/syncparalleltasks/$projectId'
     | '/tasks/usetimer/$projectId'
     | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups/'
@@ -756,19 +899,32 @@ export interface FileRouteTypes {
     | '/tasks/autofrombookings/$projectId'
     | '/tasks/checkconfirmationneeded/$projectId'
     | '/tasks/closeproject/$projectId'
+    | '/tasks/completetask/$projectId'
     | '/tasks/conductretro/$projectId'
     | '/tasks/confirmbookings/$projectId'
     | '/tasks/createandassigntasks/$projectId'
     | '/tasks/createbookings/$projectId'
     | '/tasks/createproject/$dealId'
+    | '/tasks/evaluatecondition/$projectId'
+    | '/tasks/executealternatebranch/$projectId'
+    | '/tasks/executeparalleltask/$projectId'
+    | '/tasks/executeprimarybranch/$projectId'
+    | '/tasks/executetask/$projectId'
     | '/tasks/filterbyskillsrole/$projectId'
+    | '/tasks/getchangeorderapproval/$projectId'
+    | '/tasks/getnexttask/$projectId'
     | '/tasks/importfromcalendar/$projectId'
+    | '/tasks/initparalleltasks/$projectId'
     | '/tasks/manualentry/$projectId'
+    | '/tasks/monitorbudgetburn/$projectId'
+    | '/tasks/pausework/$projectId'
     | '/tasks/recordtimeoff/$projectId'
+    | '/tasks/requestchangeorder/$projectId'
     | '/tasks/reviewbookings/$projectId'
     | '/tasks/selectentrymethod/$projectId'
     | '/tasks/setbudget/$projectId'
     | '/tasks/submittimeentry/$projectId'
+    | '/tasks/syncparalleltasks/$projectId'
     | '/tasks/usetimer/$projectId'
     | '/tasks/viewteamavailability/$projectId'
     | '/admin/groups'
@@ -827,19 +983,32 @@ export interface FileRouteTypes {
     | '/_app/tasks/autofrombookings/$projectId'
     | '/_app/tasks/checkconfirmationneeded/$projectId'
     | '/_app/tasks/closeproject/$projectId'
+    | '/_app/tasks/completetask/$projectId'
     | '/_app/tasks/conductretro/$projectId'
     | '/_app/tasks/confirmbookings/$projectId'
     | '/_app/tasks/createandassigntasks/$projectId'
     | '/_app/tasks/createbookings/$projectId'
     | '/_app/tasks/createproject/$dealId'
+    | '/_app/tasks/evaluatecondition/$projectId'
+    | '/_app/tasks/executealternatebranch/$projectId'
+    | '/_app/tasks/executeparalleltask/$projectId'
+    | '/_app/tasks/executeprimarybranch/$projectId'
+    | '/_app/tasks/executetask/$projectId'
     | '/_app/tasks/filterbyskillsrole/$projectId'
+    | '/_app/tasks/getchangeorderapproval/$projectId'
+    | '/_app/tasks/getnexttask/$projectId'
     | '/_app/tasks/importfromcalendar/$projectId'
+    | '/_app/tasks/initparalleltasks/$projectId'
     | '/_app/tasks/manualentry/$projectId'
+    | '/_app/tasks/monitorbudgetburn/$projectId'
+    | '/_app/tasks/pausework/$projectId'
     | '/_app/tasks/recordtimeoff/$projectId'
+    | '/_app/tasks/requestchangeorder/$projectId'
     | '/_app/tasks/reviewbookings/$projectId'
     | '/_app/tasks/selectentrymethod/$projectId'
     | '/_app/tasks/setbudget/$projectId'
     | '/_app/tasks/submittimeentry/$projectId'
+    | '/_app/tasks/syncparalleltasks/$projectId'
     | '/_app/tasks/usetimer/$projectId'
     | '/_app/tasks/viewteamavailability/$projectId'
     | '/_app/admin/groups/'
@@ -1133,6 +1302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksUsetimerProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/syncparalleltasks/$projectId': {
+      id: '/_app/tasks/syncparalleltasks/$projectId'
+      path: '/syncparalleltasks/$projectId'
+      fullPath: '/tasks/syncparalleltasks/$projectId'
+      preLoaderRoute: typeof AppTasksSyncparalleltasksProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/submittimeentry/$projectId': {
       id: '/_app/tasks/submittimeentry/$projectId'
       path: '/submittimeentry/$projectId'
@@ -1161,11 +1337,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksReviewbookingsProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/requestchangeorder/$projectId': {
+      id: '/_app/tasks/requestchangeorder/$projectId'
+      path: '/requestchangeorder/$projectId'
+      fullPath: '/tasks/requestchangeorder/$projectId'
+      preLoaderRoute: typeof AppTasksRequestchangeorderProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/recordtimeoff/$projectId': {
       id: '/_app/tasks/recordtimeoff/$projectId'
       path: '/recordtimeoff/$projectId'
       fullPath: '/tasks/recordtimeoff/$projectId'
       preLoaderRoute: typeof AppTasksRecordtimeoffProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/pausework/$projectId': {
+      id: '/_app/tasks/pausework/$projectId'
+      path: '/pausework/$projectId'
+      fullPath: '/tasks/pausework/$projectId'
+      preLoaderRoute: typeof AppTasksPauseworkProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/monitorbudgetburn/$projectId': {
+      id: '/_app/tasks/monitorbudgetburn/$projectId'
+      path: '/monitorbudgetburn/$projectId'
+      fullPath: '/tasks/monitorbudgetburn/$projectId'
+      preLoaderRoute: typeof AppTasksMonitorbudgetburnProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/manualentry/$projectId': {
@@ -1175,6 +1372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksManualentryProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/initparalleltasks/$projectId': {
+      id: '/_app/tasks/initparalleltasks/$projectId'
+      path: '/initparalleltasks/$projectId'
+      fullPath: '/tasks/initparalleltasks/$projectId'
+      preLoaderRoute: typeof AppTasksInitparalleltasksProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/importfromcalendar/$projectId': {
       id: '/_app/tasks/importfromcalendar/$projectId'
       path: '/importfromcalendar/$projectId'
@@ -1182,11 +1386,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTasksImportfromcalendarProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
+    '/_app/tasks/getnexttask/$projectId': {
+      id: '/_app/tasks/getnexttask/$projectId'
+      path: '/getnexttask/$projectId'
+      fullPath: '/tasks/getnexttask/$projectId'
+      preLoaderRoute: typeof AppTasksGetnexttaskProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/getchangeorderapproval/$projectId': {
+      id: '/_app/tasks/getchangeorderapproval/$projectId'
+      path: '/getchangeorderapproval/$projectId'
+      fullPath: '/tasks/getchangeorderapproval/$projectId'
+      preLoaderRoute: typeof AppTasksGetchangeorderapprovalProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
     '/_app/tasks/filterbyskillsrole/$projectId': {
       id: '/_app/tasks/filterbyskillsrole/$projectId'
       path: '/filterbyskillsrole/$projectId'
       fullPath: '/tasks/filterbyskillsrole/$projectId'
       preLoaderRoute: typeof AppTasksFilterbyskillsroleProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/executetask/$projectId': {
+      id: '/_app/tasks/executetask/$projectId'
+      path: '/executetask/$projectId'
+      fullPath: '/tasks/executetask/$projectId'
+      preLoaderRoute: typeof AppTasksExecutetaskProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/executeprimarybranch/$projectId': {
+      id: '/_app/tasks/executeprimarybranch/$projectId'
+      path: '/executeprimarybranch/$projectId'
+      fullPath: '/tasks/executeprimarybranch/$projectId'
+      preLoaderRoute: typeof AppTasksExecuteprimarybranchProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/executeparalleltask/$projectId': {
+      id: '/_app/tasks/executeparalleltask/$projectId'
+      path: '/executeparalleltask/$projectId'
+      fullPath: '/tasks/executeparalleltask/$projectId'
+      preLoaderRoute: typeof AppTasksExecuteparalleltaskProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/executealternatebranch/$projectId': {
+      id: '/_app/tasks/executealternatebranch/$projectId'
+      path: '/executealternatebranch/$projectId'
+      fullPath: '/tasks/executealternatebranch/$projectId'
+      preLoaderRoute: typeof AppTasksExecutealternatebranchProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/evaluatecondition/$projectId': {
+      id: '/_app/tasks/evaluatecondition/$projectId'
+      path: '/evaluatecondition/$projectId'
+      fullPath: '/tasks/evaluatecondition/$projectId'
+      preLoaderRoute: typeof AppTasksEvaluateconditionProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/createproject/$dealId': {
@@ -1222,6 +1475,13 @@ declare module '@tanstack/react-router' {
       path: '/conductretro/$projectId'
       fullPath: '/tasks/conductretro/$projectId'
       preLoaderRoute: typeof AppTasksConductretroProjectIdRouteImport
+      parentRoute: typeof AppTasksRoute
+    }
+    '/_app/tasks/completetask/$projectId': {
+      id: '/_app/tasks/completetask/$projectId'
+      path: '/completetask/$projectId'
+      fullPath: '/tasks/completetask/$projectId'
+      preLoaderRoute: typeof AppTasksCompletetaskProjectIdRouteImport
       parentRoute: typeof AppTasksRoute
     }
     '/_app/tasks/closeproject/$projectId': {
@@ -1540,19 +1800,32 @@ interface AppTasksRouteChildren {
   AppTasksAutofrombookingsProjectIdRoute: typeof AppTasksAutofrombookingsProjectIdRoute
   AppTasksCheckconfirmationneededProjectIdRoute: typeof AppTasksCheckconfirmationneededProjectIdRoute
   AppTasksCloseprojectProjectIdRoute: typeof AppTasksCloseprojectProjectIdRoute
+  AppTasksCompletetaskProjectIdRoute: typeof AppTasksCompletetaskProjectIdRoute
   AppTasksConductretroProjectIdRoute: typeof AppTasksConductretroProjectIdRoute
   AppTasksConfirmbookingsProjectIdRoute: typeof AppTasksConfirmbookingsProjectIdRoute
   AppTasksCreateandassigntasksProjectIdRoute: typeof AppTasksCreateandassigntasksProjectIdRoute
   AppTasksCreatebookingsProjectIdRoute: typeof AppTasksCreatebookingsProjectIdRoute
   AppTasksCreateprojectDealIdRoute: typeof AppTasksCreateprojectDealIdRoute
+  AppTasksEvaluateconditionProjectIdRoute: typeof AppTasksEvaluateconditionProjectIdRoute
+  AppTasksExecutealternatebranchProjectIdRoute: typeof AppTasksExecutealternatebranchProjectIdRoute
+  AppTasksExecuteparalleltaskProjectIdRoute: typeof AppTasksExecuteparalleltaskProjectIdRoute
+  AppTasksExecuteprimarybranchProjectIdRoute: typeof AppTasksExecuteprimarybranchProjectIdRoute
+  AppTasksExecutetaskProjectIdRoute: typeof AppTasksExecutetaskProjectIdRoute
   AppTasksFilterbyskillsroleProjectIdRoute: typeof AppTasksFilterbyskillsroleProjectIdRoute
+  AppTasksGetchangeorderapprovalProjectIdRoute: typeof AppTasksGetchangeorderapprovalProjectIdRoute
+  AppTasksGetnexttaskProjectIdRoute: typeof AppTasksGetnexttaskProjectIdRoute
   AppTasksImportfromcalendarProjectIdRoute: typeof AppTasksImportfromcalendarProjectIdRoute
+  AppTasksInitparalleltasksProjectIdRoute: typeof AppTasksInitparalleltasksProjectIdRoute
   AppTasksManualentryProjectIdRoute: typeof AppTasksManualentryProjectIdRoute
+  AppTasksMonitorbudgetburnProjectIdRoute: typeof AppTasksMonitorbudgetburnProjectIdRoute
+  AppTasksPauseworkProjectIdRoute: typeof AppTasksPauseworkProjectIdRoute
   AppTasksRecordtimeoffProjectIdRoute: typeof AppTasksRecordtimeoffProjectIdRoute
+  AppTasksRequestchangeorderProjectIdRoute: typeof AppTasksRequestchangeorderProjectIdRoute
   AppTasksReviewbookingsProjectIdRoute: typeof AppTasksReviewbookingsProjectIdRoute
   AppTasksSelectentrymethodProjectIdRoute: typeof AppTasksSelectentrymethodProjectIdRoute
   AppTasksSetbudgetProjectIdRoute: typeof AppTasksSetbudgetProjectIdRoute
   AppTasksSubmittimeentryProjectIdRoute: typeof AppTasksSubmittimeentryProjectIdRoute
+  AppTasksSyncparalleltasksProjectIdRoute: typeof AppTasksSyncparalleltasksProjectIdRoute
   AppTasksUsetimerProjectIdRoute: typeof AppTasksUsetimerProjectIdRoute
   AppTasksViewteamavailabilityProjectIdRoute: typeof AppTasksViewteamavailabilityProjectIdRoute
 }
@@ -1564,23 +1837,45 @@ const AppTasksRouteChildren: AppTasksRouteChildren = {
   AppTasksCheckconfirmationneededProjectIdRoute:
     AppTasksCheckconfirmationneededProjectIdRoute,
   AppTasksCloseprojectProjectIdRoute: AppTasksCloseprojectProjectIdRoute,
+  AppTasksCompletetaskProjectIdRoute: AppTasksCompletetaskProjectIdRoute,
   AppTasksConductretroProjectIdRoute: AppTasksConductretroProjectIdRoute,
   AppTasksConfirmbookingsProjectIdRoute: AppTasksConfirmbookingsProjectIdRoute,
   AppTasksCreateandassigntasksProjectIdRoute:
     AppTasksCreateandassigntasksProjectIdRoute,
   AppTasksCreatebookingsProjectIdRoute: AppTasksCreatebookingsProjectIdRoute,
   AppTasksCreateprojectDealIdRoute: AppTasksCreateprojectDealIdRoute,
+  AppTasksEvaluateconditionProjectIdRoute:
+    AppTasksEvaluateconditionProjectIdRoute,
+  AppTasksExecutealternatebranchProjectIdRoute:
+    AppTasksExecutealternatebranchProjectIdRoute,
+  AppTasksExecuteparalleltaskProjectIdRoute:
+    AppTasksExecuteparalleltaskProjectIdRoute,
+  AppTasksExecuteprimarybranchProjectIdRoute:
+    AppTasksExecuteprimarybranchProjectIdRoute,
+  AppTasksExecutetaskProjectIdRoute: AppTasksExecutetaskProjectIdRoute,
   AppTasksFilterbyskillsroleProjectIdRoute:
     AppTasksFilterbyskillsroleProjectIdRoute,
+  AppTasksGetchangeorderapprovalProjectIdRoute:
+    AppTasksGetchangeorderapprovalProjectIdRoute,
+  AppTasksGetnexttaskProjectIdRoute: AppTasksGetnexttaskProjectIdRoute,
   AppTasksImportfromcalendarProjectIdRoute:
     AppTasksImportfromcalendarProjectIdRoute,
+  AppTasksInitparalleltasksProjectIdRoute:
+    AppTasksInitparalleltasksProjectIdRoute,
   AppTasksManualentryProjectIdRoute: AppTasksManualentryProjectIdRoute,
+  AppTasksMonitorbudgetburnProjectIdRoute:
+    AppTasksMonitorbudgetburnProjectIdRoute,
+  AppTasksPauseworkProjectIdRoute: AppTasksPauseworkProjectIdRoute,
   AppTasksRecordtimeoffProjectIdRoute: AppTasksRecordtimeoffProjectIdRoute,
+  AppTasksRequestchangeorderProjectIdRoute:
+    AppTasksRequestchangeorderProjectIdRoute,
   AppTasksReviewbookingsProjectIdRoute: AppTasksReviewbookingsProjectIdRoute,
   AppTasksSelectentrymethodProjectIdRoute:
     AppTasksSelectentrymethodProjectIdRoute,
   AppTasksSetbudgetProjectIdRoute: AppTasksSetbudgetProjectIdRoute,
   AppTasksSubmittimeentryProjectIdRoute: AppTasksSubmittimeentryProjectIdRoute,
+  AppTasksSyncparalleltasksProjectIdRoute:
+    AppTasksSyncparalleltasksProjectIdRoute,
   AppTasksUsetimerProjectIdRoute: AppTasksUsetimerProjectIdRoute,
   AppTasksViewteamavailabilityProjectIdRoute:
     AppTasksViewteamavailabilityProjectIdRoute,
