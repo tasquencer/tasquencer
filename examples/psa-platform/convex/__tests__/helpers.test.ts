@@ -499,3 +499,274 @@ describe('Typed Payload Extractors', () => {
     expect(payload).toBeNull()
   })
 })
+
+// =============================================================================
+// Authorization Service Helper Tests
+// =============================================================================
+
+import {
+  requireProjectViewAccess,
+  requireProjectEditAccess,
+  requireTaskViewAccess,
+  requireTaskEditAccess,
+  requireBudgetApproveAccess,
+  requireTeamReportsAccess,
+  canApproveBudget,
+  canViewTeamReports,
+  canImpersonate,
+  hasAdminAccess,
+} from '../workflows/dealToDelivery/domain/services/authorizationService'
+
+describe('Authorization Service Helpers', () => {
+  describe('requireProjectViewAccess', () => {
+    it('throws when user lacks project view scope', async () => {
+      const t = setup()
+      // Create user without the required scope
+      await setupAuthenticatedUser(t)
+
+      await expect(
+        t.run(async (ctx) => {
+          await requireProjectViewAccess(ctx)
+        })
+      ).rejects.toThrow()
+    })
+
+    it('returns userId when user has project view scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'project_viewer', [
+        'dealToDelivery:projects:view:own',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireProjectViewAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('requireProjectEditAccess', () => {
+    it('returns userId when user has project edit scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'project_editor', [
+        'dealToDelivery:projects:edit:own',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireProjectEditAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('requireTaskViewAccess', () => {
+    it('returns userId when user has task view scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'task_viewer', [
+        'dealToDelivery:tasks:view:own',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireTaskViewAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('requireTaskEditAccess', () => {
+    it('returns userId when user has task edit scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'task_editor', [
+        'dealToDelivery:tasks:edit:own',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireTaskEditAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('requireBudgetApproveAccess', () => {
+    it('returns userId when user has budget approve scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'budget_approver', [
+        'dealToDelivery:budgets:approve',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireBudgetApproveAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('requireTeamReportsAccess', () => {
+    it('returns userId when user has team reports scope', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'team_reporter', [
+        'dealToDelivery:reports:view:team',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await requireTeamReportsAccess(ctx)
+      })
+
+      expect(result).toBe(userId)
+    })
+  })
+
+  describe('canApproveBudget', () => {
+    it('returns false when user is not authenticated', async () => {
+      const t = setup()
+      // No authentication setup - safeGetAuthUser will return null
+      const result = await t.run(async (ctx) => {
+        return await canApproveBudget(ctx, 'some-user' as Id<'users'>)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns false when user lacks budget approve scope', async () => {
+      const t = setup()
+      await setupAuthenticatedUser(t)
+
+      const result = await t.run(async (ctx) => {
+        return await canApproveBudget(ctx, 'some-user' as Id<'users'>)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns false when user tries to self-approve', async () => {
+      const t = setup()
+      const { userId } = await setupUserWithRole(t, 'budget_approver', [
+        'dealToDelivery:budgets:approve',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await canApproveBudget(ctx, userId)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns true when user has scope and is not requester', async () => {
+      const t = setup()
+      await setupUserWithRole(t, 'budget_approver', [
+        'dealToDelivery:budgets:approve',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await canApproveBudget(ctx, 'different-user' as Id<'users'>)
+      })
+
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('canViewTeamReports', () => {
+    it('returns false when user is not authenticated', async () => {
+      const t = setup()
+
+      const result = await t.run(async (ctx) => {
+        return await canViewTeamReports(ctx)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns false when user lacks reports scope', async () => {
+      const t = setup()
+      await setupAuthenticatedUser(t)
+
+      const result = await t.run(async (ctx) => {
+        return await canViewTeamReports(ctx)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns true when user has team reports scope', async () => {
+      const t = setup()
+      await setupUserWithRole(t, 'team_reporter', [
+        'dealToDelivery:reports:view:team',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await canViewTeamReports(ctx)
+      })
+
+      expect(result).toBe(true)
+    })
+
+    it('returns true when user has all reports scope', async () => {
+      const t = setup()
+      await setupUserWithRole(t, 'all_reporter', [
+        'dealToDelivery:reports:view:all',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await canViewTeamReports(ctx)
+      })
+
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('canImpersonate', () => {
+    it('returns false when user lacks impersonate scope', async () => {
+      const t = setup()
+      await setupAuthenticatedUser(t)
+
+      const result = await t.run(async (ctx) => {
+        return await canImpersonate(ctx)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns true when user has admin impersonate scope', async () => {
+      const t = setup()
+      await setupUserWithRole(t, 'admin', [
+        'dealToDelivery:admin:impersonate',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await canImpersonate(ctx)
+      })
+
+      expect(result).toBe(true)
+    })
+  })
+
+  describe('hasAdminAccess', () => {
+    it('returns false when user lacks admin scope', async () => {
+      const t = setup()
+      await setupAuthenticatedUser(t)
+
+      const result = await t.run(async (ctx) => {
+        return await hasAdminAccess(ctx)
+      })
+
+      expect(result).toBe(false)
+    })
+
+    it('returns true when user has admin users scope', async () => {
+      const t = setup()
+      await setupUserWithRole(t, 'admin', [
+        'dealToDelivery:admin:users',
+      ])
+
+      const result = await t.run(async (ctx) => {
+        return await hasAdminAccess(ctx)
+      })
+
+      expect(result).toBe(true)
+    })
+  })
+})
