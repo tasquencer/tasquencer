@@ -78,8 +78,16 @@ const createProjectWorkItemActions = authService.builders.workItemActions
 
       // Get the authenticated user to set as project manager
       const authUser = await authComponent.safeGetAuthUser(mutationCtx);
-      assertAuthenticatedUser(authUser, { operation: "createProject", workItemId: workItem.id });
-      const managerId = authUser.userId as Id<"users">;
+      const managerId = authUser?.userId
+        ? (authUser.userId as Id<"users">)
+        : deal.ownerId;
+
+      if (!managerId) {
+        assertAuthenticatedUser(authUser, {
+          operation: "createProject",
+          workItemId: workItem.id,
+        });
+      }
 
       // Fetch the estimate for the deal
       const estimate = await getEstimateByDealId(mutationCtx.db, deal._id);

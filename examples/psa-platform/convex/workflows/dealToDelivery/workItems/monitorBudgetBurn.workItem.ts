@@ -13,7 +13,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getBudget } from "../db/budgets";
@@ -223,4 +227,8 @@ export const monitorBudgetBurnWorkItem = Builder.workItem("monitorBudgetBurn")
 /**
  * The monitorBudgetBurn task.
  */
-export const monitorBudgetBurnTask = Builder.task(monitorBudgetBurnWorkItem);
+export const monitorBudgetBurnTask = Builder.task(monitorBudgetBurnWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

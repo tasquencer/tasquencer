@@ -15,11 +15,13 @@ import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import { initializeDealWorkItemAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
-import { getProject, updateProjectStatus } from "../db/projects";
+import { getProject, getProjectByWorkflowId, updateProjectStatus } from "../db/projects";
 import { getBudget, updateBudget } from "../db/budgets";
 import { listTasksByStatus, updateTaskStatus } from "../db/tasks";
 import {
   getChangeOrder,
+  listChangeOrdersByProject,
+  listPendingChangeOrdersByProject,
   rejectChangeOrder,
   updateChangeOrder,
 } from "../db/changeOrders";
@@ -188,4 +190,29 @@ export const getChangeOrderApprovalWorkItem = Builder.workItem("getChangeOrderAp
 /**
  * The getChangeOrderApproval task.
  */
-export const getChangeOrderApprovalTask = Builder.task(getChangeOrderApprovalWorkItem);
+export const getChangeOrderApprovalTask = Builder.task(getChangeOrderApprovalWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    const project = await getProjectByWorkflowId(
+      mutationCtx.db,
+      parent.workflow.id
+    );
+    assertProjectExists(project, { workflowId: parent.workflow.id });
+
+    const pendingChangeOrders = await listPendingChangeOrdersByProject(
+      mutationCtx.db,
+      project._id
+    );
+    const changeOrder =
+      pendingChangeOrders[0] ??
+      (await listChangeOrdersByProject(mutationCtx.db, project._id))[0];
+
+    if (!changeOrder) {
+      console.warn(
+        `[getChangeOrderApproval] No change orders found for project ${project._id}.`
+      );
+      return;
+    }
+
+    await workItem.initialize({ changeOrderId: changeOrder._id });
+  },
+});

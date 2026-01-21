@@ -13,7 +13,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject, getProjectByDealId, updateProjectStatus } from "../db/projects";
 import { getDeal } from "../db/deals";
@@ -215,4 +215,8 @@ export const pauseWorkWorkItem = Builder.workItem("pauseWork")
 /**
  * The pauseWork task.
  */
-export const pauseWorkTask = Builder.task(pauseWorkWorkItem);
+export const pauseWorkTask = Builder.task(pauseWorkWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

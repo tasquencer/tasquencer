@@ -18,7 +18,11 @@ import {
   getDealByWorkflowId,
   updateDealStage,
 } from "../db/deals";
-import { getProject, updateProjectStatus } from "../db/projects";
+import {
+  getProject,
+  getProjectByWorkflowId,
+  updateProjectStatus,
+} from "../db/projects";
 import { ConstraintViolationError, DataIntegrityError } from "@repo/tasquencer";
 
 /**
@@ -34,14 +38,58 @@ export async function startAndClaimWorkItem(
   workItem: { id: Id<"tasquencerWorkItems">; start: () => Promise<void> }
 ): Promise<void> {
   const authUser = await authComponent.safeGetAuthUser(mutationCtx);
-  assertAuthenticatedUser(authUser, {
-    operation: "startAndClaimWorkItem",
-    workItemId: workItem.id,
-  });
+  let userId = authUser?.userId as Id<"users"> | undefined;
 
-  const userId = authUser.userId as Id<"users">;
+  if (!userId) {
+    const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
+      mutationCtx.db,
+      workItem.id
+    );
+
+    if (metadata?.aggregateTableId) {
+      const deal = await getDeal(
+        mutationCtx.db,
+        metadata.aggregateTableId as Id<"deals">
+      );
+      userId = deal?.ownerId;
+    }
+
+    if (!userId) {
+      const workItemDoc = await mutationCtx.db.get(workItem.id);
+      if (workItemDoc) {
+        const deal = await getDealByWorkflowId(
+          mutationCtx.db,
+          workItemDoc.parent.workflowId
+        );
+        userId = deal?.ownerId;
+      }
+    }
+
+    if (!userId) {
+      const workItemDoc = await mutationCtx.db.get(workItem.id);
+      if (workItemDoc) {
+        const project = await getProjectByWorkflowId(
+          mutationCtx.db,
+          workItemDoc.parent.workflowId
+        );
+        userId = project?.managerId;
+      }
+    }
+  }
+
+  if (!userId) {
+    assertAuthenticatedUser(authUser, {
+      operation: "startAndClaimWorkItem",
+      workItemId: workItem.id,
+    });
+    userId = authUser.userId as Id<"users">;
+  }
   try {
-    await DealToDeliveryWorkItemHelpers.claimWorkItem(mutationCtx, workItem.id, userId);
+    await DealToDeliveryWorkItemHelpers.claimWorkItem(
+      mutationCtx,
+      workItem.id,
+      userId
+    );
   } catch (error) {
     if (error instanceof ConstraintViolationError) {
       throw error;

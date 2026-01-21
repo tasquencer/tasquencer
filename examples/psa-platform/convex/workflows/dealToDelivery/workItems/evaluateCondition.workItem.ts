@@ -17,6 +17,7 @@ import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import {
   initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
   updateWorkItemMetadataPayload,
 } from "./helpersAuth";
 import { authService } from "../../../authorization";
@@ -113,4 +114,8 @@ export const evaluateConditionWorkItem = Builder.workItem("evaluateCondition")
 /**
  * The evaluateCondition task.
  */
-export const evaluateConditionTask = Builder.task(evaluateConditionWorkItem);
+export const evaluateConditionTask = Builder.task(evaluateConditionWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

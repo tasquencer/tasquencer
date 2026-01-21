@@ -13,7 +13,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
@@ -156,4 +156,8 @@ export const requestChangeOrderWorkItem = Builder.workItem("requestChangeOrder")
 /**
  * The requestChangeOrder task.
  */
-export const requestChangeOrderTask = Builder.task(requestChangeOrderWorkItem);
+export const requestChangeOrderTask = Builder.task(requestChangeOrderWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

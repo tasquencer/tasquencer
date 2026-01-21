@@ -15,10 +15,13 @@ import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import { initializeDealWorkItemAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
-import { getTask, updateTask } from "../db/tasks";
-import { getProject } from "../db/projects";
+import { getTask, listTasksByProject, updateTask } from "../db/tasks";
+import { getProject, getProjectByWorkflowId } from "../db/projects";
 import { getDeal } from "../db/deals";
+import { getCompletedWorkItemByTask } from "../db/workflows";
+import { DealToDeliveryWorkItemHelpers } from "../helpers";
 import { assertTaskExists, assertProjectExists, assertDealExists } from "../exceptions";
+import type { Id } from "../../../_generated/dataModel";
 
 // Policy: Requires 'dealToDelivery:tasks:edit:own' scope
 const tasksEditPolicy = authService.policies.requireScope(
@@ -105,4 +108,49 @@ export const executeTaskWorkItem = Builder.workItem("executeTask")
 /**
  * The executeTask task.
  */
-export const executeTaskTask = Builder.task(executeTaskWorkItem);
+export const executeTaskTask = Builder.task(executeTaskWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    const project = await getProjectByWorkflowId(
+      mutationCtx.db,
+      parent.workflow.id
+    );
+    assertProjectExists(project, { workflowId: parent.workflow.id });
+
+    let taskId: Id<"tasks"> | undefined;
+
+    const previousWorkItem = await getCompletedWorkItemByTask(
+      mutationCtx.db,
+      parent.workflow.id,
+      "getNextTask"
+    );
+    if (previousWorkItem) {
+      const metadata = await DealToDeliveryWorkItemHelpers.getWorkItemMetadata(
+        mutationCtx.db,
+        previousWorkItem._id
+      );
+      if (metadata?.payload.type === "getNextTask") {
+        const payload = metadata.payload as { nextTaskId?: Id<"tasks"> };
+        if (payload.nextTaskId) {
+          taskId = payload.nextTaskId;
+        }
+      }
+    }
+
+    if (!taskId) {
+      const tasks = await listTasksByProject(mutationCtx.db, project._id);
+      const pendingTasks = tasks
+        .filter((task) => task.status === "Todo")
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+      taskId = pendingTasks[0]?._id;
+    }
+
+    if (!taskId) {
+      console.warn(
+        `[executeTask] No pending task found for project ${project._id}.`
+      );
+      return;
+    }
+
+    await workItem.initialize({ taskId });
+  },
+});

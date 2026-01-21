@@ -13,7 +13,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getDeal } from "../db/deals";
@@ -114,4 +114,8 @@ export const executeAlternateBranchWorkItem = Builder.workItem("executeAlternate
 /**
  * The executeAlternateBranch task.
  */
-export const executeAlternateBranchTask = Builder.task(executeAlternateBranchWorkItem);
+export const executeAlternateBranchTask = Builder.task(executeAlternateBranchWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});
