@@ -12,9 +12,12 @@
 
 import { v } from 'convex/values'
 import { internalQuery } from '../_generated/server'
+import { isHumanClaim, isHumanOffer } from '@repo/tasquencer'
 import {
   getDealByWorkflowId as getDealByWorkflowIdDomain,
   getProjectByWorkflowId as getProjectByWorkflowIdDomain,
+  getProject,
+  listWorkItemsWithMetadataByDeal,
 } from '../workflows/dealToDelivery/db'
 
 // =============================================================================
@@ -202,6 +205,37 @@ export const getWorkItemsByState = internalQuery({
       )
       .filter((q) => q.eq(q.field('state'), args.state))
       .collect()
+  },
+})
+
+export const getWorkItemsByProject = internalQuery({
+  args: {
+    projectId: v.id('projects'),
+  },
+  handler: async (ctx, args) => {
+    const project = await getProject(ctx.db, args.projectId)
+    if (!project?.dealId) {
+      return []
+    }
+
+    const items = await listWorkItemsWithMetadataByDeal(ctx.db, project.dealId)
+
+    return items
+      .sort((a, b) => b.metadata._creationTime - a.metadata._creationTime)
+      .map(({ metadata, workItem }) => ({
+        metadataId: metadata._id,
+        workItemId: metadata.workItemId,
+        taskType: (metadata.payload as { type?: string }).type ?? workItem?.name,
+        taskName:
+          (metadata.payload as { taskName?: string }).taskName ?? workItem?.name,
+        workItemState: workItem?.state ?? 'missing',
+        parent: workItem?.parent,
+        isHuman: isHumanOffer(metadata.offer),
+        isClaimed: isHumanClaim(metadata.claim),
+        offer: metadata.offer,
+        claim: metadata.claim,
+        createdAt: metadata._creationTime,
+      }))
   },
 })
 
