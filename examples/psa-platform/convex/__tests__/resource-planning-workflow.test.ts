@@ -1020,6 +1020,598 @@ describe('ConfirmBookings Work Item Lifecycle', () => {
   })
 })
 
+describe('ReviewBookings Routing Loop', () => {
+  it('routes back to filterBySkillsRole when needsMoreFiltering is true', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId, planningWorkflowId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const resourceWorkflowId = await getResourcePlanningWorkflowId(testContext, planningWorkflowId)
+
+    const startDate = Date.now()
+    const endDate = startDate + 21 * 24 * 60 * 60 * 1000
+
+    // Complete viewTeamAvailability
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'viewTeamAvailability',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'viewTeamAvailability', 'viewTeamAvailability'],
+      { projectId, startDate, endDate }
+    )
+
+    // First iteration - Complete filterBySkillsRole
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'filterBySkillsRole',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'filterBySkillsRole', 'filterBySkillsRole'],
+      {
+        projectId,
+        filters: { skills: ['TypeScript'] },
+        startDate,
+        endDate,
+      }
+    )
+
+    // Complete recordPlannedTimeOff
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'recordPlannedTimeOff',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'recordPlannedTimeOff', 'recordPlannedTimeOff'],
+      {
+        userId: authResult.userId,
+        startDate,
+        endDate,
+        type: 'Personal',
+        hoursPerDay: 0,
+      }
+    )
+
+    // Complete createBookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'createBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'createBookings', 'createBookings'],
+      {
+        projectId,
+        bookings: [
+          {
+            userId: developer1Id,
+            startDate,
+            endDate,
+            hoursPerDay: 4,
+            notes: 'Initial booking',
+          },
+        ],
+        isConfirmed: false,
+      }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    const bookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const bookingIds = bookings.map((b) => b._id)
+
+    // Complete reviewBookings with needsMoreFiltering = TRUE to trigger loop
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'reviewBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'reviewBookings', 'reviewBookings'],
+      {
+        projectId,
+        bookingIds,
+        needsMoreFiltering: true, // This should route back to filterBySkillsRole
+      }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify filterBySkillsRole is enabled again (routing loop)
+    await assertTaskState(testContext, resourceWorkflowId, 'filterBySkillsRole', 'enabled')
+
+    // Verify checkConfirmationNeeded is NOT enabled (we looped back)
+    await assertTaskState(testContext, resourceWorkflowId, 'checkConfirmationNeeded', 'disabled')
+  })
+
+  it('completes workflow after looping back once', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id, developer2Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId, planningWorkflowId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const resourceWorkflowId = await getResourcePlanningWorkflowId(testContext, planningWorkflowId)
+
+    const startDate = Date.now()
+    const endDate = startDate + 14 * 24 * 60 * 60 * 1000
+
+    // === First iteration ===
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'viewTeamAvailability',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'viewTeamAvailability', 'viewTeamAvailability'],
+      { projectId, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'filterBySkillsRole',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'filterBySkillsRole', 'filterBySkillsRole'],
+      { projectId, filters: { skills: ['TypeScript'] }, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'recordPlannedTimeOff',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'recordPlannedTimeOff', 'recordPlannedTimeOff'],
+      { userId: authResult.userId, startDate, endDate, type: 'Personal', hoursPerDay: 0 }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'createBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'createBookings', 'createBookings'],
+      {
+        projectId,
+        bookings: [{ userId: developer1Id, startDate, endDate, hoursPerDay: 4 }],
+        isConfirmed: false,
+      }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    let bookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+
+    // First review - need more filtering
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'reviewBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'reviewBookings', 'reviewBookings'],
+      { projectId, bookingIds: bookings.map((b) => b._id), needsMoreFiltering: true }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // === Second iteration (after loop) ===
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'filterBySkillsRole',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'filterBySkillsRole', 'filterBySkillsRole'],
+      { projectId, filters: { skills: ['TypeScript', 'React'] }, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'recordPlannedTimeOff',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'recordPlannedTimeOff', 'recordPlannedTimeOff'],
+      { userId: authResult.userId, startDate, endDate, type: 'Personal', hoursPerDay: 0 }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'createBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'createBookings', 'createBookings'],
+      {
+        projectId,
+        bookings: [{ userId: developer2Id, startDate, endDate, hoursPerDay: 6 }],
+        isConfirmed: true, // Confirmed this time
+      }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    bookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+
+    // Second review - satisfied, no more filtering needed
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'reviewBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'reviewBookings', 'reviewBookings'],
+      { projectId, bookingIds: bookings.map((b) => b._id), needsMoreFiltering: false }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    // Verify we moved to checkConfirmationNeeded
+    await assertTaskState(testContext, resourceWorkflowId, 'checkConfirmationNeeded', 'enabled')
+
+    // Complete checkConfirmationNeeded
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'checkConfirmationNeeded',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'checkConfirmationNeeded', 'checkConfirmationNeeded'],
+      { bookingIds: bookings.map((b) => b._id) }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Since there's a mix of Tentative and Confirmed bookings, confirmBookings should be enabled
+    await assertTaskState(testContext, resourceWorkflowId, 'confirmBookings', 'enabled')
+
+    // Complete confirmBookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'confirmBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'confirmBookings', 'confirmBookings'],
+      { bookingIds: bookings.map((b) => b._id), confirmAll: true }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify workflow completed
+    await assertTaskState(testContext, resourceWorkflowId, 'completeAllocation', 'completed')
+  })
+})
+
+describe('Selective Booking Confirmation', () => {
+  it('selectively confirms only specific bookings', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id, developer2Id, designerId } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId, planningWorkflowId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const resourceWorkflowId = await getResourcePlanningWorkflowId(testContext, planningWorkflowId)
+
+    const startDate = Date.now()
+    const endDate = startDate + 14 * 24 * 60 * 60 * 1000
+
+    // Complete workflow up to createBookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'viewTeamAvailability',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'viewTeamAvailability', 'viewTeamAvailability'],
+      { projectId, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'filterBySkillsRole',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'filterBySkillsRole', 'filterBySkillsRole'],
+      { projectId, filters: {}, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'recordPlannedTimeOff',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'recordPlannedTimeOff', 'recordPlannedTimeOff'],
+      { userId: authResult.userId, startDate, endDate, type: 'Personal', hoursPerDay: 0 }
+    )
+
+    // Create THREE tentative bookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'createBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'createBookings', 'createBookings'],
+      {
+        projectId,
+        bookings: [
+          { userId: developer1Id, startDate, endDate, hoursPerDay: 8, notes: 'Dev 1 - Full time' },
+          { userId: developer2Id, startDate, endDate, hoursPerDay: 4, notes: 'Dev 2 - Part time' },
+          { userId: designerId, startDate, endDate, hoursPerDay: 6, notes: 'Designer' },
+        ],
+        isConfirmed: false, // All Tentative
+      }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    const bookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+
+    expect(bookings.length).toBe(3)
+    expect(bookings.every((b) => b.type === 'Tentative')).toBe(true)
+
+    const bookingIds = bookings.map((b) => b._id)
+
+    // Complete reviewBookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'reviewBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'reviewBookings', 'reviewBookings'],
+      { projectId, bookingIds }
+    )
+
+    // Complete checkConfirmationNeeded
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'checkConfirmationNeeded',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'checkConfirmationNeeded', 'checkConfirmationNeeded'],
+      { bookingIds }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Selectively confirm only 2 out of 3 bookings
+    // Developer 1 and Designer are confirmed, Developer 2 is not
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'confirmBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'confirmBookings', 'confirmBookings'],
+      {
+        bookingIds,
+        confirmAll: false,
+        selectiveConfirmation: [
+          { bookingId: bookings.find((b) => b.userId === developer1Id)!._id, confirm: true },
+          { bookingId: bookings.find((b) => b.userId === developer2Id)!._id, confirm: false, reason: 'Budget constraints' },
+          { bookingId: bookings.find((b) => b.userId === designerId)!._id, confirm: true },
+        ],
+      }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify booking states
+    const updatedBookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+
+    const dev1Booking = updatedBookings.find((b) => b.userId === developer1Id)
+    const dev2Booking = updatedBookings.find((b) => b.userId === developer2Id)
+    const designerBooking = updatedBookings.find((b) => b.userId === designerId)
+
+    expect(dev1Booking?.type).toBe('Confirmed')
+    expect(dev2Booking?.type).toBe('Tentative') // Not confirmed
+    expect(designerBooking?.type).toBe('Confirmed')
+
+    // Verify project status changed to Active (at least one booking confirmed)
+    const project = await getProjectByWorkflowId(testContext, rootWorkflowId)
+    expect(project?.status).toBe('Active')
+
+    // Verify workflow completed
+    await assertTaskState(testContext, resourceWorkflowId, 'completeAllocation', 'completed')
+  })
+
+  it('keeps project in Planning status when no bookings are confirmed', async () => {
+    const rootWorkflowId = await initializeRootWorkflow(testContext)
+    const { companyId, contactId } = await createTestEntities(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+    const { developer1Id } = await createTeamMembers(
+      testContext,
+      authResult.organizationId as Id<'organizations'>
+    )
+
+    const { dealId } = await completeSalesPhaseWithWonDeal(
+      testContext,
+      rootWorkflowId,
+      authResult.organizationId as Id<'organizations'>,
+      authResult.userId as Id<'users'>,
+      companyId,
+      contactId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const { projectId, planningWorkflowId } = await completePlanningPhaseSetup(
+      testContext,
+      rootWorkflowId,
+      dealId
+    )
+
+    await flushWorkflow(testContext, 30)
+
+    const resourceWorkflowId = await getResourcePlanningWorkflowId(testContext, planningWorkflowId)
+
+    const startDate = Date.now()
+    const endDate = startDate + 14 * 24 * 60 * 60 * 1000
+
+    // Complete workflow up to confirmBookings
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'viewTeamAvailability',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'viewTeamAvailability', 'viewTeamAvailability'],
+      { projectId, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'filterBySkillsRole',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'filterBySkillsRole', 'filterBySkillsRole'],
+      { projectId, filters: {}, startDate, endDate }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'recordPlannedTimeOff',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'recordPlannedTimeOff', 'recordPlannedTimeOff'],
+      { userId: authResult.userId, startDate, endDate, type: 'Personal', hoursPerDay: 0 }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'createBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'createBookings', 'createBookings'],
+      {
+        projectId,
+        bookings: [{ userId: developer1Id, startDate, endDate, hoursPerDay: 8 }],
+        isConfirmed: false,
+      }
+    )
+
+    await flushWorkflow(testContext, 15)
+
+    const bookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    const bookingIds = bookings.map((b) => b._id)
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'reviewBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'reviewBookings', 'reviewBookings'],
+      { projectId, bookingIds }
+    )
+
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'checkConfirmationNeeded',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'checkConfirmationNeeded', 'checkConfirmationNeeded'],
+      { bookingIds }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Reject all bookings (confirm: false for all)
+    await completeWorkItem(
+      testContext,
+      resourceWorkflowId,
+      'confirmBookings',
+      ['dealToDelivery', 'planning', 'planningPhase', 'allocateResources', 'resourcePlanning', 'confirmBookings', 'confirmBookings'],
+      {
+        bookingIds,
+        confirmAll: false,
+        selectiveConfirmation: [
+          { bookingId: bookings[0]._id, confirm: false, reason: 'Resource not available' },
+        ],
+      }
+    )
+
+    await flushWorkflow(testContext, 20)
+
+    // Verify booking remains Tentative
+    const updatedBookings = await testContext.run(async (ctx) => {
+      return await ctx.db
+        .query('bookings')
+        .withIndex('by_project', (q) => q.eq('projectId', projectId))
+        .collect()
+    })
+    expect(updatedBookings[0].type).toBe('Tentative')
+
+    // Project should remain in Planning status (no confirmations)
+    const project = await getProjectByWorkflowId(testContext, rootWorkflowId)
+    expect(project?.status).toBe('Planning')
+
+    // Workflow still completes
+    await assertTaskState(testContext, resourceWorkflowId, 'completeAllocation', 'completed')
+  })
+})
+
 describe('Resource Planning Workflow Completion', () => {
   it('completes resource planning and enables execution phase', async () => {
     const rootWorkflowId = await initializeRootWorkflow(testContext)
