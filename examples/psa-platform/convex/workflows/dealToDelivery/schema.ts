@@ -290,6 +290,7 @@ const tasks = defineTable({
   assigneeIds: v.array(v.id("users")), // Assigned users
   dueDate: v.optional(v.number()),
   estimatedHours: v.optional(v.number()),
+  actualHours: v.optional(v.number()), // Recorded when task is completed (completeTask work item)
   priority: taskPriority,
   dependencies: v.array(v.id("tasks")), // Dependent task IDs
   sortOrder: v.number(),

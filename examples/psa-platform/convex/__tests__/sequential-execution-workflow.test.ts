@@ -919,7 +919,7 @@ describe('CompleteTask Work Item', () => {
     expect(task!.status).toBe('Done')
   })
 
-  it('completes task without changing other fields', async () => {
+  it('records actualHours when provided', async () => {
     const orgId = authResult.organizationId as Id<'organizations'>
     const userId = authResult.userId as Id<'users'>
 
@@ -929,26 +929,21 @@ describe('CompleteTask Work Item', () => {
       userId
     )
 
-    // Verify initial state has estimatedHours preserved
-    const initialTask = await testContext.run(async (ctx) => {
-      return await ctx.db.get(taskId)
-    })
-    const initialName = initialTask!.name
-
-    // Simulate completeTask
+    // Simulate completeTask with actualHours
     await testContext.run(async (ctx) => {
       await ctx.db.patch(taskId, {
         status: 'Done',
+        actualHours: 5.5,
       })
     })
 
-    // Verify task is Done and other fields unchanged
+    // Verify task is Done with actualHours recorded
     const task = await testContext.run(async (ctx) => {
       return await ctx.db.get(taskId)
     })
 
     expect(task!.status).toBe('Done')
-    expect(task!.name).toBe(initialName)
+    expect(task!.actualHours).toBe(5.5)
   })
 })
 
