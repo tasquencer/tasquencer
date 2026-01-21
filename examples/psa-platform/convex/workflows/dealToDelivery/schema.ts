@@ -1151,6 +1151,8 @@ const dealToDeliveryWorkItems = defineWorkItemMetadataTable("deals").withPayload
       type: v.literal("getNextTask"),
       taskName: v.string(),
       priority: workItemPriority,
+      nextTaskId: v.optional(v.id("tasks")),
+      hasMoreTasks: v.optional(v.boolean()),
     }),
     v.object({
       type: v.literal("initParallelTasks"),

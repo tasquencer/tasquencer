@@ -157,11 +157,13 @@ function ProjectsPage() {
               const health = getHealthStatusIndicator(project.healthStatus)
 
               return (
-                <Card
+                <Link
                   key={project._id}
-                  className="cursor-pointer hover:shadow-md transition-shadow hover:border-primary/30"
+                  to={`/projects/${project._id}`}
+                  className="block"
                 >
-                  <CardContent className="p-5 space-y-4">
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow hover:border-primary/30">
+                    <CardContent className="p-5 space-y-4">
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 min-w-0">
@@ -272,8 +274,9 @@ function ProjectsPage() {
                         )}>{project.metrics.margin}%</span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               )
             })}
           </div>
