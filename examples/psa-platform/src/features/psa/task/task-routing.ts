@@ -67,6 +67,26 @@ const TASK_ROUTES: Record<string, TaskRouteConfig> = {
   evaluateCondition: { path: "/tasks/evaluatecondition", hasForm: true, domainIdType: 'project' },
   executePrimaryBranch: { path: "/tasks/executeprimarybranch", hasForm: true, domainIdType: 'project' },
   executeAlternateBranch: { path: "/tasks/executealternatebranch", hasForm: true, domainIdType: 'project' },
+
+  // Time tracking routes
+  selectEntryMethod: { path: "/tasks/selectentrymethod", hasForm: true, domainIdType: 'project' },
+  useTimer: { path: "/tasks/usetimer", hasForm: true, domainIdType: 'project' },
+  manualEntry: { path: "/tasks/manualentry", hasForm: true, domainIdType: 'project' },
+  importFromCalendar: { path: "/tasks/importfromcalendar", hasForm: true, domainIdType: 'project' },
+  autoFromBookings: { path: "/tasks/autofrombookings", hasForm: true, domainIdType: 'project' },
+  submitTimeEntry: { path: "/tasks/submittimeentry", hasForm: true, domainIdType: 'project' },
+
+  // Expense tracking routes
+  selectExpenseType: { path: "/tasks/selectexpensetype", hasForm: true, domainIdType: 'project' },
+  logSoftwareExpense: { path: "/tasks/logsoftwareexpense", hasForm: true, domainIdType: 'project' },
+  logTravelExpense: { path: "/tasks/logtravelexpense", hasForm: true, domainIdType: 'project' },
+  logMaterialsExpense: { path: "/tasks/logmaterialsexpense", hasForm: true, domainIdType: 'project' },
+  logSubcontractorExpense: { path: "/tasks/logsubcontractorexpense", hasForm: true, domainIdType: 'project' },
+  logOtherExpense: { path: "/tasks/logotherexpense", hasForm: true, domainIdType: 'project' },
+  attachReceipt: { path: "/tasks/attachreceipt", hasForm: true, domainIdType: 'project' },
+  markBillable: { path: "/tasks/markbillable", hasForm: true, domainIdType: 'project' },
+  setBillableRate: { path: "/tasks/setbillablerate", hasForm: true, domainIdType: 'project' },
+  submitExpense: { path: "/tasks/submitexpense", hasForm: true, domainIdType: 'project' },
 };
 
 /**
