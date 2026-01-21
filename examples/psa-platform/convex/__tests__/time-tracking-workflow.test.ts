@@ -1017,7 +1017,7 @@ describe('ManualEntry Work Item Lifecycle', () => {
           },
         } as any,
       })
-    ).rejects.toThrow('Hours must be at least 0.25')
+    ).rejects.toThrow(/0\.25/) // Zod validation: "Number must be greater than or equal to 0.25"
   })
 
   it('rejects hours greater than 24', async () => {
@@ -1096,7 +1096,7 @@ describe('ManualEntry Work Item Lifecycle', () => {
           },
         } as any,
       })
-    ).rejects.toThrow('Hours cannot exceed 24')
+    ).rejects.toThrow(/24/) // Zod validation: "Number must be less than or equal to 24"
   })
 
   it('rejects future dates', async () => {

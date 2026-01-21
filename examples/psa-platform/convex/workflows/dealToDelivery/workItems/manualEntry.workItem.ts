@@ -76,7 +76,8 @@ const manualEntryWorkItemActions = authService.builders.workItemActions
       taskId: zid("tasks").optional(),
       serviceId: zid("services").optional(),
       date: z.number(), // Entry date
-      hours: z.number(), // Hours worked (decimal)
+      // Hours worked - per spec task-manualentry.md: "Hours must be 0.25-24"
+      hours: z.number().min(0.25).max(24),
       notes: z.string().optional(),
       billable: z.boolean().default(true),
     }),
