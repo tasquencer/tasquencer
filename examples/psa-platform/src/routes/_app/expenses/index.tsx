@@ -466,9 +466,10 @@ function ExpensesPage() {
     vendorInfo?: { name: string; taxId?: string }
   }) => {
     if (selectedExpense) {
+      const { projectId: _projectId, ...updates } = expense
       await updateExpense({
         expenseId: selectedExpense._id,
-        ...expense,
+        ...updates,
       })
     } else {
       await createExpense(expense)
