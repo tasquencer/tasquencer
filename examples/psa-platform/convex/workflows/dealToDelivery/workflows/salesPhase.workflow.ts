@@ -76,7 +76,7 @@ export const salesPhaseWorkflow = Builder.workflow('salesPhase')
         return route.toTask('getProposalSigned')
       })
   )
-  // TODO: Consider looping revisions back through createEstimate for v2+ estimates.
+  // TODO: Consider looping revisions back through createEstimate for v2+ estimates. (deferred:proposal-revision-loop)
   .connectTask('reviseProposal', (to) => to.task('sendProposal'))
   .connectTask('getProposalSigned', (to) =>
     to

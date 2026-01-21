@@ -19,7 +19,7 @@ export const authComponent = createClient<DataModel>(components.betterAuth, {
     user: {
       onCreate: async (ctx, authUser) => {
         // Get or create the default organization
-        // TODO: In production, organization assignment should be more sophisticated
+        // TODO: In production, organization assignment should be more sophisticated (deferred:production-org-assignment)
         let defaultOrg = await ctx.db
           .query('organizations')
           .first()
