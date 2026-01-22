@@ -43,6 +43,7 @@ const billingCompositeTask = Builder.compositeTask(billingPhaseWorkflow)
   })
 
 const closeCompositeTask = Builder.compositeTask(closePhaseWorkflow)
+  .withJoinType('and')
   .withActivities({
     onEnabled: async ({ workflow }) => {
       await workflow.initialize()
@@ -75,8 +76,8 @@ export const dealToDeliveryWorkflow = Builder.workflow('dealToDelivery')
         return route.toTask('handleDealLost')
       })
   )
-  .connectTask('planning', (to) => to.task('execution'))
-  .connectTask('execution', (to) => to.task('billing'))
+  .connectTask('planning', (to) => to.task('execution').task('billing'))
+  .connectTask('execution', (to) => to.task('close'))
   .connectTask('billing', (to) => to.task('close'))
   .connectTask('close', (to) => to.condition('end'))
   .connectTask('handleDealLost', (to) => to.condition('end'))
