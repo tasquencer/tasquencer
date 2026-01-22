@@ -159,7 +159,8 @@ function ProjectsPage() {
               return (
                 <Link
                   key={project._id}
-                  to={`/projects/${project._id}`}
+                  to="/projects/$projectId"
+                  params={{ projectId: project._id }}
                   className="block"
                 >
                   <Card className="cursor-pointer hover:shadow-md transition-shadow hover:border-primary/30">

@@ -12,7 +12,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
@@ -171,4 +171,8 @@ export const manualEntryWorkItem = Builder.workItem("manualEntry")
 /**
  * The manualEntry task.
  */
-export const manualEntryTask = Builder.task(manualEntryWorkItem);
+export const manualEntryTask = Builder.task(manualEntryWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

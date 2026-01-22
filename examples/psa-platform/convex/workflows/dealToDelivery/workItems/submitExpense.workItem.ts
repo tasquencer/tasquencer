@@ -12,7 +12,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getExpense, updateExpenseStatus } from "../db/expenses";
@@ -46,7 +50,8 @@ const expensesSubmitPolicy = authService.policies.requireScope(
 const submitExpenseWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      expenseId: zid("expenses"),
+      expenseId: zid("expenses").optional(),
+      projectId: zid("projects").optional(),
     }),
     expensesSubmitPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -58,14 +63,16 @@ const submitExpenseWorkItemActions = authService.builders.workItemActions
         workItemId
       );
 
-      // Validate expense exists and is in Draft status
-      const expense = await getExpense(mutationCtx.db, payload.expenseId);
-      assertExpenseExists(expense, { expenseId: payload.expenseId });
+      if (payload.expenseId) {
+        // Validate expense exists and is in Draft status
+        const expense = await getExpense(mutationCtx.db, payload.expenseId);
+        assertExpenseExists(expense, { expenseId: payload.expenseId });
 
-      if (expense.status !== "Draft") {
-        throw new Error(
-          `Expense must be in Draft status to submit. Current status: ${expense.status}`
-        );
+        if (expense.status !== "Draft") {
+          throw new Error(
+            `Expense must be in Draft status to submit. Current status: ${expense.status}`
+          );
+        }
       }
 
       await initializeDealWorkItemAuth(mutationCtx, workItemId, {
@@ -75,7 +82,7 @@ const submitExpenseWorkItemActions = authService.builders.workItemActions
           type: "submitExpense",
           taskName: "Submit Expense",
           priority: "normal",
-          expenseId: payload.expenseId,
+          ...(payload.expenseId ? { expenseId: payload.expenseId } : {}),
         },
       });
     }
@@ -209,4 +216,8 @@ export const submitExpenseWorkItem = Builder.workItem("submitExpense")
 /**
  * The submitExpense task.
  */
-export const submitExpenseTask = Builder.task(submitExpenseWorkItem);
+export const submitExpenseTask = Builder.task(submitExpenseWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

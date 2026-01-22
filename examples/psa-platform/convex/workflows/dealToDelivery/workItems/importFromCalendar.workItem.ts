@@ -12,7 +12,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
@@ -39,6 +39,7 @@ const importFromCalendarWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
       calendarSource: z.enum(["google", "outlook"]).optional(),
+      projectId: zid("projects").optional(),
     }),
     timeCreatePolicy,
     async ({ mutationCtx, workItem }) => {
@@ -171,4 +172,8 @@ export const importFromCalendarWorkItem = Builder.workItem("importFromCalendar")
 /**
  * The importFromCalendar task.
  */
-export const importFromCalendarTask = Builder.task(importFromCalendarWorkItem);
+export const importFromCalendarTask = Builder.task(importFromCalendarWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

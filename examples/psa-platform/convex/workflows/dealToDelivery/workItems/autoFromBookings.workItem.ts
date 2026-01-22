@@ -12,7 +12,7 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth } from "./helpersAuth";
+import { initializeDealWorkItemAuth, initializeWorkItemWithProjectAuth } from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getProject } from "../db/projects";
@@ -57,11 +57,14 @@ function getDaysBetween(startDate: number, endDate: number): number[] {
 const autoFromBookingsWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      userId: zid("users"),
-      dateRange: z.object({
-        startDate: z.number(),
-        endDate: z.number(),
-      }),
+      userId: zid("users").optional(),
+      dateRange: z
+        .object({
+          startDate: z.number(),
+          endDate: z.number(),
+        })
+        .optional(),
+      projectId: zid("projects").optional(),
     }),
     timeCreatePolicy,
     async ({ mutationCtx, workItem }) => {
@@ -202,4 +205,8 @@ export const autoFromBookingsWorkItem = Builder.workItem("autoFromBookings")
 /**
  * The autoFromBookings task.
  */
-export const autoFromBookingsTask = Builder.task(autoFromBookingsWorkItem);
+export const autoFromBookingsTask = Builder.task(autoFromBookingsWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

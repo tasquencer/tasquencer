@@ -12,7 +12,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getTimeEntry, updateTimeEntryStatus } from "../db/timeEntries";
@@ -43,7 +47,8 @@ const timeSubmitPolicy = authService.policies.requireScope(
 const submitTimeEntryWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      timeEntryId: zid("timeEntries"),
+      timeEntryId: zid("timeEntries").optional(),
+      projectId: zid("projects").optional(),
     }),
     timeSubmitPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -55,14 +60,16 @@ const submitTimeEntryWorkItemActions = authService.builders.workItemActions
         workItemId
       );
 
-      // Validate time entry exists and is in Draft status
-      const timeEntry = await getTimeEntry(mutationCtx.db, payload.timeEntryId);
-      assertTimeEntryExists(timeEntry, { timeEntryId: payload.timeEntryId });
+      if (payload.timeEntryId) {
+        // Validate time entry exists and is in Draft status
+        const timeEntry = await getTimeEntry(mutationCtx.db, payload.timeEntryId);
+        assertTimeEntryExists(timeEntry, { timeEntryId: payload.timeEntryId });
 
-      if (timeEntry.status !== "Draft") {
-        throw new Error(
-          `Time entry must be in Draft status to submit. Current status: ${timeEntry.status}`
-        );
+        if (timeEntry.status !== "Draft") {
+          throw new Error(
+            `Time entry must be in Draft status to submit. Current status: ${timeEntry.status}`
+          );
+        }
       }
 
       await initializeDealWorkItemAuth(mutationCtx, workItemId, {
@@ -72,7 +79,7 @@ const submitTimeEntryWorkItemActions = authService.builders.workItemActions
           type: "submitTimeEntry",
           taskName: "Submit Time Entry",
           priority: "normal",
-          timeEntryId: payload.timeEntryId,
+          ...(payload.timeEntryId ? { timeEntryId: payload.timeEntryId } : {}),
         },
       });
     }
@@ -193,4 +200,8 @@ export const submitTimeEntryWorkItem = Builder.workItem("submitTimeEntry")
 /**
  * The submitTimeEntry task.
  */
-export const submitTimeEntryTask = Builder.task(submitTimeEntryWorkItem);
+export const submitTimeEntryTask = Builder.task(submitTimeEntryWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

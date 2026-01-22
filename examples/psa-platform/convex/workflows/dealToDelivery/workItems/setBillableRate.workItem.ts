@@ -13,7 +13,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { assertUserHasScope } from "../../../authorization";
@@ -46,7 +50,8 @@ const MAX_MARKUP_RATE_WITH_OVERRIDE = 2.0;
 const setBillableRateWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      expenseId: zid("expenses"),
+      expenseId: zid("expenses").optional(),
+      projectId: zid("projects").optional(),
     }),
     expensesEditPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -58,14 +63,16 @@ const setBillableRateWorkItemActions = authService.builders.workItemActions
         workItemId
       );
 
-      // Validate expense exists and is billable
-      const expense = await getExpense(mutationCtx.db, payload.expenseId);
-      assertExpenseExists(expense, { expenseId: payload.expenseId });
+      if (payload.expenseId) {
+        // Validate expense exists and is billable
+        const expense = await getExpense(mutationCtx.db, payload.expenseId);
+        assertExpenseExists(expense, { expenseId: payload.expenseId });
 
-      if (!expense.billable) {
-        throw new Error(
-          "Cannot set billable rate on non-billable expense"
-        );
+        if (!expense.billable) {
+          throw new Error(
+            "Cannot set billable rate on non-billable expense"
+          );
+        }
       }
 
       await initializeDealWorkItemAuth(mutationCtx, workItemId, {
@@ -75,7 +82,7 @@ const setBillableRateWorkItemActions = authService.builders.workItemActions
           type: "setBillableRate",
           taskName: "Set Billable Rate",
           priority: "normal",
-          expenseId: payload.expenseId,
+          ...(payload.expenseId ? { expenseId: payload.expenseId } : {}),
         },
       });
     }
@@ -195,4 +202,8 @@ export const setBillableRateWorkItem = Builder.workItem("setBillableRate")
 /**
  * The setBillableRate task.
  */
-export const setBillableRateTask = Builder.task(setBillableRateWorkItem);
+export const setBillableRateTask = Builder.task(setBillableRateWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

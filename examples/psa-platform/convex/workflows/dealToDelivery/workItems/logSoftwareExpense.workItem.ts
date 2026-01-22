@@ -12,7 +12,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { insertExpense } from "../db/expenses";
@@ -182,4 +186,8 @@ export const logSoftwareExpenseWorkItem = Builder.workItem("logSoftwareExpense")
 /**
  * The logSoftwareExpense task.
  */
-export const logSoftwareExpenseTask = Builder.task(logSoftwareExpenseWorkItem);
+export const logSoftwareExpenseTask = Builder.task(logSoftwareExpenseWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

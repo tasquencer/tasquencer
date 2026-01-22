@@ -13,7 +13,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getExpense, updateExpense } from "../db/expenses";
@@ -41,7 +45,8 @@ const RECEIPT_REQUIRED_THRESHOLD = 2500; // $25
 const attachReceiptWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      expenseId: zid("expenses"),
+      expenseId: zid("expenses").optional(),
+      projectId: zid("projects").optional(),
     }),
     expensesEditPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -53,9 +58,11 @@ const attachReceiptWorkItemActions = authService.builders.workItemActions
         workItemId
       );
 
-      // Validate expense exists
-      const expense = await getExpense(mutationCtx.db, payload.expenseId);
-      assertExpenseExists(expense, { expenseId: payload.expenseId });
+      if (payload.expenseId) {
+        // Validate expense exists
+        const expense = await getExpense(mutationCtx.db, payload.expenseId);
+        assertExpenseExists(expense, { expenseId: payload.expenseId });
+      }
 
       await initializeDealWorkItemAuth(mutationCtx, workItemId, {
         scope: "dealToDelivery:expenses:edit:own",
@@ -64,7 +71,7 @@ const attachReceiptWorkItemActions = authService.builders.workItemActions
           type: "attachReceipt",
           taskName: "Attach Receipt",
           priority: "normal",
-          expenseId: payload.expenseId,
+          ...(payload.expenseId ? { expenseId: payload.expenseId } : {}),
         },
       });
     }
@@ -162,4 +169,8 @@ export const attachReceiptWorkItem = Builder.workItem("attachReceipt")
 /**
  * The attachReceipt task.
  */
-export const attachReceiptTask = Builder.task(attachReceiptWorkItem);
+export const attachReceiptTask = Builder.task(attachReceiptWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

@@ -15,6 +15,7 @@ import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
 import {
   initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
   updateWorkItemMetadataPayload,
 } from "./helpersAuth";
 import { DealToDeliveryWorkItemHelpers } from "../helpers";
@@ -120,4 +121,8 @@ export const selectEntryMethodWorkItem = Builder.workItem("selectEntryMethod")
 /**
  * The selectEntryMethod task.
  */
-export const selectEntryMethodTask = Builder.task(selectEntryMethodWorkItem);
+export const selectEntryMethodTask = Builder.task(selectEntryMethodWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

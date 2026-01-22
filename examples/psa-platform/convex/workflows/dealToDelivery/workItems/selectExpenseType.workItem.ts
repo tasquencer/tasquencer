@@ -14,7 +14,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { getProject } from "../db/projects";
 import { getRootWorkflowAndDealForWorkItem } from "../db/workItemContext";
@@ -109,4 +113,8 @@ export const selectExpenseTypeWorkItem = Builder.workItem("selectExpenseType")
 /**
  * The selectExpenseType task.
  */
-export const selectExpenseTypeTask = Builder.task(selectExpenseTypeWorkItem);
+export const selectExpenseTypeTask = Builder.task(selectExpenseTypeWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});

@@ -13,7 +13,11 @@ import { Builder } from "../../../tasquencer";
 import { z } from "zod";
 import { zid } from "convex-helpers/server/zod4";
 import { startAndClaimWorkItem, cleanupWorkItemOnCancel } from "./helpers";
-import { initializeDealWorkItemAuth, updateWorkItemMetadataPayload } from "./helpersAuth";
+import {
+  initializeDealWorkItemAuth,
+  initializeWorkItemWithProjectAuth,
+  updateWorkItemMetadataPayload,
+} from "./helpersAuth";
 import { authService } from "../../../authorization";
 import { authComponent } from "../../../auth";
 import { getExpense, updateExpense } from "../db/expenses";
@@ -37,7 +41,8 @@ const expensesEditPolicy = authService.policies.requireScope(
 const markBillableWorkItemActions = authService.builders.workItemActions
   .initialize(
     z.object({
-      expenseId: zid("expenses"),
+      expenseId: zid("expenses").optional(),
+      projectId: zid("projects").optional(),
     }),
     expensesEditPolicy,
     async ({ mutationCtx, workItem }, payload) => {
@@ -49,9 +54,11 @@ const markBillableWorkItemActions = authService.builders.workItemActions
         workItemId
       );
 
-      // Validate expense exists
-      const expense = await getExpense(mutationCtx.db, payload.expenseId);
-      assertExpenseExists(expense, { expenseId: payload.expenseId });
+      if (payload.expenseId) {
+        // Validate expense exists
+        const expense = await getExpense(mutationCtx.db, payload.expenseId);
+        assertExpenseExists(expense, { expenseId: payload.expenseId });
+      }
 
       await initializeDealWorkItemAuth(mutationCtx, workItemId, {
         scope: "dealToDelivery:expenses:edit:own",
@@ -60,7 +67,7 @@ const markBillableWorkItemActions = authService.builders.workItemActions
           type: "markBillable",
           taskName: "Mark Billable Status",
           priority: "normal",
-          expenseId: payload.expenseId,
+          ...(payload.expenseId ? { expenseId: payload.expenseId } : {}),
         },
       });
     }
@@ -144,4 +151,8 @@ export const markBillableWorkItem = Builder.workItem("markBillable")
 /**
  * The markBillable task.
  */
-export const markBillableTask = Builder.task(markBillableWorkItem);
+export const markBillableTask = Builder.task(markBillableWorkItem).withActivities({
+  onEnabled: async ({ workItem, mutationCtx, parent }) => {
+    await initializeWorkItemWithProjectAuth(mutationCtx, parent.workflow, workItem);
+  },
+});
