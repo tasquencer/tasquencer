@@ -337,7 +337,7 @@ function UseTimerTaskForm({
                   type="button"
                   size="lg"
                   onClick={handleStartTimer}
-                  disabled={!isStarted || elapsedTime > 0}
+                  disabled={!isStarted}
                   className="gap-2"
                 >
                   <Play className="h-5 w-5" />
