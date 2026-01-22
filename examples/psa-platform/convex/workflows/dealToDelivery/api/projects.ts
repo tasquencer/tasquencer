@@ -35,6 +35,7 @@ import {
   listMilestonesByProject,
   listChangeOrdersByProject,
 } from '../db'
+import { calculateProjectInvoicedAmount } from '../db/invoices'
 import { getUser } from '../db/users'
 import { getCompany } from '../db/companies'
 import { authComponent } from '../../../auth'
@@ -113,10 +114,11 @@ export const getProject = query({
     }
 
     // Load budget and calculate metrics in parallel
-    const [budget, hours, expenses] = await Promise.all([
+    const [budget, hours, expenses, invoicedAmount] = await Promise.all([
       getBudgetByProjectId(ctx.db, args.projectId),
       calculateProjectHours(ctx.db, args.projectId),
       calculateProjectExpenses(ctx.db, args.projectId),
+      calculateProjectInvoicedAmount(ctx.db, args.projectId),
     ])
 
     // Load services if budget exists
@@ -129,6 +131,11 @@ export const getProject = query({
 
     // Calculate estimated hours from services
     const estimatedHours = services.reduce((sum, s) => sum + s.estimatedHours, 0)
+
+    // Budget used should be based on invoiced amount, not hours/expenses
+    // This matches the calculation used in invoiceFixedFee.workItem.ts validation
+    const budgetUsed = invoicedAmount
+    const budgetRemaining = Math.max(0, budgetTotal - invoicedAmount)
 
     return {
       ...project,
@@ -148,8 +155,8 @@ export const getProject = query({
         expensesTotal: expenses.total,
         expensesApproved: expenses.approved,
         expensesBillable: expenses.billable,
-        budgetUsed: hoursUsed + expensesUsed,
-        budgetRemaining: Math.max(0, budgetTotal - (hoursUsed + expensesUsed)),
+        budgetUsed,
+        budgetRemaining,
       },
     }
   },
