@@ -50,6 +50,8 @@ type UseTimerFormValues = z.infer<typeof useTimerSchema>;
 
 const MIN_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours
+const NO_TASK_VALUE = "none";
+const NO_SERVICE_VALUE = "none";
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -183,8 +185,6 @@ function UseTimerTaskForm({
   const form = useForm<UseTimerFormValues>({
     resolver: zodResolver(useTimerSchema),
     defaultValues: {
-      taskId: "",
-      serviceId: "",
       billable: true,
       notes: "",
     },
@@ -383,15 +383,20 @@ function UseTimerTaskForm({
             <div className="space-y-2">
               <Label htmlFor="taskId">Task (optional)</Label>
               <Select
-                value={form.watch("taskId") || ""}
-                onValueChange={(v) => form.setValue("taskId", v || "")}
+                value={form.watch("taskId") ?? NO_TASK_VALUE}
+                onValueChange={(value) =>
+                  form.setValue(
+                    "taskId",
+                    value === NO_TASK_VALUE ? undefined : value
+                  )
+                }
                 disabled={!isStarted}
               >
                 <SelectTrigger id="taskId">
                   <SelectValue placeholder="Select task..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No task</SelectItem>
+                  <SelectItem value={NO_TASK_VALUE}>No task</SelectItem>
                   {tasks?.map((t) => (
                     <SelectItem key={t._id} value={t._id}>
                       {t.name}
@@ -403,15 +408,20 @@ function UseTimerTaskForm({
             <div className="space-y-2">
               <Label htmlFor="serviceId">Service (optional)</Label>
               <Select
-                value={form.watch("serviceId") || ""}
-                onValueChange={(v) => form.setValue("serviceId", v || "")}
+                value={form.watch("serviceId") ?? NO_SERVICE_VALUE}
+                onValueChange={(value) =>
+                  form.setValue(
+                    "serviceId",
+                    value === NO_SERVICE_VALUE ? undefined : value
+                  )
+                }
                 disabled={!isStarted}
               >
                 <SelectTrigger id="serviceId">
                   <SelectValue placeholder="Select service..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No service</SelectItem>
+                  <SelectItem value={NO_SERVICE_VALUE}>No service</SelectItem>
                   {services.map((s) => (
                     <SelectItem key={s._id} value={s._id}>
                       {s.name} (${(s.rate / 100).toFixed(2)}/hr)
