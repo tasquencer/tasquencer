@@ -1,6 +1,6 @@
 # Tasquencer
 
-**Tasquencer** is a workflow engine for building **real, long-running business processes**—the kind that involve humans, automation, and AI working together over time.
+**Tasquencer** is a headless coordination engine for **real, long-running business processes**—the kind that involve humans, automation, and AI working together over time.
 
 It runs on **Convex**, is **type-safe by default**, and is designed for the **AI era**, where even “simple” tasks turn into implicit, multi-step flows.
 
