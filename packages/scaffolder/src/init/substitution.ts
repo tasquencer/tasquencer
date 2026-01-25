@@ -7,8 +7,8 @@ export function generateSubstitutions(appName: string): Map<string, string> {
   // {{APP_NAME}} - original name
   substitutions.set('{{APP_NAME}}', appName)
 
-  // {{PACKAGE_NAME}} - kebab-case for package.json name
-  substitutions.set('{{PACKAGE_NAME}}', toKebabCase(appName))
+  // {{PACKAGE_NAME}} - kebab-case for package.json name (example: "greeting-example" -> "@repo/greeting-example")
+  substitutions.set('{{PACKAGE_NAME}}', `@repo/${toKebabCase(appName)}`)
 
   // {{APP_TITLE}} - title case for display
   substitutions.set('{{APP_TITLE}}', toTitleCase(appName))
