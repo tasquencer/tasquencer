@@ -2,6 +2,8 @@ import {
   assertTaskExists,
   assertWorkItemExists,
   assertWorkflowExists,
+  InvalidStateTransitionError,
+  StructuralIntegrityError,
   WorkflowNotFoundError,
   WorkItemNotFoundError,
 } from "../exceptions";
@@ -9,7 +11,10 @@ import { type Id } from "../../_generated/dataModel";
 import { type MutationCtx } from "../../_generated/server";
 import { Workflow } from "../elements/workflow";
 import { getWorkflowElementByPath, getWorkItemElementByPath } from "./helpers";
-import { getWorkItemRootWorkflowId } from "./workflowHelpers";
+import {
+  getWorkflowRootWorkflowId,
+  getWorkItemRootWorkflowId,
+} from "./workflowHelpers";
 import {
   type WorkflowExecutionMode,
   type TaskState,
@@ -718,6 +723,97 @@ export async function cancelWorkflow(
       : args.workflowId)) as Id<"tasquencerWorkflows">;
 
   await scheduleTraceFlush(ctx, auditFunctionHandles, traceId);
+}
+
+export async function tickTask(
+  ctx: MutationCtx,
+  auditFunctionHandles: AuditFunctionHandles,
+  isInternalMutation: boolean,
+  args: {
+    workflowNetwork: Workflow;
+    workflowName: string;
+    workflowId: Id<"tasquencerWorkflows">;
+    taskName: string;
+  }
+) {
+  const workflow = await ctx.db.get(args.workflowId);
+  assertWorkflowExists(workflow, args.workflowId);
+
+  const parentContext = await loadAuditContext(
+    ctx,
+    auditFunctionHandles,
+    args.workflowId
+  );
+
+  const workflowElement = getWorkflowElementByPath(
+    args.workflowNetwork,
+    workflow.path
+  );
+
+  if (workflowElement.name !== args.workflowName) {
+    throw new StructuralIntegrityError(
+      "Workflow name mismatch for tick",
+      {
+        workflowId: args.workflowId,
+        expectedName: workflowElement.name,
+        receivedName: args.workflowName,
+      }
+    );
+  }
+
+  const taskElement = workflowElement.getTask(args.taskName);
+
+  const executionContext = ExecutionContext.make({
+    mutationCtx: ctx,
+    auditFunctionHandles,
+    isInternalMutation,
+    executionMode: "normal",
+    auditContext: parentContext,
+  });
+
+  const task = await taskElement.getTaskByName(executionContext, args.workflowId);
+
+  if (task.state !== "started") {
+    throw new InvalidStateTransitionError(
+      "Task",
+      String(task._id),
+      task.state,
+      ["started"]
+    );
+  }
+
+  await taskElement.maybeComplete(executionContext, args.workflowId, task);
+
+  const rootWorkflowId = getWorkflowRootWorkflowId(workflow);
+  const traceId = parentContext?.traceId ?? rootWorkflowId;
+
+  const rootWorkflow = await ctx.db.get(rootWorkflowId);
+  if (rootWorkflow?.state === "completed") {
+    updateTraceState(traceId, "completed");
+  }
+  if (rootWorkflow?.state === "failed") {
+    updateTraceState(traceId, "failed");
+  }
+  if (rootWorkflow?.state === "canceled") {
+    updateTraceState(traceId, "canceled");
+  }
+
+  await scheduleTraceFlush(ctx, auditFunctionHandles, traceId);
+
+  if (
+    rootWorkflow &&
+    !rootWorkflow.parent &&
+    (rootWorkflow.state === "completed" ||
+      rootWorkflow.state === "failed" ||
+      rootWorkflow.state === "canceled")
+  ) {
+    await scheduleSnapshotComputation(
+      ctx,
+      auditFunctionHandles,
+      traceId,
+      Date.now()
+    );
+  }
 }
 
 export async function getWorkflowTaskStates(

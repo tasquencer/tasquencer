@@ -314,6 +314,31 @@ export const cancelWorkflow = internalMutation({
   returns: v.null(),
 });
 
+export const tickTask = internalMutation({
+  args: {
+    workflowName: v.string(),
+    workflowVersionName: v.string(),
+    workflowId: v.id("tasquencerWorkflows"),
+    taskName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const auditFunctionHandles = await makeAuditFunctionHandles(
+      components.tasquencerAudit
+    );
+    const workflowNetwork = getWorkflowNetwork(
+      args.workflowName,
+      args.workflowVersionName
+    );
+    await impl.tickTask(ctx, auditFunctionHandles, true, {
+      workflowNetwork,
+      workflowName: args.workflowName,
+      workflowId: args.workflowId,
+      taskName: args.taskName,
+    });
+  },
+  returns: v.null(),
+});
+
 export const getWorkflowById = internalQuery({
   args: {
     workflowId: v.id("tasquencerWorkflows"),

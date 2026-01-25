@@ -273,6 +273,14 @@ export function apiFor<
   >;
   type WorkflowActions = GetWorkflowActions<WorkflowNetworkActionsRegistry>;
   type WorkItemActions = GetWorkItemActions<WorkflowNetworkActionsRegistry>;
+  type WorkflowTaskNames = GetWorkflowBuilderTaskNames<TWorkflowBuilder>;
+  type TickTaskArgs = {
+    [TWorkflowName in keyof WorkflowTaskNames & string]: {
+      workflowName: TWorkflowName;
+      workflowId: Id<"tasquencerWorkflows">;
+      taskName: Get<WorkflowTaskNames, TWorkflowName> & string;
+    };
+  }[keyof WorkflowTaskNames & string];
 
   const initializeRootWorkflow = mutation({
     args: {
@@ -489,6 +497,24 @@ export function apiFor<
     },
     Promise<null>
   >;
+
+  const internalTick = internalMutation({
+    args: {
+      workflowName: v.string(),
+      workflowId: v.id("tasquencerWorkflows"),
+      taskName: v.string(),
+    },
+    handler: async (ctx, args) => {
+      const auditFunctionHandles =
+        await makeAuditFunctionHandles(auditComponent);
+      await impl.tickTask(ctx, auditFunctionHandles, true, {
+        workflowNetwork,
+        workflowName: args.workflowName,
+        workflowId: args.workflowId,
+        taskName: args.taskName,
+      });
+    },
+  }) as RegisteredMutation<"internal", TickTaskArgs, Promise<null>>;
 
   const initializeWorkItem = mutation({
     args: {
@@ -820,6 +846,7 @@ export function apiFor<
     internalCancelRootWorkflow,
     internalInitializeWorkflow,
     internalCancelWorkflow,
+    internalTick,
     internalInitializeWorkItem,
     internalStartWorkItem,
     internalCompleteWorkItem,
