@@ -31,6 +31,7 @@ import {
   Play,
   Square,
   AlertCircle,
+  RotateCcw,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@repo/ui/components/alert";
 import { SpinningLoader } from "@/components/spinning-loader";
@@ -175,6 +176,8 @@ function UseTimerTaskForm({
   // Timer state
   const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [accumulatedTime, setAccumulatedTime] = useState(0); // Time accumulated across pause/resume cycles
+  const [firstStartTime, setFirstStartTime] = useState<number | null>(null); // When timer was first started
   const isTimerRunning = timerStartTime !== null;
 
   // Get services from project budget
@@ -196,11 +199,12 @@ function UseTimerTaskForm({
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const elapsed = now - timerStartTime;
-      setElapsedTime(elapsed);
+      const currentSessionElapsed = now - timerStartTime;
+      const totalElapsed = accumulatedTime + currentSessionElapsed;
+      setElapsedTime(totalElapsed);
 
       // Auto-stop warning at max duration
-      if (elapsed >= MAX_DURATION_MS) {
+      if (totalElapsed >= MAX_DURATION_MS) {
         setErrorMessage(
           "Timer has reached maximum duration (12 hours). Please stop and save."
         );
@@ -208,20 +212,37 @@ function UseTimerTaskForm({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timerStartTime]);
+  }, [timerStartTime, accumulatedTime]);
 
   const handleStartTimer = useCallback(() => {
-    setTimerStartTime(Date.now());
-    setElapsedTime(0);
+    // Resume from current elapsed time (pause behavior)
+    const now = Date.now();
+    setTimerStartTime(now);
+    // Track first start time if this is the first start
+    if (firstStartTime === null) {
+      setFirstStartTime(now);
+    }
     setErrorMessage(null);
-  }, []);
+  }, [firstStartTime]);
 
   const handleStopTimer = useCallback(() => {
     if (!timerStartTime) return;
-    const elapsed = Date.now() - timerStartTime;
-    setElapsedTime(elapsed);
+    // Calculate elapsed time for this session and add to accumulated
+    const now = Date.now();
+    const currentSessionElapsed = now - timerStartTime;
+    const newAccumulatedTime = accumulatedTime + currentSessionElapsed;
+    setAccumulatedTime(newAccumulatedTime);
+    setElapsedTime(newAccumulatedTime);
     setTimerStartTime(null);
-  }, [timerStartTime]);
+  }, [timerStartTime, accumulatedTime]);
+
+  const handleResetTimer = useCallback(() => {
+    setTimerStartTime(null);
+    setElapsedTime(0);
+    setAccumulatedTime(0);
+    setFirstStartTime(null);
+    setErrorMessage(null);
+  }, []);
 
   if (!task) {
     return (
@@ -267,8 +288,8 @@ function UseTimerTaskForm({
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
-      // Calculate start time (when timer was started)
-      const startTime = Date.now() - elapsedTime;
+      // Use the first start time if available, otherwise calculate backwards
+      const startTime = firstStartTime ?? Date.now() - elapsedTime;
 
       await completeWorkItem({
         workItemId,
@@ -317,7 +338,7 @@ function UseTimerTaskForm({
       isClaiming={isClaiming}
       canClaim={canClaimWorkItem}
       errorMessage={errorMessage}
-      submitButtonText={canSubmit ? "Save Time Entry" : "Stop Timer First"}
+      submitButtonText={canSubmit ? "Save Time Entry" : "Pause Timer First"}
       backTo={`/projects/${projectId}`}
       backLabel="Back to Project"
     >
@@ -333,16 +354,31 @@ function UseTimerTaskForm({
             </div>
             <div className="flex gap-2">
               {!isTimerRunning ? (
-                <Button
-                  type="button"
-                  size="lg"
-                  onClick={handleStartTimer}
-                  disabled={!isStarted}
-                  className="gap-2"
-                >
-                  <Play className="h-5 w-5" />
-                  Start Timer
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    size="lg"
+                    onClick={handleStartTimer}
+                    disabled={!isStarted}
+                    className="gap-2"
+                  >
+                    <Play className="h-5 w-5" />
+                    {elapsedTime > 0 ? "Resume Timer" : "Start Timer"}
+                  </Button>
+                  {elapsedTime > 0 && (
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      onClick={handleResetTimer}
+                      disabled={!isStarted}
+                      className="gap-2"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                      Reset
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button
                   type="button"
@@ -352,7 +388,7 @@ function UseTimerTaskForm({
                   className="gap-2"
                 >
                   <Square className="h-5 w-5" />
-                  Stop Timer
+                  Pause Timer
                 </Button>
               )}
             </div>
