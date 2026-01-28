@@ -79,7 +79,6 @@ function RouteComponent() {
   // Form states
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
-  const [formIsActive, setFormIsActive] = useState(true)
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(new Set())
 
   // Loading states
@@ -108,7 +107,6 @@ function RouteComponent() {
     if (createDialogOpen) {
       setFormName('')
       setFormDescription('')
-      setFormIsActive(true)
       setSelectedScopes(new Set())
     }
   }, [createDialogOpen])
