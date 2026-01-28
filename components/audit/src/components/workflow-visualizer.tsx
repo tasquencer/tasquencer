@@ -347,7 +347,8 @@ function StandaloneWorkflowVisualizer({
 
     const selectedChild =
       pendingDynamicTask.childWorkflows.find(
-        (workflow) => workflow.name === pendingDynamicChildWorkflowName
+        (workflow: { name?: string }) =>
+          workflow.name === pendingDynamicChildWorkflowName
       ) ?? pendingDynamicTask.childWorkflows[0];
 
     if (!selectedChild) return;
@@ -401,11 +402,13 @@ function StandaloneWorkflowVisualizer({
             }
             onChange={(e) => setPendingDynamicChildWorkflowName(e.target.value)}
           >
-            {pendingDynamicTask.childWorkflows.map((workflow) => (
+            {pendingDynamicTask.childWorkflows.map(
+              (workflow: { name?: string }) => (
               <option key={workflow.name} value={workflow.name}>
                 {workflow.name}
               </option>
-            ))}
+              )
+            )}
           </select>
           <Button size="sm" onClick={handleOpenDynamicChildWorkflow}>
             Open
