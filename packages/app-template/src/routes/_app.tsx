@@ -5,22 +5,12 @@ import {
   BreadcrumbSeparator,
 } from '@repo/ui/components/breadcrumb'
 import { Breadcrumb, BreadcrumbPage } from '@repo/ui/components/breadcrumb'
-import { Button } from '@repo/ui/components/button'
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogHeader,
-} from '@repo/ui/components/dialog'
 import { Separator } from '@repo/ui/components/separator'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@repo/ui/components/sidebar'
-import { WorkflowVisualizer } from '@repo/audit/components/workflow-visualizer'
-import type { ExtractedWorkflowStructure } from '@repo/tasquencer'
 import {
   createFileRoute,
   isMatch,
@@ -82,52 +72,6 @@ function HeaderBreadcrumbs() {
   )
 }
 
-function WorkflowVisualizeHeader({
-  structure,
-}: {
-  structure: ExtractedWorkflowStructure
-}) {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline">Visualize</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[90vw] w-[90vw]">
-        <DialogHeader>
-          <DialogTitle>Workflow Visualizer</DialogTitle>
-        </DialogHeader>
-        <div className="h-[80vh] border-t -mx-6 -mb-6">
-          <WorkflowVisualizer structure={structure} />
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function HeaderRight() {
-  const matches = useMatches()
-  const matchesWithCrumbs = matches.filter((match) =>
-    isMatch(match, 'loaderData.headerRight'),
-  )
-
-  const elements = matchesWithCrumbs.map(
-    ({ loaderData }) => loaderData?.headerRight,
-  )
-
-  return (
-    <div className="gap-2 px-4">
-      {elements.map((element, index) => {
-        if (element?.type === 'workflowStructure') {
-          return (
-            <WorkflowVisualizeHeader key={index} structure={element.data} />
-          )
-        }
-        return null
-      })}
-    </div>
-  )
-}
-
 function RouteComponent() {
   return (
     <SidebarProvider>
@@ -141,9 +85,6 @@ function RouteComponent() {
               className="mr-2 data-[orientation=vertical]:h-4"
             />
             <HeaderBreadcrumbs />
-          </div>
-          <div className="gap-2 px-4">
-            <HeaderRight />
           </div>
         </header>
         <div className="flex flex-1 flex-col min-h-0">

@@ -73,7 +73,6 @@ function RouteComponent() {
   // Form states
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
-  const [formIsActive, setFormIsActive] = useState(true)
 
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -83,7 +82,6 @@ function RouteComponent() {
     if (createDialogOpen) {
       setFormName('')
       setFormDescription('')
-      setFormIsActive(true)
     }
   }, [createDialogOpen])
 
