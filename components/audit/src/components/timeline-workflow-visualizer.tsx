@@ -754,7 +754,9 @@ export function TimelineWorkflowVisualizer({
 
     const isKnownChildWorkflowName = (name: string | undefined | null) => {
       if (!name) return false;
-      return childWorkflowOptions.some((wf) => wf.name === name);
+      return childWorkflowOptions.some(
+        (wf: { name?: string }) => wf.name === name
+      );
     };
 
     // Cache any explicit user selection.
@@ -767,7 +769,9 @@ export function TimelineWorkflowVisualizer({
     // 1) If the trace shows exactly one child workflow name for this task (up to this timestamp),
     // pick it automatically.
     const observed = uniqueObservedChildWorkflowNames.filter((name) =>
-      childWorkflowOptions.some((wf) => wf.name === name)
+      childWorkflowOptions.some(
+        (wf: { name?: string }) => wf.name === name
+      )
     );
     if (observed.length === 1) {
       const resolved = observed[0]!;
@@ -814,7 +818,7 @@ export function TimelineWorkflowVisualizer({
     }
     return (
       childWorkflowOptions.find(
-        (wf) => wf.name === navState.selectedChildWorkflowName
+        (wf: { name?: string }) => wf.name === navState.selectedChildWorkflowName
       ) ?? childWorkflowOptions[0]
     );
   }, [childWorkflowOptions, navState.selectedChildWorkflowName, selectedTask]);
@@ -1035,7 +1039,7 @@ export function TimelineWorkflowVisualizer({
                                   })
                                 }
                               >
-                                {childWorkflowOptions.map((wf) => (
+                    {childWorkflowOptions.map((wf: { name?: string }) => (
                                   <option key={wf.name} value={wf.name}>
                                     {wf.name}
                                   </option>
